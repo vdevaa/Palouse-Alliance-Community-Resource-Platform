@@ -15,7 +15,7 @@ function App() {
     <Router>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <Navbar />
-        <div style={{ flex: 1, marginTop: "80px" }}>
+        <main style={{ flex: 1, marginTop: "70px" }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -25,7 +25,7 @@ function App() {
             <Route path="/postevent" element={<PostEvent />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
-        </div>
+        </main>
         <Footer />
       </div>
     </Router>
