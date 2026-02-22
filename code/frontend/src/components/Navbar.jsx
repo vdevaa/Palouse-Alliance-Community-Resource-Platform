@@ -1,16 +1,52 @@
 import { Link } from "react-router-dom";
+import logo from "../assets/PalouseAlliance.avif";
 
 const Navbar = () => {
     return (
-        <div style={{ padding: "1rem", background: "#ffffff" }}>
-            <Link to="/" style={{ margin: "0 1rem" }}>Home</Link>
-            <Link to="/login" style={{ margin: "0 1rem" }}>Login</Link>
-            <Link to="/register" style={{ margin: "0 1rem" }}>Register</Link>
-            <Link to="/dashboard" style={{ margin: "0 1rem" }}>Dashboard</Link>
-            <Link to="/organizations" style={{ margin: "0 1rem" }}>Organizations</Link>
-            <Link to="/postevent" style={{ margin: "0 1rem" }}>PostEvent</Link>
-            <Link to="/admin" style={{ margin: "0 1rem" }}>Admin</Link>
-        </div>
+        <nav style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "70px",
+            background: "#ffffff",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0 4rem",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+            zIndex: 1000,
+            boxSizing: "border-box"
+        }}>
+            <Link to="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+                <img 
+                    src={logo} 
+                    alt="Palouse Alliance Logo" 
+                    style={{ height: "50px", width: "auto" }} 
+                />
+            </Link>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
+                <Link to="/events" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Events</Link>
+                <Link to="/organizations" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Organizations</Link>
+                <Link to="/login" style={{ 
+                    textDecoration: "none", 
+                    color: "#333", 
+                    padding: "0.5rem 1.5rem", 
+                    border: "1px solid #ccc", 
+                    borderRadius: "8px",
+                    fontWeight: "500"
+                }}>Login</Link>
+                <Link to="/register" style={{ 
+                    textDecoration: "none", 
+                    color: "#fff", 
+                    background: "#981e32", 
+                    padding: "0.5rem 1.5rem", 
+                    borderRadius: "8px",
+                    fontWeight: "500"
+                }}>Register</Link>
+            </div>
+        </nav>
     );
 };
 
