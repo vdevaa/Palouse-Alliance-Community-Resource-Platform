@@ -23,7 +23,7 @@ Here are links to the issues that we completed in this sprint:
 * [Website Footer](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/16)
 * [Setup Row Level Security for Supabase](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/19)
 * [Feature/setup frontend](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/pull/20)
-
+* [Member Login (Front-end Only)](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/5)
 ## Incomplete Issues/User Stories
 Here are links to issues we worked on but did not complete in this sprint:
 * [Design Schema and ER Model for Database](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/18): This feature was delayed to Sprint 2 becuase we are awaiting final confirmation from our clients, which will be discussed during our next meeting. This is okay to be pushed to a later sprint since not all tables were needed for this first sprint.
