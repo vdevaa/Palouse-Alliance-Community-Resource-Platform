@@ -164,4 +164,4 @@ There are no known problems currently. To see an updated list, please visit the 
 
 ## Additional Documentation
 * [Sprint Documents](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/Sprints) (includes Meeting Minutes, presentations, and sprint reports)
-* User links
+* [Sprint Reports](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/Reports)
