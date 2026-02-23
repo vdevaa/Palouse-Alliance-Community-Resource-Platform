@@ -1,0 +1,154 @@
+/* Page background + layout */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7f3; /* soft off-white/green tint */
+}
+
+/* Centers the card */
+.login-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+/* Card container */
+.login-card {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.05);
+  padding: 42px 48px 36px 48px;
+}
+
+/* Header content */
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.login-logo img {
+  height: 44px;
+  width: auto;
+}
+
+.login-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 10px 0 28px 0;
+}
+
+/* Form fields */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.forgot-link {
+  font-size: 13px;
+  color: #5F7457;
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+.form-input {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f7f7f7;
+  padding: 0 14px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #5F7457;
+  box-shadow: 0 0 0 3px rgba(95, 116, 87, 0.18);
+  background: #ffffff;
+}
+
+/* Button */
+.login-button {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: #5F7457;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.login-button:hover {
+  background: #52684c;
+}
+
+.login-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(95, 116, 87, 0.22);
+}
+
+/* Bottom register text */
+.login-footer-text {
+  text-align: center;
+  color: #4b5563;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.register-link {
+  color: #5F7457;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}
+
+/* Mobile tweaks */
+@media (max-width: 520px) {
+  .login-card {
+    padding: 34px 22px 28px 22px;
+    border-radius: 12px;
+  }
+
+  .login-title {
+    font-size: 28px;
+  }
+}
