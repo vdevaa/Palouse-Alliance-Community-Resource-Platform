@@ -45,7 +45,7 @@ Here's what went well:
 * In addition to the above, we were ahead on schedule and were able to start working on features like the website header and footer. Our target was requirement gathering and seting up our tech stack, both of which we completed.
 
 Here's what we'd like to improve:
-* We all go our tasks done (with extra), there isn't anything we can do to improve becuase we got more than expected done and worked well together.
+* We all go our tasks done (with extra), there isn't anything we can do to improve becuase we got more than expected done and worked well together. Something extra was to take more initiative on unassigned or lesser priority tasks for future sprints, this sprint didn't have many, but future sprints would.
 
 Here are changes we plan to implement in the next sprint:
 * We plan to setup the database to support the tables and RLS we need for our chosen sprint 2 tasks.
