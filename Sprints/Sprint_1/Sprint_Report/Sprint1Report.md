@@ -1,6 +1,6 @@
 # Sprint 1 Report (01/20/2026 to 02/22/2026)
 ## YouTube link of Sprint Video
-[Sprint 1 Video](INSERT)
+[Sprint 1 Video](https://www.youtube.com/watch?v=uWQx7A4w4us)
 
 ## What's New (User Facing)
 * Setup the Supabase database
