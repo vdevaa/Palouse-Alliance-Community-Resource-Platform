@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-
 import PalouseLogo from "../assets/PalouseLogo.avif";
 import "../styles/Login.css";
 
@@ -33,8 +30,6 @@ const Login = () => {
 
   return (
     <div className="login-page">
-      <Navbar />
-
       <main className="login-main">
         <div className="login-card">
           <div className="login-logo">
@@ -105,8 +100,6 @@ const Login = () => {
           </form>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };
