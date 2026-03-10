@@ -12,9 +12,11 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -22,7 +24,7 @@ const Login = () => {
     });
 
     if (error) {
-      // set error state and show message
+      setErrorMessage(error.message || "Invalid email or password.");
       return;
     }
 
@@ -87,6 +89,12 @@ const Login = () => {
             <button className="login-button" type="submit">
               Sign In
             </button>
+
+            {errorMessage && (
+              <p className="login-error-message" role="alert">
+                {errorMessage}
+              </p>
+            )}
 
             <p className="login-footer-text">
               Don&apos;t have an account?{" "}
