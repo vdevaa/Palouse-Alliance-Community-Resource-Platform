@@ -26,11 +26,8 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
       </div>
 
       <div className="event-actions">
-        <button className="secondary-btn" type="button">
-          View Details
-        </button>
         <button className="primary-btn" type="button">
-          Interested
+          View Details
         </button>
       </div>
     </article>

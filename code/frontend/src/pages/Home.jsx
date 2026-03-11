@@ -345,7 +345,7 @@ const Home = () => {
                   {filteredEvents.length === 1 ? "Event" : "Events"} Found
                 </h2>
                 <p className="events-subtitle">
-                  Mocked against your Supabase structure: `events`, `organizations`,
+                  Mocked against Supabase structure: `events`, `organizations`,
                   and `categories`.
                 </p>
               </div>
