@@ -1,0 +1,40 @@
+import React from "react";
+import "../styles/EventCard.css";
+
+function EventCard({ event, formatFullDate, formatTimeRange }) {
+  return (
+    <article className="event-card">
+      <div className="event-card-top">
+        <span className="event-category">{event.categoryName}</span>
+        <span className="event-status">{event.status}</span>
+      </div>
+
+      <h3>{event.title}</h3>
+      <p className="event-org">{event.organizationName}</p>
+      <p className="event-description">{event.description}</p>
+
+      <div className="event-meta">
+        <p>
+          <strong>Date:</strong> {formatFullDate(event.startDate)}
+        </p>
+        <p>
+          <strong>Time:</strong> {formatTimeRange(event.startDate, event.endDate)}
+        </p>
+        <p>
+          <strong>Location:</strong> {event.location}
+        </p>
+      </div>
+
+      <div className="event-actions">
+        <button className="secondary-btn" type="button">
+          View Details
+        </button>
+        <button className="primary-btn" type="button">
+          Interested
+        </button>
+      </div>
+    </article>
+  );
+}
+
+export default EventCard;
