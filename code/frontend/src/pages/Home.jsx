@@ -1,10 +1,10 @@
 const Home = () => {
-    return (
-        <div>
-            <h1>Home</h1>
-            {/* Page content here */}
-        </div>
-    );
+  return (
+    <div style={{ minHeight: "60vh", color: "#111827", padding: "2rem" }}>
+      <h1 style={{ textAlign: "center", marginTop: "2rem" }}>Home</h1>
+      {/* Page content here */}
+    </div>
+  );
 };
 
 export default Home;

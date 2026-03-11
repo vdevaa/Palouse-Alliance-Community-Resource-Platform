@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import { supabase } from "../lib/supabase";
 
 import PalouseLogo from "../assets/PalouseLogo.avif";
 import "../styles/Login.css";
@@ -11,19 +9,27 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
 
-    // TEMP for Sprint 1 demo:
-    // Replace later with Supabase auth
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setErrorMessage(error.message || "Invalid email or password.");
+      return;
+    }
+
     navigate("/dashboard");
   };
 
   return (
     <div className="login-page">
-      <Navbar />
-
       <main className="login-main">
         <div className="login-card">
           <div className="login-logo">
@@ -79,6 +85,12 @@ const Login = () => {
               Sign In
             </button>
 
+            {errorMessage && (
+              <p className="login-error-message" role="alert">
+                {errorMessage}
+              </p>
+            )}
+
             <p className="login-footer-text">
               Don&apos;t have an account?{" "}
               <Link className="register-link" to="/register">
@@ -88,8 +100,6 @@ const Login = () => {
           </form>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };
