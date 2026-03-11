@@ -27,6 +27,23 @@ const Navbar = () => {
             </Link>
             
             <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
+                {/* GivePulse Button Added Here - First on the left */}
+                <a 
+                    href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ 
+                        textDecoration: "none", 
+                        color: "#fff", 
+                        background: "#007bff", 
+                        padding: "0.5rem 1.5rem", 
+                        borderRadius: "8px",
+                        fontWeight: "500"
+                    }}
+                >
+                    GivePulse
+                </a>
+
                 <Link to="/events" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Events</Link>
                 <Link to="/organizations" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Organizations</Link>
                 <Link to="/login" style={{ 
