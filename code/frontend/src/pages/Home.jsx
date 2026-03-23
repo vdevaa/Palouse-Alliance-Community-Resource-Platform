@@ -271,7 +271,7 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      <Navbar />
+      
 
       <main className="home-main">
         <section className="home-hero">
@@ -375,7 +375,6 @@ const Home = () => {
         </section>
       </main>
 
-      <Footer />
     </div>
   );
 };
