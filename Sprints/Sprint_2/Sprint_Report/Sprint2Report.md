@@ -3,7 +3,10 @@
 [Sprint 2 Video](INSERT)
 
 ## What's New (User Facing)
-* INSERT
+* Login page
+* Organizations page
+* GivePulse integration
+* RLS for accessing and updating login, orgs, and events.
 
 ## Work Summary (Developer Facing)
 This sprint focuses on creating the foundational steps for the application so we have time to improve on these features during our next few sprints. To do this we focused on creating our calendar component, authentication workflows, and secure database integration since these are all critical user stories/roles.
