@@ -1,6 +1,22 @@
 import React from "react";
 import "../styles/EventCard.css";
 
+function isSameCalendarDay(firstDate, secondDate) {
+  return (
+    firstDate.getFullYear() === secondDate.getFullYear() &&
+    firstDate.getMonth() === secondDate.getMonth() &&
+    firstDate.getDate() === secondDate.getDate()
+  );
+}
+
+function formatEventDateLabel(startDate, endDate, formatFullDate) {
+  if (isSameCalendarDay(startDate, endDate)) {
+    return formatFullDate(startDate);
+  }
+
+  return `${formatFullDate(startDate)} - ${formatFullDate(endDate)}`;
+}
+
 function EventCard({ event, formatFullDate, formatTimeRange }) {
   return (
     <article className="event-card">
@@ -15,7 +31,11 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
 
       <div className="event-meta">
         <p>
-          <strong>Date:</strong> {formatFullDate(event.startDate)}
+          <strong>Date:</strong> {formatEventDateLabel(
+            event.startDate,
+            event.endDate,
+            formatFullDate
+          )}
         </p>
         <p>
           <strong>Time:</strong> {formatTimeRange(event.startDate, event.endDate)}
