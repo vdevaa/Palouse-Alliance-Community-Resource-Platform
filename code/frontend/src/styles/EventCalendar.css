@@ -1,5 +1,6 @@
 .calendar-card {
   width: 100%;
+  min-width: 0;
 }
 
 .calendar-month-header {
@@ -36,8 +37,9 @@
 .calendar-weekdays,
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
+  width: 100%;
 }
 
 .calendar-weekdays {
@@ -53,6 +55,8 @@
 
 .calendar-day {
   position: relative;
+  width: 100%;
+  min-width: 0;
   min-height: 48px;
   border: 1px solid #edf1e9;
   background: #f8faf7;
