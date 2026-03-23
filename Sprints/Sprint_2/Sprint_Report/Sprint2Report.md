@@ -6,7 +6,7 @@
 * INSERT
 
 ## Work Summary (Developer Facing)
-INSERT
+This sprint focuses on creating the foundational steps for the application so we have time to improve on these features during our next few sprints. To do this we focused on creating our calendar component, authentication workflows, and secure database integration since these are all critical user stories/roles.
 
 ## Unfinished Work
 We finished everything we were hoping to for this sprint.
