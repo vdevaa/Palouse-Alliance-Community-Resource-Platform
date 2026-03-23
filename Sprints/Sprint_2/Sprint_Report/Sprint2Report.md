@@ -38,7 +38,8 @@ sprint, for quality:
 
 ## Retrospective Summary
 Here's what went well:
-* INSERT
+* Bi-weekly meetings were enough to get feedback and have time for us to work.
+* Members attended every meeting on time, and were cooperative when rescheduling was needed.
 
 Here's what we'd like to improve:
 * We all got our tasks done and more, there isn't anything we can do to improve becuase we got more than expected done and worked well together.
