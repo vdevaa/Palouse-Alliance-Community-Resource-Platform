@@ -45,4 +45,8 @@ Here's what we'd like to improve:
 * We all got our tasks done and more, there isn't anything we can do to improve becuase we got more than expected done and worked well together.
 
 Here are changes we plan to implement in the next sprint:
-* INSERT
+* Create an Event/Upload Flyer
+* Search for Services and Events
+* Category-Based filtering on calendar component
+* Add initial members and organizations to the DB
+
