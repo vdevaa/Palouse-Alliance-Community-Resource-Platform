@@ -105,6 +105,19 @@ const mockEvents = [
     category_id: "cat-arts-culture",
   },
   {
+    id: "evt-winter-resource-drive",
+    title: "Winter Resource Drive",
+    description: "A multi-day community drive with donation drop-offs, volunteer sorting shifts, and support services.",
+    start_datetime: "2026-02-19T09:00:00",
+    end_datetime: "2026-02-21T16:00:00",
+    location: "Palouse Community Outreach Center",
+    volunteer_url: "https://example.org/winter-resource-drive",
+    created_by: "usr-001",
+    status: "published",
+    organization_id: "org-palouse-health",
+    category_id: "cat-community-service",
+  },
+  {
     id: "evt-green-tech",
     title: "Green Tech Demo Night",
     description: "See student-built sustainability projects and connect with local mentors.",
@@ -134,12 +147,48 @@ const mockEvents = [
 
 const categories = mockCategories.map((category) => category.name);
 
+function getStartOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
 function getDateKey(date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function isSameDay(date1, date2) {
   return getDateKey(date1) === getDateKey(date2);
+}
+
+function isDateWithinEvent(date, startDate, endDate) {
+  const currentDay = getStartOfDay(date);
+  const eventStartDay = getStartOfDay(startDate);
+  const eventEndDay = getStartOfDay(endDate);
+  return currentDay >= eventStartDay && currentDay <= eventEndDay;
+}
+
+function getEventDateKeys(startDate, endDate) {
+  const keys = [];
+  const rangeStart = getStartOfDay(startDate);
+  const rangeEnd = getStartOfDay(endDate);
+
+  for (
+    let currentDate = rangeStart;
+    currentDate <= rangeEnd;
+    currentDate = addDays(currentDate, 1)
+  ) {
+    keys.push(getDateKey(currentDate));
+  }
+
+  return keys;
 }
 
 function formatFullDate(date) {
@@ -152,6 +201,13 @@ function formatFullDate(date) {
 
 function formatTimeRange(start, end) {
   const timeFormat = { hour: "numeric", minute: "2-digit" };
+
+  if (!isSameDay(start, end)) {
+    return `${formatFullDate(start)} ${start.toLocaleTimeString(
+      "en-US",
+      timeFormat
+    )} - ${formatFullDate(end)} ${end.toLocaleTimeString("en-US", timeFormat)}`;
+  }
 
   return `${start.toLocaleTimeString("en-US", timeFormat)} - ${end.toLocaleTimeString(
     "en-US",
@@ -222,8 +278,9 @@ const Home = () => {
 
   const eventCountByDate = useMemo(() => {
     return events.reduce((counts, event) => {
-      const key = getDateKey(event.startDate);
-      counts[key] = (counts[key] || 0) + 1;
+      getEventDateKeys(event.startDate, event.endDate).forEach((key) => {
+        counts[key] = (counts[key] || 0) + 1;
+      });
       return counts;
     }, {});
   }, [events]);
@@ -232,7 +289,9 @@ const Home = () => {
     const query = searchQuery.trim().toLowerCase();
 
     return events.filter((event) => {
-      const matchesSelectedDate = selectedDate ? isSameDay(event.startDate, selectedDate) : true;
+      const matchesSelectedDate = selectedDate
+        ? isDateWithinEvent(selectedDate, event.startDate, event.endDate)
+        : true;
       const matchesCategory =
         selectedCategory === "All Events" || event.categoryName === selectedCategory;
       const matchesSearch =
