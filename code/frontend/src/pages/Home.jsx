@@ -1,151 +1,10 @@
-import React, { useMemo, useState } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import React, { useEffect, useMemo, useState } from "react";
 import EventCalendar from "../components/EventCalendar";
 import EventCard from "../components/EventCard";
+import { supabase } from "../lib/supabase";
 import "../styles/Home.css";
 
-const mockOrganizations = [
-  {
-    id: "org-palouse-health",
-    name: "Palouse Health Network",
-    description: "Regional nonprofit focused on access to preventive care.",
-    phone_number: "(509) 555-0101",
-    email: "hello@palousehealth.org",
-    location: "Moscow, ID",
-  },
-  {
-    id: "org-learning-hub",
-    name: "Palouse Learning Hub",
-    description: "Community education partner for youth and families.",
-    phone_number: "(509) 555-0102",
-    email: "team@learninghub.org",
-    location: "Pullman, WA",
-  },
-  {
-    id: "org-green-palouse",
-    name: "Green Palouse",
-    description: "Volunteer-led environmental and beautification group.",
-    phone_number: "(509) 555-0103",
-    email: "volunteer@greenpalouse.org",
-    location: "Moscow, ID",
-  },
-  {
-    id: "org-arts-council",
-    name: "Palouse Arts Council",
-    description: "Arts programming and family creative events.",
-    phone_number: "(509) 555-0104",
-    email: "programs@palousearts.org",
-    location: "Moscow, ID",
-  },
-];
-
-const mockCategories = [
-  { id: "cat-all", name: "All Events" },
-  { id: "cat-education", name: "Education" },
-  { id: "cat-community-service", name: "Community Service" },
-  { id: "cat-arts-culture", name: "Arts & Culture" },
-  { id: "cat-health-wellness", name: "Health & Wellness" },
-  { id: "cat-technology", name: "Technology" },
-  { id: "cat-environment", name: "Environment" },
-  { id: "cat-youth-family", name: "Youth & Family" },
-];
-
-const mockEvents = [
-  {
-    id: "evt-health-fair",
-    title: "Community Health Fair",
-    description: "Join local organizations for free screenings, resource booths, and family wellness sessions.",
-    start_datetime: "2026-02-06T10:00:00",
-    end_datetime: "2026-02-06T13:00:00",
-    location: "Moscow Community Center",
-    volunteer_url: "https://example.org/health-fair",
-    created_by: "usr-001",
-    status: "published",
-    organization_id: "org-palouse-health",
-    category_id: "cat-health-wellness",
-  },
-  {
-    id: "evt-stem-workshop",
-    title: "Youth STEM Workshop",
-    description: "Hands-on robotics and science activities for students and families.",
-    start_datetime: "2026-02-06T13:00:00",
-    end_datetime: "2026-02-06T15:30:00",
-    location: "Pullman Public Library",
-    volunteer_url: "https://example.org/stem-workshop",
-    created_by: "usr-002",
-    status: "published",
-    organization_id: "org-learning-hub",
-    category_id: "cat-education",
-  },
-  {
-    id: "evt-cleanup-day",
-    title: "Neighborhood Cleanup Day",
-    description: "Volunteer with neighbors to clean trails, sort supplies, and beautify public spaces.",
-    start_datetime: "2026-02-12T09:00:00",
-    end_datetime: "2026-02-12T12:00:00",
-    location: "Lawson Gardens",
-    volunteer_url: "https://example.org/cleanup-day",
-    created_by: "usr-003",
-    status: "published",
-    organization_id: "org-green-palouse",
-    category_id: "cat-community-service",
-  },
-  {
-    id: "evt-arts-night",
-    title: "Family Arts Night",
-    description: "Interactive art stations, live demos, and collaborative projects for all ages.",
-    start_datetime: "2026-02-18T17:30:00",
-    end_datetime: "2026-02-18T20:00:00",
-    location: "Moscow Arts Center",
-    volunteer_url: "https://example.org/arts-night",
-    created_by: "usr-004",
-    status: "published",
-    organization_id: "org-arts-council",
-    category_id: "cat-arts-culture",
-  },
-  {
-    id: "evt-winter-resource-drive",
-    title: "Winter Resource Drive",
-    description: "A multi-day community drive with donation drop-offs, volunteer sorting shifts, and support services.",
-    start_datetime: "2026-02-19T09:00:00",
-    end_datetime: "2026-02-21T16:00:00",
-    location: "Palouse Community Outreach Center",
-    volunteer_url: "https://example.org/winter-resource-drive",
-    created_by: "usr-001",
-    status: "published",
-    organization_id: "org-palouse-health",
-    category_id: "cat-community-service",
-  },
-  {
-    id: "evt-green-tech",
-    title: "Green Tech Demo Night",
-    description: "See student-built sustainability projects and connect with local mentors.",
-    start_datetime: "2026-02-24T18:00:00",
-    end_datetime: "2026-02-24T20:00:00",
-    location: "WSU Innovation Lab",
-    volunteer_url: "https://example.org/green-tech",
-    created_by: "usr-002",
-    status: "published",
-    organization_id: "org-learning-hub",
-    category_id: "cat-technology",
-  },
-  {
-    id: "evt-family-garden",
-    title: "Family Garden Prep Day",
-    description: "Prepare raised beds, learn spring planting basics, and help seed the community garden.",
-    start_datetime: "2026-02-28T11:00:00",
-    end_datetime: "2026-02-28T14:00:00",
-    location: "Pullman Community Garden",
-    volunteer_url: "https://example.org/garden-prep",
-    created_by: "usr-003",
-    status: "published",
-    organization_id: "org-green-palouse",
-    category_id: "cat-youth-family",
-  },
-];
-
-const categories = mockCategories.map((category) => category.name);
+const ALL_EVENTS_CATEGORY = "All Events";
 
 function getStartOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -227,49 +86,119 @@ function getMonthMatrix(year, month) {
   });
 }
 
+function normalizeSupabaseEvent(event) {
+  const startDate = new Date(event.start_datetime);
+  const endDate = new Date(event.end_datetime);
+
+  return {
+    ...event,
+    description: event.description || "",
+    location: event.location || "",
+    startDate,
+    endDate,
+    organizationName: event.organizations?.name || "Unknown Organization",
+    categoryName: event.categories?.name || "General",
+  };
+}
+
 const Home = () => {
-  const initialSelectedDate = new Date("2026-02-06T10:00:00");
-  const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
-  const [selectedCategory, setSelectedCategory] = useState("All Events");
+  const [events, setEvents] = useState([]);
+  const [categories, setCategories] = useState([ALL_EVENTS_CATEGORY]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsError, setEventsError] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(ALL_EVENTS_CATEGORY);
   const [searchQuery, setSearchQuery] = useState("");
-  const [visibleMonth, setVisibleMonth] = useState(
-    new Date(initialSelectedDate.getFullYear(), initialSelectedDate.getMonth(), 1)
-  );
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
 
-  const organizationsById = useMemo(
-    () =>
-      Object.fromEntries(
-        mockOrganizations.map((organization) => [organization.id, organization])
-      ),
-    []
-  );
+  useEffect(() => {
+    let isMounted = true;
 
-  const categoriesById = useMemo(
-    () =>
-      Object.fromEntries(mockCategories.map((category) => [category.id, category])),
-    []
-  );
+    const fetchCalendarData = async () => {
+      setEventsLoading(true);
+      setEventsError("");
 
-  const events = useMemo(
-    () =>
-      mockEvents
-        .map((event) => {
-          const startDate = new Date(event.start_datetime);
-          const endDate = new Date(event.end_datetime);
-          const organization = organizationsById[event.organization_id];
-          const category = categoriesById[event.category_id];
+      const [{ data: eventRows, error: eventsQueryError }, { data: categoryRows, error: categoriesQueryError }] =
+        await Promise.all([
+          supabase
+            .from("events")
+            .select(
+              `
+                id,
+                title,
+                description,
+                start_datetime,
+                end_datetime,
+                location,
+                volunteer_url,
+                created_by,
+                status,
+                organization_id,
+                category_id,
+                organizations ( name ),
+                categories ( name )
+              `
+            )
+            .eq("status", "approved")
+            .order("start_datetime", { ascending: true }),
+          supabase.from("categories").select("name").order("name", { ascending: true }),
+        ]);
 
-          return {
-            ...event,
-            startDate,
-            endDate,
-            organizationName: organization?.name || "Unknown Organization",
-            categoryName: category?.name || "General",
-          };
-        })
-        .sort((first, second) => first.startDate - second.startDate),
-    [categoriesById, organizationsById]
-  );
+      if (!isMounted) {
+        return;
+      }
+
+      if (eventsQueryError || categoriesQueryError) {
+        console.error("Error fetching home page calendar data:", {
+          eventsQueryError,
+          categoriesQueryError,
+        });
+        setEvents([]);
+        setCategories([ALL_EVENTS_CATEGORY]);
+        setEventsError("Unable to load events from Supabase right now.");
+        setEventsLoading(false);
+        return;
+      }
+
+      const normalizedEvents = (eventRows || [])
+        .map(normalizeSupabaseEvent)
+        .sort((first, second) => first.startDate - second.startDate);
+
+      const fetchedCategoryNames = (categoryRows || []).map((category) => category.name);
+
+      setEvents(normalizedEvents);
+      setCategories([ALL_EVENTS_CATEGORY, ...fetchedCategoryNames]);
+
+      if (normalizedEvents.length > 0) {
+        const firstEventDate = normalizedEvents[0].startDate;
+        setSelectedDate((currentSelectedDate) => currentSelectedDate || firstEventDate);
+        setVisibleMonth((currentVisibleMonth) => {
+          const isCurrentMonthEmpty = normalizedEvents.every(
+            (event) =>
+              event.startDate.getMonth() !== currentVisibleMonth.getMonth() ||
+              event.startDate.getFullYear() !== currentVisibleMonth.getFullYear()
+          );
+
+          if (!isCurrentMonthEmpty) {
+            return currentVisibleMonth;
+          }
+
+          return new Date(firstEventDate.getFullYear(), firstEventDate.getMonth(), 1);
+        });
+      }
+
+      setEventsLoading(false);
+    };
+
+    fetchCalendarData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const calendarDays = useMemo(
     () => getMonthMatrix(visibleMonth.getFullYear(), visibleMonth.getMonth()),
@@ -293,7 +222,7 @@ const Home = () => {
         ? isDateWithinEvent(selectedDate, event.startDate, event.endDate)
         : true;
       const matchesCategory =
-        selectedCategory === "All Events" || event.categoryName === selectedCategory;
+        selectedCategory === ALL_EVENTS_CATEGORY || event.categoryName === selectedCategory;
       const matchesSearch =
         query.length === 0 ||
         event.title.toLowerCase().includes(query) ||
@@ -404,19 +333,25 @@ const Home = () => {
                   {filteredEvents.length === 1 ? "Event" : "Events"} Found
                 </h2>
                 <p className="events-subtitle">
-                  Mocked against Supabase structure: `events`, `organizations`,
-                  and `categories`.
+                  {eventsLoading
+                    ? "Loading approved events from Supabase..."
+                    : eventsError }
                 </p>
               </div>
             </div>
 
-            {filteredEvents.length === 0 ? (
+            {!eventsLoading && filteredEvents.length === 0 ? (
               <div className="empty-state">
                 <h3>No Events Found</h3>
                 <p>
                   Try selecting a different date or category, or adjusting your
                   search.
                 </p>
+              </div>
+            ) : eventsLoading ? (
+              <div className="empty-state">
+                <h3>Loading Events</h3>
+                <p>Fetching calendar events from Supabase.</p>
               </div>
             ) : (
               <div className="event-grid">
