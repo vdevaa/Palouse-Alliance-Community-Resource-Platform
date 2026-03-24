@@ -27,7 +27,6 @@ const Navbar = () => {
             </Link>
             
             <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
-                {/* GivePulse Button Added Here - First on the left */}
                 <a 
                     href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities" 
                     target="_blank" 
