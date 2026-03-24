@@ -16,8 +16,9 @@ const Organizations = () => {
           id,
           name,
           description,
-          location,
+          phone_number,
           email,
+          location,
           events (id)
         `)
         .order("name", { ascending: true });
@@ -25,9 +26,12 @@ const Organizations = () => {
       if (error) {
         console.error(error.message);
       } else {
-        const formattedData = data.map(org => ({
+        const validOrgs = data.filter(
+          (org) => org.name && org.name.trim() !== ""
+        );
+        const formattedData = validOrgs.map((org) => ({
           ...org,
-          eventCount: org.events ? org.events.length : 0
+          eventCount: org.events ? org.events.length : 0,
         }));
         setOrgs(formattedData);
         setFilteredOrgs(formattedData);
@@ -38,26 +42,65 @@ const Organizations = () => {
   }, []);
 
   useEffect(() => {
-    const results = orgs.filter(org =>
-      org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (org.description && org.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    const results = orgs.filter(
+      (org) =>
+        org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (org.description &&
+          org.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     setFilteredOrgs(results);
   }, [searchTerm, orgs]);
 
-  if (loading) return <div style={{ padding: "4rem", textAlign: "center" }}>Loading Palouse Partners...</div>;
+  const iconStyle = {
+    fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
+    fontSize: "18px",
+    verticalAlign: "middle",
+    color: "#718096",
+  };
+
+  const isValid = (val) => val && val !== "NULL" && val.trim() !== "";
+
+  if (loading)
+    return (
+      <div style={{ padding: "4rem", textAlign: "center" }}>
+        Loading Palouse Partners...
+      </div>
+    );
 
   return (
-    <div style={{ backgroundColor: "#f9fafb", minHeight: "100vh", padding: "2rem 1rem" }}>
-      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-        
+    <div
+      style={{
+        backgroundColor: "#f9fafb",
+        minHeight: "100vh",
+        padding: "2rem 1rem",
+      }}
+    >
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h1 style={{ fontSize: "2.5rem", fontWeight: "700", color: "#111", marginBottom: "0.5rem" }}>Community Organizations</h1>
-          <p style={{ color: "#666", fontSize: "1.1rem" }}>Discover local organizations making a difference in the Palouse region</p>
+          <h1
+            style={{
+              fontSize: "2.5rem",
+              fontWeight: "700",
+              color: "#111",
+              marginBottom: "0.5rem",
+            }}
+          >
+            Community Organizations
+          </h1>
+          <p style={{ color: "#666", fontSize: "1.1rem" }}>
+            Discover local organizations making a difference in the Palouse
+            region
+          </p>
         </div>
 
-        <div style={{ position: "relative", maxWidth: "600px", margin: "0 auto 4rem auto" }}>
-          <input 
+        <div
+          style={{
+            position: "relative",
+            maxWidth: "600px",
+            margin: "0 auto 4rem auto",
+          }}
+        >
+          <input
             type="text"
             placeholder="Search by name or mission..."
             value={searchTerm}
@@ -68,103 +111,226 @@ const Organizations = () => {
               borderRadius: "12px",
               border: "1px solid #ddd",
               fontSize: "1rem",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
             }}
           />
-          <span style={{ position: "absolute", left: "1.2rem", top: "1.1rem" }}>🔍</span>
+          <span
+            className="material-symbols-outlined"
+            style={{
+              position: "absolute",
+              left: "1.2rem",
+              top: "1.1rem",
+              color: "#999",
+              fontVariationSettings: "'FILL' 1",
+            }}
+          >
+            search
+          </span>
         </div>
 
-        <h2 style={{ fontSize: "1.5rem", marginBottom: "1.5rem", fontWeight: "600", color: "#333" }}>
-          {filteredOrgs.length} Organizations
-        </h2>
-
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", 
-          gap: "2rem" 
-        }}>
+        <div className="masonry-container">
           {filteredOrgs.length > 0 ? (
-            filteredOrgs.map((org, index) => (
-              <div key={index} style={{
-                background: "#fff",
-                borderRadius: "16px",
-                padding: "1.5rem",
-                border: "1px solid #edf2f7",
-                boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
-                display: "flex",
-                flexDirection: "column"
-              }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
-                    <h3 style={{ fontSize: "1.2rem", margin: 0, color: "#1a202c", flex: 1, fontWeight: "700" }}>
+            filteredOrgs.map((org) => (
+              <div key={org.id} className="masonry-item">
+                <div
+                  className="org-card"
+                  style={{
+                    background: "#fff",
+                    borderRadius: "16px",
+                    padding: "1.5rem",
+                    border: "1px solid #edf2f7",
+                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div style={{ marginBottom: "0.75rem" }}>
+                    <h3
+                      style={{
+                        fontSize: "1.3rem",
+                        margin: "0 0 0.3rem 0",
+                        color: "#1a202c",
+                        fontWeight: "800",
+                        lineHeight: "1.2",
+                      }}
+                    >
                       {org.name}
                     </h3>
-                    <span style={{ 
-                      backgroundColor: "#fef3c7", 
-                      color: "#92400e", 
-                      padding: "4px 12px", 
-                      borderRadius: "20px", 
-                      fontSize: "0.75rem", 
-                      fontWeight: "700",
-                      whiteSpace: "nowrap",
-                      marginLeft: "10px"
-                    }}>
-                      {org.location || "Palouse Area"}
-                    </span>
+                    <div
+                      style={{
+                        backgroundColor: "#fef3c7",
+                        color: "#92400e",
+                        padding: "2px 8px",
+                        borderRadius: "6px",
+                        fontSize: "0.55rem",
+                        fontWeight: "800",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        display: "inline-block",
+                      }}
+                    >
+                      {isValid(org.location) ? org.location : "Palouse Area"}
+                    </div>
                   </div>
-                  
-                  <p style={{ color: "#4a5568", fontSize: "0.95rem", lineHeight: "1.6", marginBottom: "1.5rem" }}>
-                    {org.description || "Connecting the community through local outreach and support."}
+
+                  <p
+                    style={{
+                      color: "#4a5568",
+                      fontSize: "0.85rem",
+                      lineHeight: "1.5",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    {org.description ||
+                      "Connecting the community through local outreach and support."}
                   </p>
 
-                  <div style={{ display: "flex", gap: "1rem", color: "#718096", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                      📅 {org.eventCount > 0 
-                        ? `${org.eventCount} active ${org.eventCount === 1 ? 'event' : 'events'}` 
-                        : "No active events"}
-                    </span>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-                  <button style={{ 
-                    flex: 1, 
-                    backgroundColor: "#5f745d", 
-                    color: "white", 
-                    border: "none", 
-                    padding: "0.8rem", 
-                    borderRadius: "8px", 
-                    fontWeight: "600",
-                    cursor: "pointer"
-                  }}>
-                    View Details
-                  </button>
-                  {org.email && (
-                    <a href={`mailto:${org.email}`} style={{
-                      padding: "0.8rem", 
-                      borderRadius: "8px", 
-                      border: "1px solid #e2e8f0", 
-                      backgroundColor: "white",
+                  <div
+                    style={{
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textDecoration: "none"
-                    }}>
-                      ✉️
-                    </a>
+                      flexDirection: "column",
+                      gap: "0.6rem",
+                      color: "#718096",
+                      fontSize: "0.8rem",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    {org.eventCount > 0 && (
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={iconStyle}
+                        >
+                          calendar_today
+                        </span>
+                        {org.eventCount} active{" "}
+                        {org.eventCount === 1 ? "event" : "events"}
+                      </span>
+                    )}
+
+                    {isValid(org.phone_number) && (
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={iconStyle}
+                        >
+                          call
+                        </span>
+                        {org.phone_number}
+                      </span>
+                    )}
+
+                    {isValid(org.email) && (
+                      <a
+                        href={`mailto:${org.email}`}
+                        className="email-link"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          color: "#5f745d",
+                          textDecoration: "none",
+                          fontWeight: "600",
+                          width: "fit-content",
+                        }}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ ...iconStyle, color: "#5f745d" }}
+                        >
+                          mail
+                        </span>
+                        {org.email}
+                      </a>
+                    )}
+                  </div>
+
+                  {org.eventCount > 0 && (
+                    <div style={{ marginTop: "1rem" }}>
+                      <button
+                        style={{
+                          width: "100%",
+                          backgroundColor: "#5f745d",
+                          color: "white",
+                          border: "none",
+                          padding: "0.7rem",
+                          borderRadius: "10px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        View Events
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
             ))
           ) : (
-            <div style={{ textAlign: "center", gridColumn: "1 / -1", padding: "4rem", color: "#718096" }}>
+            <div
+              style={{
+                textAlign: "center",
+                width: "100%",
+                padding: "4rem",
+                color: "#718096",
+              }}
+            >
               <p>No organizations found matching "{searchTerm}"</p>
             </div>
           )}
         </div>
       </div>
+
+      <style>
+        {`
+          .masonry-container {
+            column-count: 3;
+            column-gap: 1.5rem;
+            width: 100%;
+          }
+
+          .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            width: 100%;
+          }
+
+          .org-card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+          }
+
+          .org-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 18px -4px rgba(0,0,0,0.15);
+          }
+
+          .email-link:hover { text-decoration: underline !important; }
+
+          @media (max-width: 1000px) {
+            .masonry-container { column-count: 2; }
+          }
+          @media (max-width: 700px) {
+            .masonry-container { column-count: 1; }
+          }
+        `}
+      </style>
     </div>
   );
 };
 
 export default Organizations;
+
