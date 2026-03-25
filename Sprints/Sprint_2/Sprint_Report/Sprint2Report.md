@@ -25,6 +25,7 @@ Here are links to the issues that we completed in this sprint:
 * [Create ER Model for Database](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/24)
 * [Create RLS for Login Backend](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/25)
 * [Create RLS for Event Calendar](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/30)
+* [Event/Flyer Upload](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/6)
 
 ## Code Files for Review
 Please review the following code files, which were actively developed during this
