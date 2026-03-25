@@ -1,6 +1,6 @@
 # Sprint 2 Report (02/22/2026 to 03/24/2026)
 ## YouTube link of Sprint Video
-[Sprint 2 Video](INSERT)
+[Sprint 2 Video](https://youtu.be/hwYfJC0NvCQ)
 
 ## What's New (User Facing)
 * Login page
