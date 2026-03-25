@@ -73,7 +73,7 @@ function App() {
               }
             />
             <Route path="/organizations" element={<Organizations />} />
-            <Route path="/postevent" element={<PostEvent />} />
+            <Route path="/post-event" element={<PostEvent />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>

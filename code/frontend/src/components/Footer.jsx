@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from "react-router-dom";
 import logo from "../assets/PalouseLogo.avif";
 
 const Footer = () => {
@@ -58,7 +59,11 @@ const Footer = () => {
                         <li>Browse Events</li>
                         <li>Organizations</li>
                         <li>Register Organization</li>
-                        <li>Post an Event</li>
+                        <li>
+                            <Link to="/post-event" style={{ color: "#ffffff"}}>
+                            Post an Event
+                            </Link>
+                        </li>
                     </ul>
                 </div>
 

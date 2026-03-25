@@ -1,0 +1,243 @@
+.postevent-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: #f5f7f3;
+  padding: 30px 10px;
+}
+
+.postevent-main {
+  width: 100%;
+  max-width: 800px;
+}
+
+.postevent-card {
+  width: 80%;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05);
+  padding: 8px 48px 36px 48px;
+}
+
+.postevent-card.step-3 {
+  padding-bottom: 10px;
+}
+
+.postevent-title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 550;
+  color: #111827;
+  margin: 0;
+}
+
+.postevent-subtitle {
+  text-align: center;
+  color: #5F7457;
+  font-size: 20px;
+  font-weight: 475;
+  line-height: 1.5;
+  margin: 10px 0 28px 0;
+}
+
+.postevent-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.step {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #4b5563;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.step.current {
+  background: #5F7457;
+  color: white;
+}
+
+.step-line {
+  height: 4px;
+  width: 80px;
+  background: #e5e7eb;
+}
+
+.step-title {
+  font-size: 26px;
+  font-weight: 550;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.step-description {
+  color: #4b5563;
+  font-size: 16px;
+  font-weight: 450;
+  margin-bottom: 24px;
+}
+
+.postevent-help-text {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: -6px;
+  margin-bottom: 18px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.form-input {
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+textarea.form-input {
+  min-height: 150px;
+  padding: 12px;
+  resize: none;
+}
+
+textarea.form-input::placeholder {
+  font-family: inherit;
+  font-size: inherit;
+  color: #6b7280;
+}
+
+.file-upload {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 25px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #f9fafb;
+}
+
+.file-upload:hover {
+  border-color: #5F7457;
+  background: #f3f4f6;
+}
+
+.upload-icon {
+  width: 60px;
+  height: 60px;
+  opacity: 0.6;
+}
+
+.upload-text {
+  font-size: 18px;
+  font-weight: 575;
+  margin: 4px 0;
+  color: #111827;
+}
+
+.upload-subtext {
+  font-size: 16px;
+  margin: 2px 0;
+  opacity: 0.8;
+}
+
+.summary-card {
+  margin-top: 20px;
+  padding: 20px 20px 8px 20px;
+  line-height: 0.8;
+  border-radius: 14px;
+  background: #D8E8D8;
+}
+
+.summary-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  margin-top: 0px;
+}
+
+.postevent-button {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  background: #5F7457;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.postevent-button:hover {
+  background: #52684c;
+}
+
+.postevent-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(95, 116, 87, 0.22);
+}
+
+.postevent-button.secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.postevent-button.secondary:hover {
+  background: #D1D5DB;
+}
+
+.postevent-button:disabled {
+  background: #5F7457;
+  opacity: 0.5;
+}
+
+.postevent-button:disabled:hover {
+  background: #5F7457;
+}
+
+.postevent-button.submit {
+  background: #EAB308;
+  color: black;
+}
+
+.postevent-button-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.review-text {
+  margin: 16px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+@media (max-width: 520px) {
+  .postevent-card {
+    padding: 34px 22px 28px 22px;
+    border-radius: 12px;
+  }
+
+  .postevent-title {
+    font-size: 28px;
+  }
+}
