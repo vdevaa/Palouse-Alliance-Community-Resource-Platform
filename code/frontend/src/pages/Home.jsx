@@ -86,9 +86,34 @@ function getMonthMatrix(year, month) {
   });
 }
 
+function parseSupabaseDateTime(timestamp) {
+  if (!timestamp) {
+    return null;
+  }
+
+  const match = timestamp.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/
+  );
+
+  if (!match) {
+    return new Date(timestamp);
+  }
+
+  const [, year, month, day, hours, minutes, seconds = "0"] = match;
+
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hours),
+    Number(minutes),
+    Number(seconds)
+  );
+}
+
 function normalizeSupabaseEvent(event) {
-  const startDate = new Date(event.start_datetime);
-  const endDate = new Date(event.end_datetime);
+  const startDate = parseSupabaseDateTime(event.start_datetime);
+  const endDate = parseSupabaseDateTime(event.end_datetime);
 
   return {
     ...event,
