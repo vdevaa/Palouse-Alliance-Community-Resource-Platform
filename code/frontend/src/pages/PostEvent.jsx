@@ -32,6 +32,7 @@ const PostEvent = () => {
 
   // step 3
   const [flyer, setFlyer] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const isStepValid = () => {
     if (step === 1) return title.trim() !== "" && description.trim() !== "";
@@ -42,13 +43,18 @@ const PostEvent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (step === 1) {
-      setStep(2);
-    } else if (step === 2) {
-      setStep(3);
-    } else {
-      console.log({ title, category, description, date, time, location, flyer });
-    }
+    if (step === 1) return setStep(2);
+    if (step === 2) return setStep(3); 
+    
+    console.log({
+      title,
+      category,
+      description,
+      date,
+      time,
+      location,
+      flyer,
+    });
   };
 
   return (
@@ -263,6 +269,12 @@ const PostEvent = () => {
                     : "Continue to Date & Location"}
               </button>
             </div>
+
+            {errorMessage && (
+              <p className="postevent-error-message" role="alert">
+                {errorMessage}
+              </p>
+            )}
 
             {step === 3 && (
               <p className="review-text">
