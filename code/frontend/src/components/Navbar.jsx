@@ -1,7 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/PalouseAlliance.avif";
+import { supabase } from "../lib/supabase";
 
-const Navbar = () => {
+const Navbar = ({ session }) => {
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (!error) {
+            navigate("/login");
+        }
+    };
+
     return (
         <nav style={{
             position: "fixed",
@@ -45,14 +56,38 @@ const Navbar = () => {
 
                 <Link to="/events" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Events</Link>
                 <Link to="/organizations" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Organizations</Link>
-                <Link to="/login" style={{ 
-                    textDecoration: "none", 
-                    color: "#333", 
-                    padding: "0.5rem 1.5rem", 
-                    border: "1px solid #ccc", 
-                    borderRadius: "8px",
-                    fontWeight: "500"
-                }}>Login</Link>
+                {session ? (
+                    <Link to="/dashboard" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>
+                        Dashboard
+                    </Link>
+                ) : null}
+                {session ? (
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            background: "#ffffff",
+                            color: "#333",
+                            padding: "0.5rem 1.5rem",
+                            border: "1px solid #ccc",
+                            borderRadius: "8px",
+                            fontWeight: "500",
+                            cursor: "pointer",
+                            fontSize: "1rem"
+                        }}
+                        type="button"
+                    >
+                        Logout
+                    </button>
+                ) : (
+                    <Link to="/login" style={{ 
+                        textDecoration: "none", 
+                        color: "#333", 
+                        padding: "0.5rem 1.5rem", 
+                        border: "1px solid #ccc", 
+                        borderRadius: "8px",
+                        fontWeight: "500"
+                    }}>Login</Link>
+                )}
                 <Link to="/register" style={{ 
                     textDecoration: "none", 
                     color: "#fff", 

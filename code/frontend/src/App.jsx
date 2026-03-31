@@ -12,7 +12,19 @@ import Organizations from "./pages/Organizations";
 import PostEvent from "./pages/PostEvent";
 import Admin from "./pages/Admin";
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, session, loading }) {
+  if (loading) {
+    return <div style={{ padding: "2rem" }}>Loading...</div>;
+  }
+
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,31 +55,19 @@ function ProtectedRoute({ children }) {
     };
   }, []);
 
-  if (loading) {
-    return <div style={{ padding: "2rem" }}>Loading...</div>;
-  }
-
-  if (!session) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
-
-function App() {
   return (
     <Router>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <Navbar />
+        <Navbar session={session} />
         <main style={{ flex: 1, marginTop: "70px" }}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home session={session} />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute loading={loading} session={session}>
                   <Dashboard />
                 </ProtectedRoute>
               }
