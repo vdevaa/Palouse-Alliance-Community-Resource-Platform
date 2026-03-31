@@ -426,7 +426,11 @@ const Home = ({ session }) => {
           />
         </section>
 
-        <section className={`home-content-grid ${session ? "home-content-grid-authenticated" : ""}`}>
+        <section
+          className={`home-content-grid ${
+            session ? "home-content-grid-authenticated" : "home-content-grid-public"
+          }`}
+        >
           <aside className="home-left-column">
             <div className="home-panel">
               <div className="panel-header">
@@ -500,7 +504,7 @@ const Home = ({ session }) => {
                 <p>Fetching calendar events from Supabase.</p>
               </div>
             ) : (
-              <div className="event-grid">
+              <div className={`event-grid ${session ? "event-grid-authenticated" : "event-grid-public"}`}>
                 {filteredEvents.map((event) => (
                   <EventCard
                     key={event.id}
