@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/EventCalendar.css";
 
-const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 function EventCalendar({
   calendarDays,
@@ -40,7 +40,7 @@ function EventCalendar({
       </div>
 
       <div className="calendar-weekdays">
-        {WEEKDAYS.map((weekday) => (
+        {DAYS.map((weekday) => (
           <span key={weekday}>{weekday}</span>
         ))}
       </div>
