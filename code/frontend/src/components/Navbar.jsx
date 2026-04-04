@@ -1,103 +1,168 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/PalouseAlliance.avif";
+import mobileMenuCloseIcon from "../assets/mobile-menu-close.svg";
+import mobileMenuOpenIcon from "../assets/mobile-menu-open.svg";
 import { supabase } from "../lib/supabase";
+import "../styles/Navbar.css";
 
 const Navbar = ({ session }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [mobileMenuOpen]);
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
 
         if (!error) {
+            setMobileMenuOpen(false);
             navigate("/login");
         }
     };
 
-    return (
-        <nav style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "70px",
-            background: "#ffffff",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "0 4rem",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-            zIndex: 1000,
-            boxSizing: "border-box"
-        }}>
-            <Link to="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-                <img 
-                    src={logo} 
-                    alt="Palouse Alliance Logo" 
-                    style={{ height: "50px", width: "auto" }} 
-                />
-            </Link>
-            
-            <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
-                <a 
-                    href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ 
-                        textDecoration: "none", 
-                        color: "#fff", 
-                        background: "#007bff", 
-                        padding: "0.5rem 1.5rem", 
-                        borderRadius: "8px",
-                        fontWeight: "500"
-                    }}
-                >
-                    GivePulse
-                </a>
+    const toggleMobileMenu = () => {
+        setMobileMenuOpen((currentState) => !currentState);
+    };
 
-                <Link to="/events" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Events</Link>
-                <Link to="/organizations" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>Organizations</Link>
-                {session ? (
-                    <Link to="/dashboard" style={{ textDecoration: "none", color: "#333", fontWeight: "500" }}>
-                        Dashboard
-                    </Link>
-                ) : null}
-                {session ? (
-                    <button
-                        onClick={handleLogout}
-                        style={{
-                            background: "#ffffff",
-                            color: "#333",
-                            padding: "0.5rem 1.5rem",
-                            border: "1px solid #ccc",
-                            borderRadius: "8px",
-                            fontWeight: "500",
-                            cursor: "pointer",
-                            fontSize: "1rem"
-                        }}
-                        type="button"
+    const closeMobileMenu = () => {
+        setMobileMenuOpen(false);
+    };
+
+    return (
+        <>
+            <nav className="site-navbar">
+                <Link to="/" className="navbar-logo-link" aria-label="Palouse Alliance home">
+                    <img
+                        src={logo}
+                        alt="Palouse Alliance Logo"
+                        className="navbar-logo"
+                    />
+                </Link>
+
+                <div className="navbar-desktop-links">
+                    <a
+                        href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="navbar-link navbar-link-primary"
                     >
-                        Logout
+                        GivePulse
+                    </a>
+
+                    <Link to="/events" className="navbar-link navbar-link-text">Events</Link>
+                    <Link to="/organizations" className="navbar-link navbar-link-text">Organizations</Link>
+                    {session ? (
+                        <Link to="/dashboard" className="navbar-link navbar-link-text">
+                            Dashboard
+                        </Link>
+                    ) : null}
+                    {session ? (
+                        <button
+                            onClick={handleLogout}
+                            className="navbar-link navbar-link-outline navbar-button"
+                            type="button"
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <Link to="/login" className="navbar-link navbar-link-outline">Login</Link>
+                    )}
+                    <Link to="/register" className="navbar-link navbar-link-accent">Register</Link>
+                </div>
+
+                <button
+                    type="button"
+                    className="navbar-menu-toggle"
+                    onClick={toggleMobileMenu}
+                    aria-expanded={mobileMenuOpen}
+                    aria-controls="mobile-navigation"
+                    aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                >
+                    <img
+                        src={mobileMenuOpenIcon}
+                        alt=""
+                        className="navbar-menu-icon"
+                        aria-hidden="true"
+                    />
+                </button>
+            </nav>
+
+            <div
+                className={`navbar-overlay ${mobileMenuOpen ? "is-open" : ""}`}
+                onClick={closeMobileMenu}
+                aria-hidden="true"
+            />
+
+            <aside
+                id="mobile-navigation"
+                className={`navbar-mobile-drawer ${mobileMenuOpen ? "is-open" : ""}`}
+                aria-hidden={!mobileMenuOpen}
+            >
+                <div className="navbar-mobile-header">
+                    <img
+                        src={logo}
+                        alt="Palouse Alliance Logo"
+                        className="navbar-mobile-logo"
+                    />
+                    <button
+                        type="button"
+                        className="navbar-mobile-close"
+                        onClick={closeMobileMenu}
+                        aria-label="Close navigation menu"
+                    >
+                        <img
+                            src={mobileMenuCloseIcon}
+                            alt=""
+                            className="navbar-close-icon"
+                            aria-hidden="true"
+                        />
                     </button>
-                ) : (
-                    <Link to="/login" style={{ 
-                        textDecoration: "none", 
-                        color: "#333", 
-                        padding: "0.5rem 1.5rem", 
-                        border: "1px solid #ccc", 
-                        borderRadius: "8px",
-                        fontWeight: "500"
-                    }}>Login</Link>
-                )}
-                <Link to="/register" style={{ 
-                    textDecoration: "none", 
-                    color: "#fff", 
-                    background: "#981e32", 
-                    padding: "0.5rem 1.5rem", 
-                    borderRadius: "8px",
-                    fontWeight: "500"
-                }}>Register</Link>
-            </div>
-        </nav>
+                </div>
+
+                <div className="navbar-mobile-links">
+                    <a
+                        href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="navbar-mobile-link navbar-link-primary"
+                    >
+                        GivePulse
+                    </a>
+
+                    <Link to="/events" className="navbar-mobile-link">Events</Link>
+                    <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
+                    {session ? (
+                        <Link to="/dashboard" className="navbar-mobile-link">
+                            Dashboard
+                        </Link>
+                    ) : null}
+                    {session ? (
+                        <button
+                            onClick={handleLogout}
+                            className="navbar-mobile-link navbar-mobile-button"
+                            type="button"
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <Link to="/login" className="navbar-mobile-link">Login</Link>
+                    )}
+                    <Link to="/register" className="navbar-mobile-link navbar-link-accent">Register</Link>
+                </div>
+            </aside>
+        </>
     );
 };
 

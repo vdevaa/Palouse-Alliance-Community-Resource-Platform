@@ -73,6 +73,8 @@ const Organizations = () => {
         backgroundColor: "#f9fafb",
         minHeight: "100vh",
         padding: "2rem 1rem",
+        boxSizing: "border-box",
+        overflowX: "hidden",
       }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -98,6 +100,8 @@ const Organizations = () => {
             position: "relative",
             maxWidth: "600px",
             margin: "0 auto 4rem auto",
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
           <input
@@ -112,6 +116,7 @@ const Organizations = () => {
               border: "1px solid #ddd",
               fontSize: "1rem",
               boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+              boxSizing: "border-box",
             }}
           />
           <span
@@ -325,6 +330,7 @@ const Organizations = () => {
           }
           @media (max-width: 700px) {
             .masonry-container { column-count: 1; }
+            .org-card { padding: 1.25rem !important; }
           }
         `}
       </style>
@@ -333,4 +339,3 @@ const Organizations = () => {
 };
 
 export default Organizations;
-
