@@ -1,13 +1,9 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
 
 import uploadIcon from "../assets/upload-icon.png";
 import "../styles/PostEvent.css";
 
 const PostEvent = () => {
-  const navigate = useNavigate();
-
   const [step, setStep] = useState(1);
 
   // step 1
@@ -32,7 +28,6 @@ const PostEvent = () => {
 
   // step 3
   const [flyer, setFlyer] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const isStepValid = () => {
     if (step === 1) return title.trim() !== "" && description.trim() !== "";
@@ -269,12 +264,6 @@ const PostEvent = () => {
                     : "Continue to Date & Location"}
               </button>
             </div>
-
-            {errorMessage && (
-              <p className="postevent-error-message" role="alert">
-                {errorMessage}
-              </p>
-            )}
 
             {step === 3 && (
               <p className="review-text">
