@@ -20,7 +20,6 @@ A community-focused React application that organizes Palouse area events, organi
 
 ## Repo Structure
 - `code/frontend/` - main web application source code.
-- `code/backend/` - placeholder for backend work.
 - `code/frontend/src/` - React components, pages, and Supabase client setup.
 - `Reports/` - project reports and documentation.
 - `Sprints/` - sprint plans, meeting minutes, and sprint reports.
