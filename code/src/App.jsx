@@ -63,7 +63,11 @@ function App() {
           <Routes>
             <Route path="/" element={<Home session={session} />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={
+              <ProtectedRoute loading={loading} session={session}>
+                <Register />
+              </ProtectedRoute>
+            } />
             <Route
               path="/dashboard"
               element={

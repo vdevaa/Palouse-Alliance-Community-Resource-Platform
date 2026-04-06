@@ -17,6 +17,49 @@ const Register = () => {
     organization_id: "",
   });
 
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Ensure only logged-in admins can access this page
+  useEffect(() => {
+    let mounted = true;
+    const ensureAdmin = async () => {
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
+
+      if (!mounted) return;
+      if (!currentSession) {
+        navigate("/login");
+        return;
+      }
+
+      const userId = currentSession.user?.id;
+      if (!userId) {
+        navigate("/login");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (!mounted) return;
+      if (error || !data || data.role !== "admin") {
+        navigate("/dashboard");
+        return;
+      }
+
+      setCheckingAuth(false);
+    };
+
+    ensureAdmin();
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
+
   useEffect(() => {
     const fetchOrgs = async () => {
       const { data, error } = await supabase
@@ -41,19 +84,23 @@ const Register = () => {
     setErrorMessage("");
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: {
-            role: form.role.toLowerCase(),
-            organization_id: form.organization_id,
-            wants_notifications: true
-          }
-        }
+      // Send registration request to backend which uses the Supabase service role key
+      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
+      const resp = await fetch(`${API_BASE}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          role: form.role.toLowerCase(),
+          organization_id: form.organization_id,
+        }),
       });
 
-      if (error) throw error;
+      const body = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        throw new Error((body && (body.message || body.error)) || 'Registration failed');
+      }
 
       navigate("/dashboard");
 
@@ -65,6 +112,9 @@ const Register = () => {
   };
 
   return (
+    checkingAuth ? (
+      <div style={{ padding: "2rem" }}>Checking permissions...</div>
+    ) : (
     <div className="login-page">
       <main className="login-main">
         <div className="login-card" style={{ maxWidth: "600px" }}>
@@ -154,7 +204,7 @@ const Register = () => {
         </div>
       </main>
     </div>
-  );
+  ));
 };
 
 export default Register;

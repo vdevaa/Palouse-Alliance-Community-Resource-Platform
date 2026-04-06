@@ -10,6 +10,7 @@ const Navbar = ({ session }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         setMobileMenuOpen(false);
@@ -22,6 +23,34 @@ const Navbar = ({ session }) => {
             document.body.style.overflow = "";
         };
     }, [mobileMenuOpen]);
+
+    // Fetch user's role to determine whether to show Register link
+    useEffect(() => {
+        let mounted = true;
+        const loadRole = async () => {
+            setIsAdmin(false);
+            if (!session?.user?.id) return;
+
+            const userId = session.user.id;
+            const { data, error } = await supabase
+                .from("users")
+                .select("role")
+                .eq("id", userId)
+                .maybeSingle();
+
+            if (!mounted) return;
+            if (!error && data && data.role === "admin") {
+                setIsAdmin(true);
+            } else {
+                setIsAdmin(false);
+            }
+        };
+
+        loadRole();
+        return () => {
+            mounted = false;
+        };
+    }, [session]);
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
@@ -79,7 +108,9 @@ const Navbar = ({ session }) => {
                     ) : (
                         <Link to="/login" className="navbar-link navbar-link-outline">Login</Link>
                     )}
-                    <Link to="/register" className="navbar-link navbar-link-accent">Register</Link>
+                    {isAdmin ? (
+                        <Link to="/register" className="navbar-link navbar-link-accent">Register</Link>
+                    ) : null}
                 </div>
 
                 <button
@@ -159,7 +190,9 @@ const Navbar = ({ session }) => {
                     ) : (
                         <Link to="/login" className="navbar-mobile-link">Login</Link>
                     )}
-                    <Link to="/register" className="navbar-mobile-link navbar-link-accent">Register</Link>
+                    {isAdmin ? (
+                        <Link to="/register" className="navbar-mobile-link navbar-link-accent">Register</Link>
+                    ) : null}
                 </div>
             </aside>
         </>
