@@ -76,6 +76,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/events" element={<Home session={session} />} />
             <Route path="/organizations" element={<Organizations />} />
             <Route path="/post-event" element={<PostEvent />} />
             <Route path="/admin" element={<Admin />} />

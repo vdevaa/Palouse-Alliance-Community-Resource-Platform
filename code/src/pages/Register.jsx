@@ -130,8 +130,9 @@ const Register = () => {
             <div className="form-grid">
               
               <div className="form-group">
-                <label className="form-label">Email Address</label>
+                <label htmlFor="email" className="form-label">Email Address</label>
                 <input
+                  id="email"
                   name="email"
                   className="form-input"
                   type="email"
@@ -142,8 +143,9 @@ const Register = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Password</label>
+                <label htmlFor="password" className="form-label">Password</label>
                 <input
+                  id="password"
                   name="password"
                   className="form-input"
                   type="password"
@@ -154,8 +156,9 @@ const Register = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Role</label>
+                <label htmlFor="role" className="form-label">Role</label>
                 <select
+                  id="role"
                   name="role"
                   className="form-input"
                   value={form.role}
@@ -168,8 +171,9 @@ const Register = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Organization</label>
+                <label htmlFor="organization_id" className="form-label">Organization</label>
                 <select
+                  id="organization_id"
                   name="organization_id"
                   className="form-input"
                   value={form.organization_id}

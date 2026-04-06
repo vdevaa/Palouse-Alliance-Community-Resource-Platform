@@ -20,6 +20,17 @@ vi.mock('../lib/supabase', () => ({
     auth: {
       signOut: mockSignOut,
     },
+    from: (table) => {
+      if (table === 'users') {
+        return {
+          select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { role: 'member' }, error: null }) }) }),
+        };
+      }
+
+      return {
+        select: () => ({ order: async () => ({ data: [], error: null }) }),
+      };
+    },
   },
 }));
 
@@ -39,7 +50,7 @@ describe('Navbar', () => {
     );
 
     expect(screen.getByRole('link', { name: 'Login' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Register' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Register' })).not.toBeInTheDocument();
   });
 
   it('shows dashboard/logout when session exists and logs out', async () => {
