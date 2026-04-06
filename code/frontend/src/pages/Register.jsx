@@ -40,38 +40,25 @@ const Register = () => {
     setLoading(true);
     setErrorMessage("");
 
-    let createdAuthUser = null;
-
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-      });
-
-      if (authError) throw authError;
-      createdAuthUser = authData.user;
-
-      const { error: dbError } = await supabase
-        .from("users")
-        .insert([
-          {
-            id: createdAuthUser.id,
+        options: {
+          data: {
             role: form.role.toLowerCase(),
             organization_id: form.organization_id,
-            wants_notifications: true,
-          },
-        ]);
-
-      if (dbError) {
-        if (createdAuthUser) {
-          await supabase.auth.admin.deleteUser(createdAuthUser.id);
+            wants_notifications: true
+          }
         }
-        throw dbError;
-      }
+      });
+
+      if (error) throw error;
 
       navigate("/dashboard");
+
     } catch (err) {
-      setErrorMessage(err.message || "Registration failed");
+      setErrorMessage(err.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -81,6 +68,7 @@ const Register = () => {
     <div className="login-page">
       <main className="login-main">
         <div className="login-card" style={{ maxWidth: "600px" }}>
+          
           <div className="login-logo">
             <img src={logo} alt="Palouse Alliance" />
           </div>
@@ -90,15 +78,13 @@ const Register = () => {
 
           <form onSubmit={handleRegister}>
             <div className="form-grid">
+              
               <div className="form-group">
-                <div className="form-label-row">
-                  <label className="form-label">Email Address</label>
-                </div>
+                <label className="form-label">Email Address</label>
                 <input
                   name="email"
                   className="form-input"
                   type="email"
-                  placeholder="email@example.com"
                   value={form.email}
                   onChange={onChange}
                   required
@@ -106,14 +92,11 @@ const Register = () => {
               </div>
 
               <div className="form-group">
-                <div className="form-label-row">
-                  <label className="form-label">Password</label>
-                </div>
+                <label className="form-label">Password</label>
                 <input
                   name="password"
                   className="form-input"
                   type="password"
-                  placeholder="Min 8 characters"
                   value={form.password}
                   onChange={onChange}
                   required
@@ -121,9 +104,7 @@ const Register = () => {
               </div>
 
               <div className="form-group">
-                <div className="form-label-row">
-                  <label className="form-label">Role</label>
-                </div>
+                <label className="form-label">Role</label>
                 <select
                   name="role"
                   className="form-input"
@@ -137,9 +118,7 @@ const Register = () => {
               </div>
 
               <div className="form-group">
-                <div className="form-label-row">
-                  <label className="form-label">Organization</label>
-                </div>
+                <label className="form-label">Organization</label>
                 <select
                   name="organization_id"
                   className="form-input"
@@ -155,6 +134,7 @@ const Register = () => {
                   ))}
                 </select>
               </div>
+
             </div>
 
             <button
