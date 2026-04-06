@@ -4,12 +4,12 @@
   left: 0;
   width: 100%;
   height: 70px;
-  background: #ffffff;
+  background: var(--color-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   z-index: 1000;
   box-sizing: border-box;
 }
@@ -36,34 +36,34 @@
 .navbar-link {
   text-decoration: none;
   font-weight: 500;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   transition: background-color 0.2s ease, border-color 0.2s ease,
     color 0.2s ease;
 }
 
 .navbar-link-text {
-  color: #333333;
+  color: var(--color-text);
   padding: 0.5rem 0.25rem;
 }
 
 .navbar-link-text:hover {
-  color: #981e32;
+  color: var(--color-primary-dark);
 }
 
 .navbar-link-primary {
-  color: #ffffff;
-  background: #007bff;
+  color: var(--color-surface);
+  background: var(--color-primary);
   padding: 0.65rem 1.3rem;
 }
 
 .navbar-link-primary:hover {
-  background: #0069d9;
+  background: var(--color-primary-dark);
 }
 
 .navbar-link-outline {
-  color: #333333;
-  background: #ffffff;
-  border: 1px solid #cccccc;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   padding: 0.65rem 1.3rem;
 }
 
@@ -72,13 +72,25 @@
 }
 
 .navbar-link-accent {
-  color: #ffffff;
-  background: #981e32;
+  color: var(--color-surface);
+  background: var(--color-accent-mustard);
   padding: 0.65rem 1.3rem;
 }
 
 .navbar-link-accent:hover {
-  background: #7f1829;
+  filter: brightness(0.95);
+}
+
+/* Secondary / less prominent button (outline with primary text) */
+.navbar-link-secondary {
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  padding: 0.65rem 1.3rem;
+}
+
+.navbar-link-secondary:hover {
+  background: rgba(85,110,87,0.08); /* subtle primary tint */
 }
 
 .navbar-button,
@@ -97,9 +109,9 @@
   display: none;
   width: 44px;
   height: 44px;
-  border: 1px solid #d9d9d9;
-  border-radius: 12px;
-  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -134,8 +146,8 @@
   right: 0;
   width: min(84vw, 340px);
   height: 100vh;
-  background: #ffffff;
-  box-shadow: -12px 0 40px rgba(17, 24, 39, 0.16);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
   transform: translateX(100%);
   transition: transform 0.24s ease;
   z-index: 1100;
@@ -155,16 +167,16 @@
   justify-content: space-between;
   gap: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .navbar-mobile-close {
   width: 40px;
   height: 40px;
-  border: 1px solid #dddddd;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #333333;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: 1.7rem;
   line-height: 1;
   display: inline-flex;
@@ -189,35 +201,46 @@
 
 .navbar-mobile-link {
   text-decoration: none;
-  color: #333333;
-  border: 1px solid #e4e4e4;
-  border-radius: 14px;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: 0.95rem 1rem;
   font-weight: 500;
-  background: #ffffff;
+  background: var(--color-surface);
   text-align: center;
 }
 
 .navbar-mobile-link.navbar-link-primary,
-.navbar-mobile-link.navbar-link-accent {
+.navbar-mobile-link.navbar-link-accent,
+.navbar-mobile-link.navbar-link-secondary {
   color: #ffffff;
   border-color: transparent;
 }
 
 .navbar-mobile-link.navbar-link-primary {
-  background: #007bff;
+  background: var(--color-primary);
 }
 
 .navbar-mobile-link.navbar-link-primary:hover {
-  background: #0069d9;
+  background: var(--color-primary-dark);
 }
 
 .navbar-mobile-link.navbar-link-accent {
-  background: #981e32;
+  background: var(--color-accent-mustard);
 }
 
 .navbar-mobile-link.navbar-link-accent:hover {
-  background: #7f1829;
+  filter: brightness(0.95);
+}
+
+.navbar-mobile-link.navbar-link-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.navbar-mobile-link.navbar-link-secondary:hover {
+  background: rgba(85,110,87,0.08);
 }
 
 .navbar-mobile-button {

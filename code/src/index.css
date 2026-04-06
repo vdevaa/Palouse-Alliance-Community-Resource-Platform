@@ -1,9 +1,128 @@
 :root {
-  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #111827;
-  background-color: #f5f7f3;
+  /* typography */
+  --font-sans: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --base-line-height: 1.5;
+  --font-weight-regular: 400;
+
+  /* Palette */
+  --color-primary: #556E57; /* Primary Green - CTA, accents */
+  --color-primary-dark: #495D4B; /* Primary Dark - hover, strong surfaces */
+  --color-footer-bg: #485F4D; /* Footer Background - large dark surfaces */
+  --color-accent-mustard: #E6B400; /* Accent Mustard - badges/highlights */
+  --color-accent-lime: #78C25A; /* Accent Lime - logo & micro accents */
+  --color-bg: #F5F8F4; /* Background - subtle green tint */
+  --color-surface: #FFFFFF; /* Surface / Card Background */
+  --color-border: #E9EFE9; /* Border / subtle line */
+  --color-text: #213128; /* Text Primary */
+  --color-muted: #6B7A71; /* Text Muted */
+  --color-danger: #b91c1c;
+
+  /* Mockup variables (mapped to palette) */
+  --font-size: 16px;
+  --background: var(--color-surface);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-surface);
+  --secondary: var(--color-accent-mustard);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-bg);
+  --muted-foreground: var(--color-muted);
+  --accent: #E8F3E5;
+  --accent-foreground: var(--color-text);
+  --destructive: #d4183d;
+  --destructive-foreground: #fff;
+  --border-weak: rgba(85,112,85,0.16);
+  --input: transparent;
+  --input-background: #f8faf7;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: var(--color-primary);
+  --chart-1: var(--color-primary);
+  --chart-2: #2d9687;
+  --chart-3: var(--color-accent-mustard);
+  --chart-4: #d4a742;
+  --chart-5: #3e5239;
+  --radius: 0.625rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--color-text);
+  --sidebar-primary: var(--color-primary);
+  --sidebar-primary-foreground: var(--color-surface);
+  --sidebar-accent: #f8faf7;
+  --sidebar-accent-foreground: var(--color-text);
+  --sidebar-border: #f0f6f0;
+  --sidebar-ring: #9fb89a;
+
+  /* Additional mockup tokens */
+  --font-sans-fallback: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --color-green-600: #5a7055; /* fallback mapped to primary */
+  --color-green-700: #495D4B; /* primary dark */
+  --color-gray-100: #f7faf7;
+  --color-black: #000;
+  --color-white: #fff;
+  --spacing: .25rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-2xl: 42rem;
+  --container-3xl: 48rem;
+  --container-4xl: 56rem;
+  --container-7xl: 80rem;
+  --text-xs: .75rem;
+  --text-xs--line-height: calc(1 / .75);
+  --text-sm: .875rem;
+  --text-sm--line-height: calc(1.25 / .875);
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: calc(1.75 / 1.125);
+  --text-xl: 1.25rem;
+  --text-xl--line-height: calc(1.75 / 1.25);
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: calc(2 / 1.5);
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: calc(2.5 / 2.25);
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1;
+  --text-9xl: 8rem;
+  --text-9xl--line-height: 1;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --tracking-tight: -.025em;
+  --tracking-widest: .1em;
+  --leading-tight: 1.25;
+  --leading-relaxed: 1.625;
+  --radius-xs: .125rem;
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+  --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
+  --aspect-video: 16 / 9;
+  --default-transition-duration: .15s;
+  --default-transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+  --default-font-family: var(--font-sans);
+  --default-mono-font-family: var(--font-mono);
+  /* note: keep original --color-border defined above (#E9EFE9) */
+
+  /* sizing */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 10px 30px rgba(31,41,55,0.05);
+
+  font-family: var(--font-sans);
+  line-height: var(--base-line-height);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text);
+  background-color: var(--color-bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -16,23 +135,85 @@ a {
   text-decoration: inherit;
 }
 
+/* make box sizing predictable so padding doesn't expand fixed-width elements */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden; /* prevent horizontal scrollbar from accidental overflow */
 }
 
 button {
-  border-radius: 8px;
+  border-radius: calc(var(--radius) - 2px);
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  padding-block: calc(var(--spacing) * 2); /* py-2 */
+  padding-inline: calc(var(--spacing) * 4); /* px-4 */
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: var(--font-weight-medium);
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.18s ease, transform 0.12s ease;
+}
+
+button:hover,
+button:active {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+/* Secondary button: subtle outline with header-colored text */
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding-block: calc(var(--spacing) * 2);
+  padding-inline: calc(var(--spacing) * 4);
+  border-radius: calc(var(--radius) - 2px);
+  font-weight: var(--font-weight-medium);
+}
+
+.btn-secondary:hover {
+  background: rgba(33,49,40,0.04); /* subtle dark tint on hover */
+}
+
+/* Primary button utility: filled CTA */
+.btn-primary {
+  outline: none;
+  transition: all var(--default-transition-duration) var(--default-transition-timing-function);
+  color: var(--primary-foreground);
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  padding-block: calc(var(--spacing) * 2);
+  padding-inline: calc(var(--spacing) * 4);
+  background-color: var(--primary);
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) - 2px);
+  gap: calc(var(--spacing) * 2);
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  height: calc(var(--spacing) * 9);
+  display: inline-flex;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-foreground) /* fallback */;
+  background-color: var(--primary-dark, var(--color-primary-dark));
 }
 
 button:focus,

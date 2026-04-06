@@ -100,16 +100,16 @@ const Navbar = ({ session }) => {
                     {session ? (
                         <button
                             onClick={handleLogout}
-                            className="navbar-link navbar-link-outline navbar-button"
+                            className="navbar-link navbar-link-secondary navbar-button"
                             type="button"
                         >
                             Logout
                         </button>
                     ) : (
-                        <Link to="/login" className="navbar-link navbar-link-outline">Login</Link>
+                        <Link to="/login" className="navbar-link navbar-link-primary">Login</Link>
                     )}
                     {isAdmin ? (
-                        <Link to="/register" className="navbar-link navbar-link-accent">Register</Link>
+                        <Link to="/register" className="navbar-link navbar-link-primary">Register</Link>
                     ) : null}
                 </div>
 
@@ -167,7 +167,7 @@ const Navbar = ({ session }) => {
                         href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="navbar-mobile-link navbar-link-primary"
+                        className="navbar-mobile-link navbar-link-secondary"
                     >
                         GivePulse
                     </a>
@@ -182,16 +182,16 @@ const Navbar = ({ session }) => {
                     {session ? (
                         <button
                             onClick={handleLogout}
-                            className="navbar-mobile-link navbar-mobile-button"
+                            className="navbar-mobile-link navbar-link-secondary navbar-mobile-button"
                             type="button"
                         >
                             Logout
                         </button>
                     ) : (
-                        <Link to="/login" className="navbar-mobile-link">Login</Link>
+                        <Link to="/login" className="navbar-mobile-link navbar-link-primary">Login</Link>
                     )}
                     {isAdmin ? (
-                        <Link to="/register" className="navbar-mobile-link navbar-link-accent">Register</Link>
+                        <Link to="/register" className="navbar-mobile-link navbar-link-primary">Register</Link>
                     ) : null}
                 </div>
             </aside>

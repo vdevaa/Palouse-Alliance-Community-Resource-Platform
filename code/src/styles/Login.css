@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f7f3;
+  background: var(--color-bg);
   color-scheme: light;
 }
 
@@ -17,10 +17,10 @@
 .login-card {
   width: 100%;
   max-width: 520px;
-  background: #ffffff;
-  border: 1px solid #e6e6e6;
-  border-radius: 14px;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.05);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   padding: 42px 48px 36px 48px;
   box-sizing: border-box;
 }
@@ -40,13 +40,13 @@
   text-align: center;
   font-size: 32px;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text);
   margin: 0;
 }
 
 .login-subtitle {
   text-align: center;
-  color: #4b5563;
+  color: var(--color-subtext);
   font-size: 14px;
   line-height: 1.5;
   margin: 10px 0 28px 0;
@@ -79,11 +79,11 @@
 .form-input {
   width: 100%;
   height: 46px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   background: #f7f7f7;
-  color: #111827;
-  caret-color: #111827;
+  color: var(--color-text);
+  caret-color: var(--color-text);
   padding: 0 14px;
   font-size: 14px;
   outline: none;
@@ -92,7 +92,7 @@
 }
 
 .form-input:focus {
-  border-color: #5F7457;
+  border-color: var(--color-accent);
   box-shadow: 0 0 0 3px rgba(95, 116, 87, 0.18);
   background: #ffffff;
 }
@@ -109,7 +109,7 @@ select.form-input {
 
 select.form-input:invalid,
 select.form-input option[value=""] {
-  color: #6b7280;
+  color: var(--color-muted);
 }
 
 .login-button {
@@ -117,8 +117,8 @@ select.form-input option[value=""] {
   height: 48px;
   border: none;
   border-radius: 10px;
-  background: #5F7457;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-surface);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -127,7 +127,7 @@ select.form-input option[value=""] {
 }
 
 .login-button:hover {
-  background: #52684c;
+  background: var(--color-accent-strong);
 }
 
 .login-button:disabled {
