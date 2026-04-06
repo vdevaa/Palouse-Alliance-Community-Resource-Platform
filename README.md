@@ -34,13 +34,13 @@ A community-focused React application that organizes Palouse area events, organi
 - Vitest
 
 ## Key Pages and Routes
-- `/` — Home page with searchable event listings, calendar, filters, and user-specific event tracking.
-- `/login` — Login form using Supabase password authentication.
-- `/register` — Registration page placeholder for future signup flow.
-- `/dashboard` — Protected dashboard route for authenticated users.
-- `/organizations` — Community organization directory with search filtering.
-- `/post-event` — Multi-step event posting form.
-- `/admin` — Admin page placeholder.
+- `/` - Home page with searchable event listings, calendar, filters, and user-specific event tracking.
+- `/login` - Login form using Supabase password authentication.
+- `/register` - Registration page placeholder for future signup flow.
+- `/dashboard` - Protected dashboard route for authenticated users.
+- `/organizations` - Community organization directory with search filtering.
+- `/post-event` - Multi-step event posting form.
+- `/admin` - Admin page placeholder.
 
 ## Installation
 ### Prerequisites
@@ -88,13 +88,13 @@ npm run preview
 
 ## Available Scripts
 From `code/frontend/`:
-- `npm run dev` — start Vite development server
-- `npm run build` — build production assets
-- `npm run preview` — preview built app locally
-- `npm run lint` — run ESLint
-- `npm run test` — run Vitest once
-- `npm run test:watch` — run Vitest in watch mode
-- `npm run test:coverage` — generate test coverage report
+- `npm run dev` - start Vite development server
+- `npm run build` - build production assets
+- `npm run preview` - preview built app locally
+- `npm run lint` - run ESLint
+- `npm run test` - run Vitest once
+- `npm run test:watch` - run Vitest in watch mode
+- `npm run test:coverage` - generate test coverage report
 
 ## Supabase Configuration
 The project currently uses Supabase through `code/frontend/src/lib/supabase.js`.
