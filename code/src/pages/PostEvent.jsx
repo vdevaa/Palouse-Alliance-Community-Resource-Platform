@@ -39,17 +39,54 @@ const PostEvent = () => {
     e.preventDefault();
 
     if (step === 1) return setStep(2);
-    if (step === 2) return setStep(3); 
-    
-    console.log({
-      title,
-      category,
-      description,
-      date,
-      time,
-      location,
-      flyer,
-    });
+    if (step === 2) return setStep(3);
+
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      console.error("No logged in user", sessionError);
+      setErrorMessage("You must be logged in to post an event.");
+      return;
+    }
+    const userId = session.user.id;
+
+    const { data: categoryData, error: categoryError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("name", category)
+      .maybeSingle();
+
+      if (categoryError) {
+        console.error("Error fetching category:", categoryError);
+        setErrorMessage("Invalid category.");
+        return;
+      }
+
+      if (!categoryData) {
+        console.error("Category not found:", category);
+        setErrorMessage(`Category "${category}" does not exist.`);
+        return;
+      }
+
+    const categoryId = categoryData.id;
+
+    const { error } = await supabase.from("events").insert([
+        {
+          title,
+          description,
+          start_datetime: date + "T" + time.split(" - ")[0],
+          end_datetime: date + "T" + time.split(" - ")[1],
+          location,
+          created_by: userId,
+          category_id: categoryId,
+        }
+      ]);
+
+    if (error) {
+      console.error("Insert error:", error);
+      setErrorMessage("Failed to submit event");
+    } else {
+      console.log("Insert succeeded");
+    }
   };
 
   return (
