@@ -18,13 +18,20 @@ function normalizeTagName(tag) {
   return typeof tag === "string" ? tag.trim() : "";
 }
 
-function parseTags(tags) {
+function parseTags(tags, tagLookup = {}) {
   if (!Array.isArray(tags)) {
     return [];
   }
 
   return tags
     .map((tagItem) => {
+      if (typeof tagItem === "string") {
+        const normalized = normalizeTagName(tagItem);
+        return typeof tagLookup[normalized] === "string"
+          ? normalizeTagName(tagLookup[normalized])
+          : normalized;
+      }
+
       if (!tagItem || typeof tagItem !== "object") {
         return "";
       }
@@ -33,8 +40,14 @@ function parseTags(tags) {
         return normalizeTagName(tagItem.name);
       }
 
-      if (typeof tagItem.tags === "object" && typeof tagItem.tags.name === "string") {
-        return normalizeTagName(tagItem.tags.name);
+      const nestedTag = tagItem.tags || tagItem.tag;
+      if (nestedTag && typeof nestedTag.name === "string") {
+        return normalizeTagName(nestedTag.name);
+      }
+
+      const tagId = tagItem.tag_id || tagItem.tagId || nestedTag?.id;
+      if (typeof tagId === "string" && tagLookup[tagId]) {
+        return normalizeTagName(tagLookup[tagId]);
       }
 
       return "";
@@ -167,9 +180,10 @@ function parseSupabaseDateTime(timestamp) {
   );
 }
 
-function normalizeSupabaseEvent(event, tagItems = []) {
+function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
   const startDate = parseSupabaseDateTime(event.start_datetime);
   const endDate = parseSupabaseDateTime(event.end_datetime);
+  const eventTags = parseTags(eventTagIds.length > 0 ? eventTagIds : event.event_tags || event.tags, tagLookup);
 
   return {
     ...event,
@@ -179,7 +193,8 @@ function normalizeSupabaseEvent(event, tagItems = []) {
     endDate,
     organizationName: event.organizations?.name || "Unknown Organization",
     categoryName: event.categories?.name || "General",
-    tags: parseTags(tagItems.length > 0 ? tagItems : event.event_tags || event.tags),
+    tags: eventTags,
+    tagIds: eventTagIds.length > 0 ? eventTagIds : (event.event_tags || []).map((tagRow) => tagRow?.tag_id).filter(Boolean),
   };
 }
 
@@ -188,7 +203,7 @@ const Home = ({ session }) => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([ALL_EVENTS_CATEGORY]);
-  const [tags, setTags] = useState([ALL_EVENTS_TAG]);
+  const [tags, setTags] = useState([{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
   const [selectedCategories, setSelectedCategories] = useState([
     ALL_EVENTS_CATEGORY,
   ]);
@@ -275,13 +290,13 @@ const Home = ({ session }) => {
                 category_id,
                 organizations ( name ),
                 categories ( name ),
-                event_tags ( tags ( name ) )
+                event_tags ( tag_id )
               `
             )
             .eq("status", "approved")
             .order("start_datetime", { ascending: true }),
           supabase.from("categories").select("name").order("name", { ascending: true }),
-          supabase.from("tags").select("name").order("name", { ascending: true }),
+          supabase.from("tags").select("id, name").order("name", { ascending: true }),
         ]);
 
       if (!isMounted) {
@@ -307,21 +322,52 @@ const Home = ({ session }) => {
         });
       }
 
+      const tagLookup = (tagRows || []).reduce((lookup, tag) => {
+        if (typeof tag?.id === "string" && typeof tag.name === "string") {
+          lookup[tag.id] = tag.name;
+        }
+        return lookup;
+      }, {});
+
+      const eventIds = (eventRows || []).map((event) => event.id).filter(Boolean);
+      let eventTagRows = [];
+
+      if (eventIds.length > 0) {
+        const { data: fetchedEventTagRows, error: eventTagsQueryError } = await supabase
+          .from("event_tags")
+          .select("event_id, tag_id")
+          .in("event_id", eventIds);
+
+        if (eventTagsQueryError) {
+          console.warn("Event tags could not be loaded via event_tags table:", eventTagsQueryError);
+        }
+
+        eventTagRows = fetchedEventTagRows || [];
+      }
+
+      const tagsByEventId = (eventTagRows || []).reduce((acc, row) => {
+        if (!row || !row.event_id) {
+          return acc;
+        }
+        const eventTagIds = acc[row.event_id] || [];
+        if (row.tag_id) {
+          acc[row.event_id] = [...eventTagIds, row.tag_id];
+        }
+        return acc;
+      }, {});
+
       const normalizedEvents = (eventRows || [])
-        .map((event) => normalizeSupabaseEvent(event))
+        .map((event) => normalizeSupabaseEvent(event, tagLookup, tagsByEventId[event.id] || []))
         .sort((first, second) => first.startDate - second.startDate);
 
       const fetchedCategoryNames = (categoryRows || []).map((category) => category.name);
       const fetchedTagNames = Array.from(
-        new Set([
-          ...(tagRows || []).map((tag) => tag.name).filter(Boolean),
-          ...normalizedEvents.flatMap((event) => event.tags),
-        ])
+        new Set([...(tagRows || []).map((tag) => tag.name).filter(Boolean)])
       ).sort();
 
       setEvents(normalizedEvents);
       setCategories([ALL_EVENTS_CATEGORY, ...fetchedCategoryNames]);
-      setTags([ALL_EVENTS_TAG, ...fetchedTagNames]);
+      setTags([{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }, ...(tagRows || [])]);
 
       if (normalizedEvents.length > 0) {
         const firstEventDate = normalizedEvents[0].startDate;
@@ -386,7 +432,7 @@ const Home = ({ session }) => {
         selectedCategories.includes(event.categoryName);
       const matchesTags =
         !tagFilterActive ||
-        event.tags.some((tag) => selectedTags.includes(tag));
+        (event.tagIds || []).some((tagId) => selectedTags.includes(tagId));
       const matchesSearch =
         query.length === 0 ||
         event.title.toLowerCase().includes(query) ||
@@ -442,14 +488,15 @@ const Home = ({ session }) => {
   }
 
   function toggleTag(tag) {
+    const tagId = tag.id ?? tag;
     setSelectedTags((currentSelected) => {
-      if (tag === ALL_EVENTS_TAG) {
+      if (tagId === ALL_EVENTS_TAG) {
         return [ALL_EVENTS_TAG];
       }
 
-      const nextSelection = currentSelected.includes(tag)
-        ? currentSelected.filter((value) => value !== tag)
-        : [...currentSelected.filter((value) => value !== ALL_EVENTS_TAG), tag];
+      const nextSelection = currentSelected.includes(tagId)
+        ? currentSelected.filter((value) => value !== tagId)
+        : [...currentSelected.filter((value) => value !== ALL_EVENTS_TAG), tagId];
 
       return nextSelection.length === 0 ? [ALL_EVENTS_TAG] : nextSelection;
     });
@@ -464,11 +511,12 @@ const Home = ({ session }) => {
   }
 
   function hasTagSelected(tag) {
-    if (tag === ALL_EVENTS_TAG) {
+    const tagId = tag.id ?? tag;
+    if (tagId === ALL_EVENTS_TAG) {
       return selectedTags.includes(ALL_EVENTS_TAG);
     }
 
-    return selectedTags.includes(tag);
+    return selectedTags.includes(tagId);
   }
 
   return (
@@ -557,12 +605,12 @@ const Home = ({ session }) => {
                 <div className="category-list">
                   {tags.map((tag) => (
                     <button
-                      key={tag}
+                      key={tag.id}
                       type="button"
                       className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
                       onClick={() => toggleTag(tag)}
                     >
-                      {tag}
+                      {tag.name}
                     </button>
                   ))}
                 </div>

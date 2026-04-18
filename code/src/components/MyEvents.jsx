@@ -27,26 +27,49 @@ function parseSupabaseDateTime(timestamp) {
   );
 }
 
-function parseTags(tags) {
+function normalizeTagName(tag) {
+  return typeof tag === "string" ? tag.trim() : "";
+}
+
+function parseTags(tags, tagLookup = {}) {
   if (!Array.isArray(tags)) {
     return [];
   }
 
   return tags
-    .map((tagItem) => tagItem?.tags?.name || tagItem?.name || "")
+    .map((tagItem) => {
+      if (typeof tagItem === "string") {
+        const normalized = normalizeTagName(tagItem);
+        return typeof tagLookup[normalized] === "string"
+          ? normalizeTagName(tagLookup[normalized])
+          : normalized;
+      }
+      if (typeof tagItem?.name === "string") {
+        return normalizeTagName(tagItem.name);
+      }
+      const nestedTag = tagItem?.tags || tagItem?.tag;
+      if (typeof nestedTag?.name === "string") {
+        return normalizeTagName(nestedTag.name);
+      }
+      const tagId = tagItem?.tag_id || tagItem?.tagId || nestedTag?.id;
+      if (typeof tagId === "string" && tagLookup[tagId]) {
+        return normalizeTagName(tagLookup[tagId]);
+      }
+      return "";
+    })
     .map((tagName) => (typeof tagName === "string" ? tagName.trim() : ""))
     .filter((tagName) => tagName.length > 0)
     .filter((tagName, index, self) => self.indexOf(tagName) === index);
 }
 
-function normalizeSupabaseEvent(event) {
+function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
   return {
     ...event,
     startDate: parseSupabaseDateTime(event.start_datetime),
     endDate: parseSupabaseDateTime(event.end_datetime),
     organizationName: event.organizations?.name || "Unknown Organization",
     location: event.location || "",
-    tags: parseTags(event.event_tags),
+    tags: parseTags(eventTagIds.length > 0 ? eventTagIds : event.event_tags || event.tags, tagLookup),
   };
 }
 
@@ -82,26 +105,33 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
       setMyEventsLoading(true);
       setMyEventsError("");
 
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          `
-            id,
-            title,
-            start_datetime,
-            end_datetime,
-            status,
-            location,
-            created_by,
-            organizations ( name ),
-            event_tags ( tags ( name ) )
-          `
-        )
-        .eq("created_by", session.user.id)
-        .order("start_datetime", { ascending: true });
+      const [{ data, error }, { data: tagRows, error: tagsError }] = await Promise.all([
+        supabase
+          .from("events")
+          .select(
+            `
+              id,
+              title,
+              start_datetime,
+              end_datetime,
+              status,
+              location,
+              created_by,
+              organizations ( name ),
+              event_tags ( tag_id )
+            `
+          )
+          .eq("created_by", session.user.id)
+          .order("start_datetime", { ascending: true }),
+        supabase.from("tags").select("id, name").order("name", { ascending: true }),
+      ]);
 
       if (!isMounted) {
         return;
+      }
+
+      if (tagsError) {
+        console.warn("Tag lookup data loaded with a partial error:", tagsError);
       }
 
       if (error) {
@@ -112,7 +142,44 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
         return;
       }
 
-      setMyEvents((data || []).map(normalizeSupabaseEvent));
+      const tagLookup = (tagRows || []).reduce((lookup, tag) => {
+        if (typeof tag?.id === "string" && typeof tag.name === "string") {
+          lookup[tag.id] = tag.name;
+        }
+        return lookup;
+      }, {});
+
+      const eventIds = (data || []).map((event) => event.id).filter(Boolean);
+      let eventTagRows = [];
+
+      if (eventIds.length > 0) {
+        const { data: fetchedEventTagRows, error: eventTagsError } = await supabase
+          .from("event_tags")
+          .select("event_id, tag_id")
+          .in("event_id", eventIds);
+
+        if (eventTagsError) {
+          console.warn("My events tag lookup failed:", eventTagsError);
+        }
+
+        eventTagRows = fetchedEventTagRows || [];
+      }
+
+      const tagsByEventId = (eventTagRows || []).reduce((acc, row) => {
+        if (!row || !row.event_id) {
+          return acc;
+        }
+
+        const ids = acc[row.event_id] || [];
+        if (row.tag_id) {
+          acc[row.event_id] = [...ids, row.tag_id];
+        }
+        return acc;
+      }, {});
+
+      setMyEvents(
+        (data || []).map((event) => normalizeSupabaseEvent(event, tagLookup, tagsByEventId[event.id] || []))
+      );
       setMyEventsLoading(false);
     };
 
@@ -233,7 +300,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
               >
                 <span className="my-events-group-title">Pending Events</span>
                 <span className="my-events-group-meta">
-                  {pendingMyEvents.length}
                   <span className="my-events-group-chevron">
                     {myEventsSections.pending ? "−" : "+"}
                   </span>
@@ -280,7 +346,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
               >
                 <span className="my-events-group-title">Approved Events</span>
                 <span className="my-events-group-meta">
-                  {approvedMyEvents.length}
                   <span className="my-events-group-chevron">
                     {myEventsSections.approved ? "−" : "+"}
                   </span>
@@ -327,7 +392,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
               >
                 <span className="my-events-group-title">Rejected Events</span>
                 <span className="my-events-group-meta">
-                  {rejectedMyEvents.length}
                   <span className="my-events-group-chevron">
                     {myEventsSections.rejected ? "−" : "+"}
                   </span>

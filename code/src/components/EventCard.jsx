@@ -44,16 +44,6 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
           {/* <span className="event-status">{event.status}</span> */}
         </div>
 
-        {tags.length > 0 ? (
-          <div className="event-tag-list" aria-label="Event tags">
-            {tags.map((tag) => (
-              <span key={tag} className="event-tag">
-                {tag}
-              </span>
-            ))}
-          </div>
-        ) : null}
-
         <h3>{event.title}</h3>
         <p className="event-org">{event.organizationName}</p>
         <p className="event-description">{event.description}</p>
@@ -72,6 +62,16 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
             </p>
           ) : null}
         </div>
+
+        {tags.length > 0 ? (
+          <div className="event-tag-list" aria-label="Event tags">
+            {tags.map((tag) => (
+              <span key={tag} className="event-tag">
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
         <div className="event-actions">
           {volunteerUrl ? (
@@ -112,10 +112,10 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
                 className="secondary-btn"
                 onClick={() => setConfirmOpen(false)}
               >
-                Go back
+                Cancel
               </button>
               <button type="button" className="primary-btn" onClick={handleLeaveSite}>
-                Leave site
+                Continue
               </button>
             </div>
           </div>
