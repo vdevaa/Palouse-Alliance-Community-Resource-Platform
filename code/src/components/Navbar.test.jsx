@@ -62,6 +62,7 @@ describe('Navbar', () => {
       </MemoryRouter>
     );
 
+    expect(screen.getByRole('link', { name: 'Post Event' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Logout' }));
 
     await waitFor(() => {

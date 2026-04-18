@@ -1,59 +1,335 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import uploadIcon from "../assets/upload-icon.png";
+import { supabase } from "../lib/supabase";
 import "../styles/PostEvent.css";
 
+const FALLBACK_CATEGORY_NAMES = [
+  "Community Events",
+  "Crisis Support",
+  "Disability Services",
+  "Education",
+  "Employment",
+  "Family Services",
+  "Financial Support",
+  "Food Assistance",
+  "Health & Wellness",
+  "Housing & Shelter",
+  "Legal Aid",
+  "Mental Health",
+  "Recreation",
+  "Seniors",
+  "Transportation",
+  "Veteran Services",
+  "Volunteer Opportunities",
+  "Youth Programs",
+];
+const TOAST_DURATION_MS = 4000;
+
+function formatDisplayDate(date) {
+  if (!date) {
+    return "";
+  }
+
+  return new Date(`${date}T00:00`).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function formatDisplayTime(time) {
+  if (!time) {
+    return "";
+  }
+
+  const [hours, minutes] = time.split(":").map(Number);
+  const displayDate = new Date(2000, 0, 1, hours, minutes);
+
+  return displayDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function isLikelyUrl(value) {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const parsedUrl = new URL(value);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 const PostEvent = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
 
-  // step 1
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Education");
+  const [categories, setCategories] = useState(
+    FALLBACK_CATEGORY_NAMES.map((name) => ({ id: "", name }))
+  );
+  const [category, setCategory] = useState(FALLBACK_CATEGORY_NAMES[0]);
 
-  const categories = [
-    "Education",
-    "Community Service",
-    "Arts & Culture",
-    "Health & Wellness",
-    "Technology",
-    "Environment",
-    "Youth & Family",
-  ];
-
-  // step 2
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
 
-  // step 3
   const [flyer, setFlyer] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, TOAST_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [toast]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCategories = async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name")
+        .order("name", { ascending: true });
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error || !data?.length) {
+        if (error) {
+          console.error("Error fetching categories:", error);
+        }
+        return;
+      }
+
+      setCategories(data);
+      setCategory((currentCategory) =>
+        data.some((categoryOption) => categoryOption.name === currentCategory)
+          ? currentCategory
+          : data[0].name
+      );
+    };
+
+    loadCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const selectedCategory = useMemo(
+    () => categories.find((categoryOption) => categoryOption.name === category) || null,
+    [categories, category]
+  );
 
   const isStepValid = () => {
-    if (step === 1) return title.trim() !== "" && description.trim() !== "";
-    if (step === 2) return date !== "" && time.trim() !== "" && location.trim() !== "";
+    if (step === 1) {
+      return (
+        title.trim() !== "" &&
+        description.trim() !== "" &&
+        category.trim() !== ""
+      );
+    }
+
+    if (step === 2) {
+      return (
+        date !== "" &&
+        endDate !== "" &&
+        endDate >= date &&
+        startTime !== "" &&
+        endTime !== "" &&
+        location.trim() !== ""
+      );
+    }
+
     return true;
+  };
+
+  const resetForm = () => {
+    setStep(1);
+    setTitle("");
+    setDescription("");
+    setCategory(categories[0]?.name || FALLBACK_CATEGORY_NAMES[0]);
+    setDate("");
+    setEndDate("");
+    setStartTime("");
+    setEndTime("");
+    setLocation("");
+    setFlyer(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (step === 1) return setStep(2);
-    if (step === 2) return setStep(3); 
-    
-    console.log({
-      title,
-      category,
-      description,
-      date,
-      time,
-      location,
-      flyer,
-    });
+    setToast(null);
+
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      setStep(3);
+      return;
+    }
+
+    if (endDate < date) {
+      setToast({
+        message: "End date must be on or after the start date.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (date === endDate && endTime <= startTime) {
+      setToast({
+        message: "End time must be after the start time for single-day events.",
+        type: "error",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user) {
+        console.error("No logged in user", sessionError);
+        setToast({
+          message: "You must be logged in to post an event.",
+          type: "error",
+        });
+        return;
+      }
+
+      const userId = session.user.id;
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("organization_id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (userError) {
+        console.error("Error fetching submitting user:", userError);
+        setToast({
+          message: "We couldn't verify your organization for this event.",
+          type: "error",
+        });
+        return;
+      }
+
+      if (!userData?.organization_id) {
+        setToast({
+          message: "Your account must be linked to an organization before posting events.",
+          type: "error",
+        });
+        return;
+      }
+
+      let categoryId = selectedCategory?.id || null;
+
+      if (!categoryId) {
+        const { data: categoryData, error: categoryError } = await supabase
+          .from("categories")
+          .select("id")
+          .eq("name", category)
+          .maybeSingle();
+
+        if (categoryError) {
+          console.error("Error fetching category:", categoryError);
+          setToast({
+            message: "Invalid category.",
+            type: "error",
+          });
+          return;
+        }
+
+        if (!categoryData) {
+          console.error("Category not found:", category);
+          setToast({
+            message: `Category "${category}" does not exist.`,
+            type: "error",
+          });
+          return;
+        }
+
+        categoryId = categoryData.id;
+      }
+
+      const trimmedLocation = location.trim();
+      const isOnlineEvent = isLikelyUrl(trimmedLocation);
+      const payload = {
+        title: title.trim(),
+        description: description.trim(),
+        start_datetime: `${date}T${startTime}:00`,
+        end_datetime: `${endDate}T${endTime}:00`,
+        location: isOnlineEvent ? "Online" : trimmedLocation,
+        volunteer_url: isOnlineEvent ? trimmedLocation : null,
+        created_by: userId,
+        category_id: categoryId,
+        organization_id: userData.organization_id,
+        status: "pending",
+      };
+
+      const { error } = await supabase.from("events").insert([payload]);
+
+      if (error) {
+        console.error("Insert error:", error);
+        setToast({
+          message: error.message || "Failed to submit event.",
+          type: "error",
+        });
+        return;
+      }
+
+      resetForm();
+      navigate("/events", {
+        state: {
+          flashMessage: "Your event request was successfully sent and is now pending review.",
+          flashType: "success",
+        },
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="postevent-page">
+      {toast ? (
+        <div
+          className={`postevent-toast postevent-toast-${toast.type}`}
+          role={toast.type === "error" ? "alert" : "status"}
+          aria-live="polite"
+        >
+          <div className="postevent-toast-indicator" aria-hidden="true"></div>
+          <p className="postevent-toast-message">{toast.message}</p>
+        </div>
+      ) : null}
+
       <main className="postevent-main">
         <h1 className="postevent-title">Post a Community Event</h1>
         <p className="postevent-subtitle">
@@ -70,7 +346,6 @@ const PostEvent = () => {
 
         <div className={`postevent-card ${step === 3 ? "step-3" : ""}`}>
           <form onSubmit={handleSubmit}>
-
             {step === 1 && (
               <>
                 <h2 className="step-title">Step 1: Basic Information</h2>
@@ -103,9 +378,9 @@ const PostEvent = () => {
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                   >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
+                    {categories.map((categoryOption) => (
+                      <option key={categoryOption.id || categoryOption.name} value={categoryOption.name}>
+                        {categoryOption.name}
                       </option>
                     ))}
                   </select>
@@ -139,7 +414,7 @@ const PostEvent = () => {
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="date">
-                    Event Date
+                    Start Date
                   </label>
                   <input
                     id="date"
@@ -152,29 +427,57 @@ const PostEvent = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="time">
-                    Event Time
+                  <label className="form-label" htmlFor="end-date">
+                    End Date
                   </label>
                   <input
-                    id="time"
+                    id="end-date"
                     className="form-input"
-                    type="text"
-                    placeholder="E.g., 10:00 AM - 12:00 PM"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
+                    type="date"
+                    value={endDate}
+                    min={date || undefined}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="start-time">
+                    Start Time
+                  </label>
+                  <input
+                    id="start-time"
+                    className="form-input"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="end-time">
+                    End Time
+                  </label>
+                  <input
+                    id="end-time"
+                    className="form-input"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
                     required
                   />
                 </div>
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="location">
-                    Location
+                    Location or Zoom Link
                   </label>
                   <input
                     id="location"
                     className="form-input"
                     type="text"
-                    placeholder="E.g., Moscow Community Center, 206 E 3rd St"
+                    placeholder="E.g., Moscow Community Center, 206 E 3rd St or https://zoom.us/j/..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     required
@@ -224,19 +527,21 @@ const PostEvent = () => {
                   </p>
                   <p>
                     <strong>Date:</strong>{" "}
-                    {date &&
-                      new Date(date + "T00:00").toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                    {date === endDate
+                      ? formatDisplayDate(date)
+                      : `${formatDisplayDate(date)} - ${formatDisplayDate(endDate)}`}
                   </p>
                   <p>
-                    <strong>Time:</strong> {time}
+                    <strong>Time:</strong> {formatDisplayTime(startTime)} - {formatDisplayTime(endTime)}
                   </p>
                   <p>
-                    <strong>Location:</strong> {location}
+                    <strong>Location:</strong> {isLikelyUrl(location.trim()) ? "Online" : location}
                   </p>
+                  {isLikelyUrl(location.trim()) && (
+                    <p>
+                      <strong>Zoom Link:</strong> {location}
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -255,13 +560,15 @@ const PostEvent = () => {
               <button
                 type="submit"
                 className={`postevent-button ${step === 3 ? "submit" : ""}`}
-                disabled={!isStepValid()}
+                disabled={!isStepValid() || isSubmitting}
               >
-                {step === 2
-                  ? "Continue to Flyer Upload"
-                  : step === 3
-                    ? "Submit for Review"
-                    : "Continue to Date & Location"}
+                {isSubmitting
+                  ? "Submitting..."
+                  : step === 2
+                    ? "Continue to Flyer Upload"
+                    : step === 3
+                      ? "Submit for Review"
+                      : "Continue to Date & Location"}
               </button>
             </div>
 
