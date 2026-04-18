@@ -1,0 +1,187 @@
+:root {
+  /* typography */
+  --font-sans: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --base-line-height: 1.5;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Palette */
+  --color-primary: #556E57; /* Primary Green - CTA, accents */
+  --color-primary-dark: #495D4B; /* Primary Dark - hover, strong surfaces */
+  --color-footer-bg: #485F4D; /* Footer Background - large dark surfaces */
+  --color-accent-mustard: #E6B400; /* Accent Mustard - badges/highlights */
+  --color-accent-lime: #78C25A; /* Accent Lime - logo & micro accents */
+  --color-bg: #F5F8F4; /* Background - subtle green tint */
+  --color-surface: #FFFFFF; /* Surface / Card Background */
+  --color-border: #E9EFE9; /* Border / subtle line */
+  --color-text: #213128; /* Text Primary */
+  --color-muted: #6B7A71; /* Text Muted */
+  --color-danger: #b91c1c;
+
+  /* Mockup variables (mapped to palette) */
+  --font-size: 16px;
+  --background: var(--color-surface);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-surface);
+  --primary-dark: var(--color-primary-dark); 
+  
+  --secondary: var(--color-accent-mustard);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-bg);
+  --muted-foreground: var(--color-muted);
+  --accent: #E8F3E5;
+  --accent-foreground: var(--color-text);
+  --destructive: #d4183d;
+  --destructive-foreground: #fff;
+  --border-weak: rgba(85,112,85,0.16);
+  --input: transparent;
+  --input-background: #f8faf7;
+  --switch-background: #cbced4;
+  --ring: var(--color-primary);
+  
+  /* Sizing - Vital for the "Design" feel */
+  --radius: 0.625rem;
+  --radius-md: 12px;
+  --spacing: .25rem;
+  
+  --text-sm: .875rem;
+  --text-sm--line-height: calc(1.25 / .875);
+  --default-transition-duration: .15s;
+  --default-transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+
+  font-family: var(--font-sans);
+  line-height: var(--base-line-height);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  font-weight: 500;
+  text-decoration: inherit;
+  color: var(--color-primary);
+}
+
+/* Base reset for ALL buttons to ensure visibility */
+button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-pill {
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid transparent;
+  padding-block: calc(var(--spacing) * 2);
+  padding-inline: calc(var(--spacing) * 4);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--default-transition-duration) var(--default-transition-timing-function);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  
+  /* FORCE VISIBILITY */
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 1. Sign In / Details / Event Card Buttons */
+.btn-primary, .primary-btn, button[type="submit"] {
+  background-color: var(--color-primary) !important;
+  color: #FFFFFF !important;
+  height: 42px; /* Matches your EventCard design */
+}
+
+.btn-primary:hover, .primary-btn:hover, button[type="submit"]:hover {
+  background-color: var(--color-primary-dark) !important;
+}
+
+/* 2. Category Pills (All Events, etc.) */
+.category-pill {
+  background-color: #FFFFFF !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 999px !important; /* Forces the rounded pill look */
+}
+
+.category-pill.active {
+  background-color: var(--color-accent-mustard) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-accent-mustard) !important;
+}
+
+/* 3. Secondary Buttons */
+.btn-secondary, .secondary-btn {
+  background-color: #FFFFFF !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.btn-secondary:hover, .secondary-btn:hover {
+  background-color: #f7f8f5 !important;
+}
+
+/* 4. Calendar Navigation & All Dates */
+.calendar-arrow {
+  border-radius: 999px !important;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: var(--color-surface) !important;
+  color: var(--color-primary) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.view-all-btn {
+  background: transparent !important;
+  color: var(--color-primary) !important;
+  font-weight: 600;
+  padding: 0;
+}
+
+/* 5. Misc Design Restoration */
+.calendar-day {
+  border-radius: var(--radius-md);
+  background: #f8faf7;
+  border: 1px solid var(--color-border);
+}
+
+.calendar-day.selected {
+  background: #dbe7d5 !important;
+  border: 1px solid var(--color-primary) !important;
+}
+
+.event-category {
+  background-color: #eef3ea !important;
+  color: var(--color-primary) !important;
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}

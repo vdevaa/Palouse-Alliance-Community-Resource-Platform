@@ -63,7 +63,11 @@ function App() {
           <Routes>
             <Route path="/" element={<Home session={session} />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={
+              <ProtectedRoute loading={loading} session={session}>
+                <Register />
+              </ProtectedRoute>
+            } />
             <Route
               path="/dashboard"
               element={
@@ -72,6 +76,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/events" element={<Home session={session} />} />
             <Route path="/organizations" element={<Organizations />} />
             <Route path="/post-event" element={<PostEvent />} />
             <Route path="/admin" element={<Admin />} />

@@ -1,9 +1,9 @@
 .event-card {
-  background: #ffffff;
-  border: 1px solid #e3e7df;
-  border-radius: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: 22px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -20,7 +20,7 @@
 .event-category {
   display: inline-block;
   background: #eef3ea;
-  color: #5f7457;
+  color: var(--color-accent);
   font-size: 12px;
   font-weight: 700;
   border-radius: 999px;
@@ -28,7 +28,7 @@
 }
 
 .event-status {
-  color: #6b7280;
+  color: var(--color-muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -38,19 +38,20 @@
 .event-card h3 {
   margin: 0 0 8px 0;
   font-size: 22px;
-  color: #1f2937;
+  color: var(--color-text);
 }
 
 .event-org {
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: #5f7457;
+  color: var(--color-accent);
+  font-weight: 600;
   font-weight: 600;
 }
 
 .event-description {
   margin: 0 0 16px 0;
-  color: #4b5563;
+  color: var(--color-subtext);
   line-height: 1.6;
   font-size: 14px;
 }
@@ -80,18 +81,18 @@
 
 .primary-btn {
   border: none;
-  background: #5f7457;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-surface);
 }
 
 .primary-btn:hover {
-  background: #53694d;
+  background: var(--color-accent-strong);
 }
 
 .secondary-btn {
-  border: 1px solid #cfd8ca;
-  background: #ffffff;
-  color: #374151;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .secondary-btn:hover {

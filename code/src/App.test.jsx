@@ -24,6 +24,12 @@ const {
       return { select: categoriesSelect };
     }
 
+    if (table === 'users') {
+      return {
+        select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { role: 'member' }, error: null }) }) }),
+      };
+    }
+
     return { select: vi.fn() };
   });
 
