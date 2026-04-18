@@ -233,10 +233,10 @@
   overflow-y: auto;
 }
 
-.modal-content {
+..modal-content {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 24px;
+  border-radius: var(--radius-lg);
   width: min(100%, 980px);
   max-height: calc(100vh - 94px);
   overflow: auto;
@@ -245,9 +245,12 @@
 }
 
 .modal-content.filter-popup {
-  width: min(100%, 420px);
-  padding: 22px 22px 18px;
+  width: min(100%, 480px);
+  max-width: 480px;
+  margin: 0 20px;
+  padding: 24px;
   max-height: calc(100vh - 120px);
+  border-radius: var(--radius-lg);
 }
 
 .modal-content.filter-popup .panel-header {

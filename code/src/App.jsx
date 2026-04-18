@@ -70,12 +70,16 @@ function App() {
               </ProtectedRoute>
             } />
             <Route
-              path="/dashboard"
+              path="/home"
               element={
                 <ProtectedRoute loading={loading} session={session}>
                   <Dashboard />
                 </ProtectedRoute>
               }
+            />
+            <Route
+              path="/dashboard"
+              element={<Navigate to="/home" replace />}
             />
             <Route path="/events" element={<Home session={session} />} />
             <Route path="/organizations" element={<Organizations />} />
