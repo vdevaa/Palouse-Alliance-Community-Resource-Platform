@@ -47,7 +47,7 @@ const Register = () => {
 
       if (!mounted) return;
       if (error || !data || data.role !== "admin") {
-        navigate("/dashboard");
+        navigate("/");
         return;
       }
 
@@ -102,7 +102,7 @@ const Register = () => {
         throw new Error((body && (body.message || body.error)) || 'Registration failed');
       }
 
-      navigate("/dashboard");
+      navigate("/");
 
     } catch (err) {
       setErrorMessage(err.message || "Registration failed. Please try again.");

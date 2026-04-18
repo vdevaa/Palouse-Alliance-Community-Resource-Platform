@@ -73,7 +73,7 @@ describe('Register', () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
 
@@ -98,7 +98,7 @@ describe('Register', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
 });

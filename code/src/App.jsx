@@ -4,6 +4,7 @@ import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { supabase } from "./lib/supabase";
+import Landing from "./pages/Landing";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -61,7 +62,7 @@ function App() {
         <Navbar session={session} />
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Home session={session} />} />
+            <Route path="/" element={<Landing session={session} />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={
               <ProtectedRoute loading={loading} session={session}>

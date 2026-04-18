@@ -81,41 +81,42 @@ const Navbar = ({ session }) => {
                 </Link>
 
                 <div className="navbar-desktop-links">
-                    <a
-                        href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="navbar-link navbar-link-text"
-                    >
-                        GivePulse
-                    </a>
-
-                    <Link to="/events" className="navbar-link navbar-link-text">Events</Link>
-                    <Link to="/organizations" className="navbar-link navbar-link-text">Organizations</Link>
-                    {session ? (
-                        <Link to="/post-event" className="navbar-link navbar-link-accent">
-                            Post Event
-                        </Link>
-                    ) : null}
-                    {session ? (
-                        <Link to="/dashboard" className="navbar-link navbar-link-text">
-                            Dashboard
-                        </Link>
-                    ) : null}
-                    {session ? (
-                        <button
-                            onClick={handleLogout}
-                            className="navbar-link navbar-link-secondary navbar-button"
-                            type="button"
+                    <div className="navbar-link-group">
+                        <Link to="/" className="navbar-link navbar-link-text">Home</Link>
+                        <a
+                            href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="navbar-link navbar-link-text"
                         >
-                            Logout
-                        </button>
-                    ) : (
-                        <Link to="/login" className="navbar-link navbar-link-primary">Login</Link>
-                    )}
-                    {isAdmin ? (
-                        <Link to="/register" className="navbar-link navbar-link-primary">Register</Link>
-                    ) : null}
+                            GivePulse
+                        </a>
+
+                        <Link to="/events" className="navbar-link navbar-link-text">Events</Link>
+                        <Link to="/organizations" className="navbar-link navbar-link-text">Organizations</Link>
+                        {session ? (
+                            <Link to="/post-event" className="navbar-link navbar-link-accent">
+                                Post Event
+                            </Link>
+                        ) : null}
+                    </div>
+
+                    <div className="navbar-action-group">
+                        {session ? (
+                            <button
+                                onClick={handleLogout}
+                                className="navbar-link navbar-link-secondary navbar-button"
+                                type="button"
+                            >
+                                Logout
+                            </button>
+                        ) : (
+                            <Link to="/login" className="navbar-link navbar-link-primary">Login</Link>
+                        )}
+                        {isAdmin ? (
+                            <Link to="/register" className="navbar-link navbar-link-primary">Register</Link>
+                        ) : null}
+                    </div>
                 </div>
 
                 <button
@@ -177,16 +178,12 @@ const Navbar = ({ session }) => {
                         GivePulse
                     </a>
 
+                    <Link to="/" className="navbar-mobile-link">Home</Link>
                     <Link to="/events" className="navbar-mobile-link">Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
                     {session ? (
                         <Link to="/post-event" className="navbar-mobile-link navbar-link-accent">
                             Post Event
-                        </Link>
-                    ) : null}
-                    {session ? (
-                        <Link to="/dashboard" className="navbar-mobile-link">
-                            Dashboard
                         </Link>
                     ) : null}
                     {session ? (

@@ -69,14 +69,28 @@ describe('App routing and auth', () => {
     mockSignOut.mockResolvedValue({ error: null });
   });
 
-  it('shows home page on root route', async () => {
+  it('shows landing page on root route', async () => {
     window.history.pushState({}, '', '/');
     mockGetSession.mockResolvedValueOnce({ data: { session: null } });
 
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Discover Community Events')).toBeInTheDocument();
+      expect(screen.getByText('Welcome')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Browse Events' })).toBeInTheDocument();
+    });
+  });
+
+  it('shows logged-in welcome message on landing page', async () => {
+    window.history.pushState({}, '', '/');
+    mockGetSession.mockResolvedValueOnce({
+      data: { session: { user: { id: '123', email: 'member@palouse.org' } } },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Welcome, member@palouse.org')).toBeInTheDocument();
     });
   });
 

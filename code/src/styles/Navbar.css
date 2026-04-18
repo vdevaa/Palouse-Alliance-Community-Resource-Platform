@@ -33,12 +33,26 @@
   gap: 1rem;
 }
 
+.navbar-link-group,
+.navbar-action-group {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.navbar-action-group {
+  margin-left: auto;
+}
+
 .navbar-link {
   text-decoration: none;
   font-weight: 500;
   border-radius: var(--radius-md);
   transition: background-color 0.2s ease, border-color 0.2s ease,
     color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .navbar-link-text {
