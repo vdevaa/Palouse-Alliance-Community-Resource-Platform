@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 const { mockEventsOrder, mockCategoriesOrder, mockFrom } = vi.hoisted(() => {
     const eventsOrder = vi.fn();
@@ -123,5 +124,38 @@ describe('Home', () => {
 
     expect(screen.queryByText('Food Drive')).not.toBeInTheDocument();
     expect(screen.getByText('Tech Workshop')).toBeInTheDocument();
+  });
+
+  it('shows a success flash message passed through router state', async () => {
+    mockEventsOrder.mockResolvedValueOnce({
+      data: [],
+      error: null,
+    });
+
+    mockCategoriesOrder.mockResolvedValueOnce({
+      data: [],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/events',
+            state: {
+              flashMessage: 'Your event request was successfully sent and is now pending review.',
+            },
+          },
+        ]}
+      >
+        <Routes>
+          <Route path="/events" element={<Home session={null} />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText('Your event request was successfully sent and is now pending review.')
+    ).toBeInTheDocument();
   });
 });

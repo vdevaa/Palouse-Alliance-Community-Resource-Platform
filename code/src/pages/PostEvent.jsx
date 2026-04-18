@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import uploadIcon from "../assets/upload-icon.png";
 import { supabase } from "../lib/supabase";
@@ -24,6 +25,7 @@ const FALLBACK_CATEGORY_NAMES = [
   "Volunteer Opportunities",
   "Youth Programs",
 ];
+const TOAST_DURATION_MS = 4000;
 
 function formatDisplayDate(date) {
   if (!date) {
@@ -65,6 +67,7 @@ function isLikelyUrl(value) {
 }
 
 const PostEvent = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
 
   const [title, setTitle] = useState("");
@@ -81,9 +84,22 @@ const PostEvent = () => {
   const [location, setLocation] = useState("");
 
   const [flyer, setFlyer] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [toast, setToast] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, TOAST_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [toast]);
 
   useEffect(() => {
     let isMounted = true;
@@ -164,8 +180,7 @@ const PostEvent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setErrorMessage("");
-    setSuccessMessage("");
+    setToast(null);
 
     if (step === 1) {
       setStep(2);
@@ -178,12 +193,18 @@ const PostEvent = () => {
     }
 
     if (endDate < date) {
-      setErrorMessage("End date must be on or after the start date.");
+      setToast({
+        message: "End date must be on or after the start date.",
+        type: "error",
+      });
       return;
     }
 
     if (date === endDate && endTime <= startTime) {
-      setErrorMessage("End time must be after the start time for single-day events.");
+      setToast({
+        message: "End time must be after the start time for single-day events.",
+        type: "error",
+      });
       return;
     }
 
@@ -197,7 +218,10 @@ const PostEvent = () => {
 
       if (sessionError || !session?.user) {
         console.error("No logged in user", sessionError);
-        setErrorMessage("You must be logged in to post an event.");
+        setToast({
+          message: "You must be logged in to post an event.",
+          type: "error",
+        });
         return;
       }
 
@@ -210,12 +234,18 @@ const PostEvent = () => {
 
       if (userError) {
         console.error("Error fetching submitting user:", userError);
-        setErrorMessage("We couldn't verify your organization for this event.");
+        setToast({
+          message: "We couldn't verify your organization for this event.",
+          type: "error",
+        });
         return;
       }
 
       if (!userData?.organization_id) {
-        setErrorMessage("Your account must be linked to an organization before posting events.");
+        setToast({
+          message: "Your account must be linked to an organization before posting events.",
+          type: "error",
+        });
         return;
       }
 
@@ -230,13 +260,19 @@ const PostEvent = () => {
 
         if (categoryError) {
           console.error("Error fetching category:", categoryError);
-          setErrorMessage("Invalid category.");
+          setToast({
+            message: "Invalid category.",
+            type: "error",
+          });
           return;
         }
 
         if (!categoryData) {
           console.error("Category not found:", category);
-          setErrorMessage(`Category "${category}" does not exist.`);
+          setToast({
+            message: `Category "${category}" does not exist.`,
+            type: "error",
+          });
           return;
         }
 
@@ -262,12 +298,20 @@ const PostEvent = () => {
 
       if (error) {
         console.error("Insert error:", error);
-        setErrorMessage(error.message || "Failed to submit event.");
+        setToast({
+          message: error.message || "Failed to submit event.",
+          type: "error",
+        });
         return;
       }
 
-      setSuccessMessage("Your event request was submitted for review.");
       resetForm();
+      navigate("/events", {
+        state: {
+          flashMessage: "Your event request was successfully sent and is now pending review.",
+          flashType: "success",
+        },
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -275,6 +319,17 @@ const PostEvent = () => {
 
   return (
     <div className="postevent-page">
+      {toast ? (
+        <div
+          className={`postevent-toast postevent-toast-${toast.type}`}
+          role={toast.type === "error" ? "alert" : "status"}
+          aria-live="polite"
+        >
+          <div className="postevent-toast-indicator" aria-hidden="true"></div>
+          <p className="postevent-toast-message">{toast.message}</p>
+        </div>
+      ) : null}
+
       <main className="postevent-main">
         <h1 className="postevent-title">Post a Community Event</h1>
         <p className="postevent-subtitle">
@@ -489,18 +544,6 @@ const PostEvent = () => {
                   )}
                 </div>
               </>
-            )}
-
-            {errorMessage && (
-              <p className="review-text" role="alert">
-                {errorMessage}
-              </p>
-            )}
-
-            {successMessage && (
-              <p className="review-text" role="status">
-                {successMessage}
-              </p>
             )}
 
             <div className="postevent-button-row">

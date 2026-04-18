@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import EventCalendar from "../components/EventCalendar";
 import EventCard from "../components/EventCard";
 import MyEvents from "../components/MyEvents";
@@ -6,6 +7,7 @@ import { supabase } from "../lib/supabase";
 import "../styles/Home.css";
 
 const ALL_EVENTS_CATEGORY = "All Events";
+const TOAST_DURATION_MS = 2600;
 
 function getStartOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -151,10 +153,20 @@ function normalizeSupabaseEvent(event) {
 }
 
 const Home = ({ session }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([ALL_EVENTS_CATEGORY]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState("");
+  const [toast, setToast] = useState(() =>
+    location.state?.flashMessage
+      ? {
+          message: location.state.flashMessage,
+          type: location.state.flashType || "success",
+        }
+      : null
+  );
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(ALL_EVENTS_CATEGORY);
   const [searchQuery, setSearchQuery] = useState("");
@@ -170,6 +182,32 @@ const Home = ({ session }) => {
 
   const minVisibleMonth = useMemo(() => addMonths(currentMonth, -1), [currentMonth]);
   const maxVisibleMonth = useMemo(() => addMonths(currentMonth, 3), [currentMonth]);
+
+  useEffect(() => {
+    if (!location.state?.flashMessage) {
+      return;
+    }
+
+    setToast({
+      message: location.state.flashMessage,
+      type: location.state.flashType || "success",
+    });
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, TOAST_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [toast]);
 
   useEffect(() => {
     let isMounted = true;
@@ -333,6 +371,17 @@ const Home = ({ session }) => {
             the Palouse region.
           </p>
         </section>
+
+        {toast ? (
+          <div
+            className={`home-toast home-toast-${toast.type}`}
+            role={toast.type === "error" ? "alert" : "status"}
+            aria-live="polite"
+          >
+            <div className="home-toast-indicator" aria-hidden="true"></div>
+            <p className="home-toast-message">{toast.message}</p>
+          </div>
+        ) : null}
 
         <section className="home-search-section">
           <input

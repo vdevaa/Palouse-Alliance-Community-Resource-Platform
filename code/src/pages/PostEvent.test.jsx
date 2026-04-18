@@ -3,10 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const mockNavigate = vi.fn();
 const mockGetSession = vi.fn();
 const mockCategoryOrder = vi.fn();
 const mockUserMaybeSingle = vi.fn();
 const mockEventsInsert = vi.fn();
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 vi.mock("../lib/supabase", () => ({
   supabase: {
@@ -47,6 +56,7 @@ import PostEvent from "./PostEvent";
 
 describe("PostEvent", () => {
   beforeEach(() => {
+    mockNavigate.mockReset();
     mockGetSession.mockReset();
     mockCategoryOrder.mockReset();
     mockUserMaybeSingle.mockReset();
@@ -146,8 +156,11 @@ describe("PostEvent", () => {
       ]);
     });
 
-    expect(
-      await screen.findByText("Your event request was submitted for review.")
-    ).toBeInTheDocument();
+    expect(mockNavigate).toHaveBeenCalledWith("/events", {
+      state: {
+        flashMessage: "Your event request was successfully sent and is now pending review.",
+        flashType: "success",
+      },
+    });
   });
 });

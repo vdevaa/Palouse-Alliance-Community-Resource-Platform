@@ -93,6 +93,11 @@ const Navbar = ({ session }) => {
                     <Link to="/events" className="navbar-link navbar-link-text">Events</Link>
                     <Link to="/organizations" className="navbar-link navbar-link-text">Organizations</Link>
                     {session ? (
+                        <Link to="/post-event" className="navbar-link navbar-link-text">
+                            Post Event
+                        </Link>
+                    ) : null}
+                    {session ? (
                         <Link to="/dashboard" className="navbar-link navbar-link-text">
                             Dashboard
                         </Link>
@@ -174,6 +179,11 @@ const Navbar = ({ session }) => {
 
                     <Link to="/events" className="navbar-mobile-link">Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
+                    {session ? (
+                        <Link to="/post-event" className="navbar-mobile-link">
+                            Post Event
+                        </Link>
+                    ) : null}
                     {session ? (
                         <Link to="/dashboard" className="navbar-mobile-link">
                             Dashboard

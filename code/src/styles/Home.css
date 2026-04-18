@@ -39,6 +39,72 @@
   margin: 0 auto 32px auto;
 }
 
+.home-toast {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translate(-50%, -110%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100vw - 4rem);
+  max-width: none;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: 0 0 14px 14px;
+  color: #1f2937;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(10px);
+  animation: navbarToast 2.6s ease forwards;
+}
+
+.home-toast-indicator {
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.home-toast-message {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.home-toast-success {
+  background: rgba(232, 245, 230, 0.97);
+  border-color: #b7dbb0;
+  color: #2f6a2b;
+}
+
+.home-toast-error {
+  background: rgba(253, 232, 232, 0.97);
+  border-color: #efb1b1;
+  color: #b42318;
+}
+
+@keyframes navbarToast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -110%);
+  }
+
+  12%,
+  78% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -110%);
+  }
+}
+
 .home-search-input {
   width: 100%;
   height: 54px;
@@ -425,6 +491,12 @@
 @media (max-width: 640px) {
   .home-main {
     padding: 28px 16px 48px;
+  }
+
+  .home-toast {
+    top: 66px;
+    width: calc(100vw - 2rem);
+    padding: 11px 14px;
   }
 
   .home-hero h1 {

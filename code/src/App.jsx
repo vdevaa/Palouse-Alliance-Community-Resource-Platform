@@ -78,7 +78,14 @@ function App() {
             />
             <Route path="/events" element={<Home session={session} />} />
             <Route path="/organizations" element={<Organizations />} />
-            <Route path="/post-event" element={<PostEvent />} />
+            <Route
+              path="/post-event"
+              element={
+                <ProtectedRoute loading={loading} session={session}>
+                  <PostEvent />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>
