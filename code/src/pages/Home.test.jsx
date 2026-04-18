@@ -37,6 +37,14 @@ vi.mock('../lib/supabase', () => ({
 
 import Home from './Home';
 
+function renderHome(session = null) {
+  return render(
+    <MemoryRouter>
+      <Home session={session} />
+    </MemoryRouter>
+  );
+}
+
 describe('Home', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -65,7 +73,7 @@ describe('Home', () => {
       error: null,
     });
 
-    render(<Home session={null} />);
+    renderHome();
 
     await waitFor(() => {
       expect(screen.getByText('Food Drive')).toBeInTheDocument();
@@ -108,7 +116,7 @@ describe('Home', () => {
     });
 
     const user = userEvent.setup();
-    render(<Home session={null} />);
+    renderHome();
 
     await waitFor(() => {
       expect(screen.getByText('Food Drive')).toBeInTheDocument();

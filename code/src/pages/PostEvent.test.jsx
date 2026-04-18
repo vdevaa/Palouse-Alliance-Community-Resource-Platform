@@ -1,13 +1,20 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockNavigate = vi.fn();
-const mockGetSession = vi.fn();
-const mockCategoryOrder = vi.fn();
-const mockUserMaybeSingle = vi.fn();
-const mockEventsInsert = vi.fn();
+const {
+  mockNavigate,
+  mockGetSession,
+  mockCategoryOrder,
+  mockUserMaybeSingle,
+  mockEventsInsert,
+} = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockGetSession: vi.fn(),
+  mockCategoryOrder: vi.fn(),
+  mockUserMaybeSingle: vi.fn(),
+  mockEventsInsert: vi.fn(),
+}));
 
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
@@ -56,11 +63,7 @@ import PostEvent from "./PostEvent";
 
 describe("PostEvent", () => {
   beforeEach(() => {
-    mockNavigate.mockReset();
-    mockGetSession.mockReset();
-    mockCategoryOrder.mockReset();
-    mockUserMaybeSingle.mockReset();
-    mockEventsInsert.mockReset();
+    vi.clearAllMocks();
 
     mockCategoryOrder.mockResolvedValue({
       data: [
