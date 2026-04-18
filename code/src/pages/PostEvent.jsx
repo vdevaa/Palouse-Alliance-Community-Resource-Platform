@@ -1,91 +1,251 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import uploadIcon from "../assets/upload-icon.png";
+import { supabase } from "../lib/supabase";
 import "../styles/PostEvent.css";
+
+const FALLBACK_CATEGORY_NAMES = [
+  "Community Events",
+  "Crisis Support",
+  "Disability Services",
+  "Education",
+  "Employment",
+  "Family Services",
+  "Financial Support",
+  "Food Assistance",
+  "Health & Wellness",
+  "Housing & Shelter",
+  "Legal Aid",
+  "Mental Health",
+  "Recreation",
+  "Seniors",
+  "Transportation",
+  "Veteran Services",
+  "Volunteer Opportunities",
+  "Youth Programs",
+];
+
+function formatDisplayDate(date) {
+  if (!date) {
+    return "";
+  }
+
+  return new Date(`${date}T00:00`).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function formatDisplayTime(time) {
+  if (!time) {
+    return "";
+  }
+
+  const [hours, minutes] = time.split(":").map(Number);
+  const displayDate = new Date(2000, 0, 1, hours, minutes);
+
+  return displayDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 const PostEvent = () => {
   const [step, setStep] = useState(1);
 
-  // step 1
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Education");
+  const [categories, setCategories] = useState(
+    FALLBACK_CATEGORY_NAMES.map((name) => ({ id: "", name }))
+  );
+  const [category, setCategory] = useState(FALLBACK_CATEGORY_NAMES[0]);
 
-  const categories = [
-    "Education",
-    "Community Service",
-    "Arts & Culture",
-    "Health & Wellness",
-    "Technology",
-    "Environment",
-    "Youth & Family",
-  ];
-
-  // step 2
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
 
-  // step 3
   const [flyer, setFlyer] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCategories = async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name")
+        .order("name", { ascending: true });
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error || !data?.length) {
+        if (error) {
+          console.error("Error fetching categories:", error);
+        }
+        return;
+      }
+
+      setCategories(data);
+      setCategory((currentCategory) =>
+        data.some((categoryOption) => categoryOption.name === currentCategory)
+          ? currentCategory
+          : data[0].name
+      );
+    };
+
+    loadCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const selectedCategory = useMemo(
+    () => categories.find((categoryOption) => categoryOption.name === category) || null,
+    [categories, category]
+  );
 
   const isStepValid = () => {
-    if (step === 1) return title.trim() !== "" && description.trim() !== "";
-    if (step === 2) return date !== "" && time.trim() !== "" && location.trim() !== "";
+    if (step === 1) {
+      return (
+        title.trim() !== "" &&
+        description.trim() !== "" &&
+        category.trim() !== ""
+      );
+    }
+
+    if (step === 2) {
+      return (
+        date !== "" &&
+        startTime !== "" &&
+        endTime !== "" &&
+        endTime > startTime &&
+        location.trim() !== ""
+      );
+    }
+
     return true;
+  };
+
+  const resetForm = () => {
+    setStep(1);
+    setTitle("");
+    setDescription("");
+    setCategory(categories[0]?.name || FALLBACK_CATEGORY_NAMES[0]);
+    setDate("");
+    setStartTime("");
+    setEndTime("");
+    setLocation("");
+    setFlyer(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (step === 1) return setStep(2);
-    if (step === 2) return setStep(3);
+    setErrorMessage("");
+    setSuccessMessage("");
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
-      console.error("No logged in user", sessionError);
-      setErrorMessage("You must be logged in to post an event.");
+    if (step === 1) {
+      setStep(2);
       return;
     }
-    const userId = session.user.id;
 
-    const { data: categoryData, error: categoryError } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("name", category)
-      .maybeSingle();
+    if (step === 2) {
+      setStep(3);
+      return;
+    }
 
-      if (categoryError) {
-        console.error("Error fetching category:", categoryError);
-        setErrorMessage("Invalid category.");
+    if (endTime <= startTime) {
+      setErrorMessage("End time must be after the start time.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user) {
+        console.error("No logged in user", sessionError);
+        setErrorMessage("You must be logged in to post an event.");
         return;
       }
 
-      if (!categoryData) {
-        console.error("Category not found:", category);
-        setErrorMessage(`Category "${category}" does not exist.`);
+      const userId = session.user.id;
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("organization_id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (userError) {
+        console.error("Error fetching submitting user:", userError);
+        setErrorMessage("We couldn't verify your organization for this event.");
         return;
       }
 
-    const categoryId = categoryData.id;
+      if (!userData?.organization_id) {
+        setErrorMessage("Your account must be linked to an organization before posting events.");
+        return;
+      }
 
-    const { error } = await supabase.from("events").insert([
-        {
-          title,
-          description,
-          start_datetime: date + "T" + time.split(" - ")[0],
-          end_datetime: date + "T" + time.split(" - ")[1],
-          location,
-          created_by: userId,
-          category_id: categoryId,
+      let categoryId = selectedCategory?.id || null;
+
+      if (!categoryId) {
+        const { data: categoryData, error: categoryError } = await supabase
+          .from("categories")
+          .select("id")
+          .eq("name", category)
+          .maybeSingle();
+
+        if (categoryError) {
+          console.error("Error fetching category:", categoryError);
+          setErrorMessage("Invalid category.");
+          return;
         }
-      ]);
 
-    if (error) {
-      console.error("Insert error:", error);
-      setErrorMessage("Failed to submit event");
-    } else {
-      console.log("Insert succeeded");
+        if (!categoryData) {
+          console.error("Category not found:", category);
+          setErrorMessage(`Category "${category}" does not exist.`);
+          return;
+        }
+
+        categoryId = categoryData.id;
+      }
+
+      const payload = {
+        title: title.trim(),
+        description: description.trim(),
+        start_datetime: `${date}T${startTime}:00`,
+        end_datetime: `${date}T${endTime}:00`,
+        location: location.trim(),
+        created_by: userId,
+        category_id: categoryId,
+        organization_id: userData.organization_id,
+        status: "pending",
+      };
+
+      const { error } = await supabase.from("events").insert([payload]);
+
+      if (error) {
+        console.error("Insert error:", error);
+        setErrorMessage(error.message || "Failed to submit event.");
+        return;
+      }
+
+      setSuccessMessage("Your event request was submitted for review.");
+      resetForm();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -107,7 +267,6 @@ const PostEvent = () => {
 
         <div className={`postevent-card ${step === 3 ? "step-3" : ""}`}>
           <form onSubmit={handleSubmit}>
-
             {step === 1 && (
               <>
                 <h2 className="step-title">Step 1: Basic Information</h2>
@@ -140,9 +299,9 @@ const PostEvent = () => {
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                   >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
+                    {categories.map((categoryOption) => (
+                      <option key={categoryOption.id || categoryOption.name} value={categoryOption.name}>
+                        {categoryOption.name}
                       </option>
                     ))}
                   </select>
@@ -189,16 +348,29 @@ const PostEvent = () => {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" htmlFor="time">
-                    Event Time
+                  <label className="form-label" htmlFor="start-time">
+                    Start Time
                   </label>
                   <input
-                    id="time"
+                    id="start-time"
                     className="form-input"
-                    type="text"
-                    placeholder="E.g., 10:00 AM - 12:00 PM"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="end-time">
+                    End Time
+                  </label>
+                  <input
+                    id="end-time"
+                    className="form-input"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
                     required
                   />
                 </div>
@@ -260,22 +432,28 @@ const PostEvent = () => {
                     <strong>Category:</strong> {category}
                   </p>
                   <p>
-                    <strong>Date:</strong>{" "}
-                    {date &&
-                      new Date(date + "T00:00").toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                    <strong>Date:</strong> {formatDisplayDate(date)}
                   </p>
                   <p>
-                    <strong>Time:</strong> {time}
+                    <strong>Time:</strong> {formatDisplayTime(startTime)} - {formatDisplayTime(endTime)}
                   </p>
                   <p>
                     <strong>Location:</strong> {location}
                   </p>
                 </div>
               </>
+            )}
+
+            {errorMessage && (
+              <p className="review-text" role="alert">
+                {errorMessage}
+              </p>
+            )}
+
+            {successMessage && (
+              <p className="review-text" role="status">
+                {successMessage}
+              </p>
             )}
 
             <div className="postevent-button-row">
@@ -292,13 +470,15 @@ const PostEvent = () => {
               <button
                 type="submit"
                 className={`postevent-button ${step === 3 ? "submit" : ""}`}
-                disabled={!isStepValid()}
+                disabled={!isStepValid() || isSubmitting}
               >
-                {step === 2
-                  ? "Continue to Flyer Upload"
-                  : step === 3
-                    ? "Submit for Review"
-                    : "Continue to Date & Location"}
+                {isSubmitting
+                  ? "Submitting..."
+                  : step === 2
+                    ? "Continue to Flyer Upload"
+                    : step === 3
+                      ? "Submit for Review"
+                      : "Continue to Date & Location"}
               </button>
             </div>
 
