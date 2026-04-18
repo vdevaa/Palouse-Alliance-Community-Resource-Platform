@@ -75,7 +75,9 @@ const PostEvent = () => {
   const [categories, setCategories] = useState(
     FALLBACK_CATEGORY_NAMES.map((name) => ({ id: "", name }))
   );
+  const [tagOptions, setTagOptions] = useState([]);
   const [category, setCategory] = useState(FALLBACK_CATEGORY_NAMES[0]);
+  const [selectedTagIds, setSelectedTagIds] = useState([]);
 
   const [date, setDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -136,9 +138,45 @@ const PostEvent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTags = async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("id, name")
+        .order("name", { ascending: true });
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        console.error("Error fetching tags:", error);
+        return;
+      }
+
+      setTagOptions(data || []);
+      setSelectedTagIds((currentSelected) =>
+        currentSelected.filter((tagId) => (data || []).some((tagOption) => tagOption.id === tagId))
+      );
+    };
+
+    loadTags();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const selectedCategory = useMemo(
     () => categories.find((categoryOption) => categoryOption.name === category) || null,
     [categories, category]
+  );
+
+  const selectedTags = useMemo(
+    () => tagOptions.filter((tagOption) => selectedTagIds.includes(tagOption.id)),
+    [tagOptions, selectedTagIds]
   );
 
   const isStepValid = () => {
@@ -169,6 +207,7 @@ const PostEvent = () => {
     setTitle("");
     setDescription("");
     setCategory(categories[0]?.name || FALLBACK_CATEGORY_NAMES[0]);
+    setSelectedTagIds([]);
     setDate("");
     setEndDate("");
     setStartTime("");
@@ -279,6 +318,10 @@ const PostEvent = () => {
         categoryId = categoryData.id;
       }
 
+      const selectedTagRecords = selectedTags
+        .map((tagOption) => ({ event_id: null, tag_id: tagOption.id }))
+        .filter((tagRow) => Boolean(tagRow.tag_id));
+
       const trimmedLocation = location.trim();
       const isOnlineEvent = isLikelyUrl(trimmedLocation);
       const payload = {
@@ -294,15 +337,38 @@ const PostEvent = () => {
         status: "pending",
       };
 
-      const { error } = await supabase.from("events").insert([payload]);
+      const { data: eventData, error: eventError } = await supabase
+        .from("events")
+        .insert([payload])
+        .select("id")
+        .single();
 
-      if (error) {
-        console.error("Insert error:", error);
+      if (eventError || !eventData?.id) {
+        console.error("Insert error:", eventError);
         setToast({
-          message: error.message || "Failed to submit event.",
+          message: eventError?.message || "Failed to submit event.",
           type: "error",
         });
         return;
+      }
+
+      if (selectedTagRecords.length > 0) {
+        const { error: eventTagsError } = await supabase.from("event_tags").insert(
+          selectedTagRecords.map((tagRow) => ({
+            event_id: eventData.id,
+            tag_id: tagRow.tag_id,
+          }))
+        );
+
+        if (eventTagsError) {
+          console.error("Error saving event tags:", eventTagsError);
+          await supabase.from("events").delete().eq("id", eventData.id);
+          setToast({
+            message: eventTagsError.message || "Failed to save event tags.",
+            type: "error",
+          });
+          return;
+        }
       }
 
       resetForm();
@@ -384,6 +450,35 @@ const PostEvent = () => {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Tags</label>
+                  <p className="postevent-help-text postevent-help-text-tight">
+                    Select one or more tags for your event. Tags are optional.
+                  </p>
+                  <div className="category-list postevent-tag-list">
+                    {tagOptions.length > 0 ? (
+                      tagOptions.map((tagOption) => (
+                        <button
+                          key={tagOption.id}
+                          type="button"
+                          className={`category-pill ${selectedTagIds.includes(tagOption.id) ? "active" : ""}`}
+                          onClick={() =>
+                            setSelectedTagIds((currentSelected) =>
+                              currentSelected.includes(tagOption.id)
+                                ? currentSelected.filter((tagId) => tagId !== tagOption.id)
+                                : [...currentSelected, tagOption.id]
+                            )
+                          }
+                        >
+                          {tagOption.name}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="postevent-empty-tags">No tags are available yet.</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -525,6 +620,12 @@ const PostEvent = () => {
                   <p>
                     <strong>Category:</strong> {category}
                   </p>
+                  {selectedTags.length > 0 && (
+                    <p>
+                      <strong>Tags:</strong>{" "}
+                      {selectedTags.map((tagOption) => tagOption.name).join(", ")}
+                    </p>
+                  )}
                   <p>
                     <strong>Date:</strong>{" "}
                     {date === endDate

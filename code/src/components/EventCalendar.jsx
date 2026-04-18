@@ -13,7 +13,6 @@ function EventCalendar({
   monthLabel,
   resetDateFilter,
   selectedDate,
-  selectedDateCount,
   formatFullDate,
   visibleMonth,
   canNavigatePrevious = true,
@@ -75,9 +74,6 @@ function EventCalendar({
       <div className="selected-date-box">
         <p>{selectedDate ? "Showing events for" : "Showing all upcoming events"}</p>
         <strong>{selectedDate ? formatFullDate(selectedDate) : monthLabel}</strong>
-        <span className="selected-date-meta">
-          {selectedDateCount} {selectedDateCount === 1 ? "event" : "events"}
-        </span>
         {selectedDate && (
           <button className="view-all-btn" type="button" onClick={resetDateFilter}>
             View All Dates

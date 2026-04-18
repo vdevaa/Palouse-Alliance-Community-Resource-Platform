@@ -216,7 +216,8 @@ const Organizations = () => {
           .search-input-icon {
             position: absolute;
             left: 1.2rem;
-            top: 1.1rem;
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--color-text-subtle);
             font-variation-settings: 'FILL' 1;
           }

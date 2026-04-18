@@ -7,10 +7,40 @@ import { supabase } from "../lib/supabase";
 import "../styles/Home.css";
 
 const ALL_EVENTS_CATEGORY = "All Events";
+const ALL_EVENTS_TAG = "All Tags";
 const TOAST_DURATION_MS = 2600;
 
 function getStartOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function normalizeTagName(tag) {
+  return typeof tag === "string" ? tag.trim() : "";
+}
+
+function parseTags(tags) {
+  if (!Array.isArray(tags)) {
+    return [];
+  }
+
+  return tags
+    .map((tagItem) => {
+      if (!tagItem || typeof tagItem !== "object") {
+        return "";
+      }
+
+      if (typeof tagItem.name === "string") {
+        return normalizeTagName(tagItem.name);
+      }
+
+      if (typeof tagItem.tags === "object" && typeof tagItem.tags.name === "string") {
+        return normalizeTagName(tagItem.tags.name);
+      }
+
+      return "";
+    })
+    .filter((tag) => tag.length > 0)
+    .filter((tag, index, self) => self.indexOf(tag) === index);
 }
 
 function addDays(date, days) {
@@ -137,7 +167,7 @@ function parseSupabaseDateTime(timestamp) {
   );
 }
 
-function normalizeSupabaseEvent(event) {
+function normalizeSupabaseEvent(event, tagItems = []) {
   const startDate = parseSupabaseDateTime(event.start_datetime);
   const endDate = parseSupabaseDateTime(event.end_datetime);
 
@@ -149,6 +179,7 @@ function normalizeSupabaseEvent(event) {
     endDate,
     organizationName: event.organizations?.name || "Unknown Organization",
     categoryName: event.categories?.name || "General",
+    tags: parseTags(tagItems.length > 0 ? tagItems : event.event_tags || event.tags),
   };
 }
 
@@ -157,6 +188,11 @@ const Home = ({ session }) => {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([ALL_EVENTS_CATEGORY]);
+  const [tags, setTags] = useState([ALL_EVENTS_TAG]);
+  const [selectedCategories, setSelectedCategories] = useState([
+    ALL_EVENTS_CATEGORY,
+  ]);
+  const [selectedTags, setSelectedTags] = useState([ALL_EVENTS_TAG]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState("");
   const [toast, setToast] = useState(() =>
@@ -168,8 +204,8 @@ const Home = ({ session }) => {
       : null
   );
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(ALL_EVENTS_CATEGORY);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -216,7 +252,11 @@ const Home = ({ session }) => {
       setEventsLoading(true);
       setEventsError("");
 
-      const [{ data: eventRows, error: eventsQueryError }, { data: categoryRows, error: categoriesQueryError }] =
+      const [
+        { data: eventRows, error: eventsQueryError },
+        { data: categoryRows, error: categoriesQueryError },
+        { data: tagRows, error: tagsQueryError },
+      ] =
         await Promise.all([
           supabase
             .from("events")
@@ -234,12 +274,14 @@ const Home = ({ session }) => {
                 organization_id,
                 category_id,
                 organizations ( name ),
-                categories ( name )
+                categories ( name ),
+                event_tags ( tags ( name ) )
               `
             )
             .eq("status", "approved")
             .order("start_datetime", { ascending: true }),
           supabase.from("categories").select("name").order("name", { ascending: true }),
+          supabase.from("tags").select("name").order("name", { ascending: true }),
         ]);
 
       if (!isMounted) {
@@ -250,26 +292,39 @@ const Home = ({ session }) => {
         console.error("Error fetching home page calendar data:", {
           eventsQueryError,
           categoriesQueryError,
+          tagsQueryError,
         });
         setEvents([]);
         setCategories([ALL_EVENTS_CATEGORY]);
-        setEventsError("Unable to load events from Supabase right now.");
+        setEventsError("Unable to load events right now.");
         setEventsLoading(false);
         return;
       }
 
+      if (tagsQueryError) {
+        console.warn("Tag data loaded with a partial error:", {
+          tagsQueryError,
+        });
+      }
+
       const normalizedEvents = (eventRows || [])
-        .map(normalizeSupabaseEvent)
+        .map((event) => normalizeSupabaseEvent(event))
         .sort((first, second) => first.startDate - second.startDate);
 
       const fetchedCategoryNames = (categoryRows || []).map((category) => category.name);
+      const fetchedTagNames = Array.from(
+        new Set([
+          ...(tagRows || []).map((tag) => tag.name).filter(Boolean),
+          ...normalizedEvents.flatMap((event) => event.tags),
+        ])
+      ).sort();
 
       setEvents(normalizedEvents);
       setCategories([ALL_EVENTS_CATEGORY, ...fetchedCategoryNames]);
+      setTags([ALL_EVENTS_TAG, ...fetchedTagNames]);
 
       if (normalizedEvents.length > 0) {
         const firstEventDate = normalizedEvents[0].startDate;
-        setSelectedDate((currentSelectedDate) => currentSelectedDate || firstEventDate);
         setVisibleMonth((currentVisibleMonth) => {
           const isCurrentMonthEmpty = normalizedEvents.every(
             (event) =>
@@ -316,12 +371,22 @@ const Home = ({ session }) => {
   const filteredEvents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
+    const categoryFilterActive =
+      selectedCategories.length > 0 &&
+      !selectedCategories.includes(ALL_EVENTS_CATEGORY);
+    const tagFilterActive =
+      selectedTags.length > 0 && !selectedTags.includes(ALL_EVENTS_TAG);
+
     return events.filter((event) => {
       const matchesSelectedDate = selectedDate
         ? isDateWithinEvent(selectedDate, event.startDate, event.endDate)
         : true;
       const matchesCategory =
-        selectedCategory === ALL_EVENTS_CATEGORY || event.categoryName === selectedCategory;
+        !categoryFilterActive ||
+        selectedCategories.includes(event.categoryName);
+      const matchesTags =
+        !tagFilterActive ||
+        event.tags.some((tag) => selectedTags.includes(tag));
       const matchesSearch =
         query.length === 0 ||
         event.title.toLowerCase().includes(query) ||
@@ -329,16 +394,19 @@ const Home = ({ session }) => {
         event.organizationName.toLowerCase().includes(query) ||
         event.location.toLowerCase().includes(query);
 
-      return matchesSelectedDate && matchesCategory && matchesSearch;
+      return (
+        matchesSelectedDate &&
+        matchesCategory &&
+        matchesTags &&
+        matchesSearch
+      );
     });
-  }, [events, searchQuery, selectedCategory, selectedDate]);
+  }, [events, searchQuery, selectedCategories, selectedTags, selectedDate]);
 
   const monthLabel = visibleMonth.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
-
-  const selectedDateCount = selectedDate ? eventCountByDate[getDateKey(selectedDate)] || 0 : events.length;
 
   function handleMonthChange(offset) {
     setVisibleMonth((currentMonth) => {
@@ -357,6 +425,50 @@ const Home = ({ session }) => {
 
   function resetDateFilter() {
     setSelectedDate(null);
+  }
+
+  function toggleCategory(category) {
+    setSelectedCategories((currentSelected) => {
+      if (category === ALL_EVENTS_CATEGORY) {
+        return [ALL_EVENTS_CATEGORY];
+      }
+
+      const nextSelection = currentSelected.includes(category)
+        ? currentSelected.filter((value) => value !== category)
+        : [...currentSelected.filter((value) => value !== ALL_EVENTS_CATEGORY), category];
+
+      return nextSelection.length === 0 ? [ALL_EVENTS_CATEGORY] : nextSelection;
+    });
+  }
+
+  function toggleTag(tag) {
+    setSelectedTags((currentSelected) => {
+      if (tag === ALL_EVENTS_TAG) {
+        return [ALL_EVENTS_TAG];
+      }
+
+      const nextSelection = currentSelected.includes(tag)
+        ? currentSelected.filter((value) => value !== tag)
+        : [...currentSelected.filter((value) => value !== ALL_EVENTS_TAG), tag];
+
+      return nextSelection.length === 0 ? [ALL_EVENTS_TAG] : nextSelection;
+    });
+  }
+
+  function hasCategorySelected(category) {
+    if (category === ALL_EVENTS_CATEGORY) {
+      return selectedCategories.includes(ALL_EVENTS_CATEGORY);
+    }
+
+    return selectedCategories.includes(category);
+  }
+
+  function hasTagSelected(tag) {
+    if (tag === ALL_EVENTS_TAG) {
+      return selectedTags.includes(ALL_EVENTS_TAG);
+    }
+
+    return selectedTags.includes(tag);
   }
 
   return (
@@ -383,14 +495,80 @@ const Home = ({ session }) => {
           </div>
         ) : null}
 
-        <section className="home-search-section">
-          <input
-            type="text"
-            className="home-search-input"
-            placeholder="Search events by title, organization, location, or keyword..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-          />
+        <section className="home-filter-bar">
+          <div className="home-filter-inputs">
+            <div className="home-search-wrapper">
+              <input
+                type="text"
+                className="home-search-input"
+                placeholder="Search events by title, organization, location, or keyword..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+              />
+              <span className="material-symbols-outlined home-search-input-icon">
+                search
+              </span>
+            </div>
+          </div>
+
+          <div className="home-actions">
+            {session ? (
+              <>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setIsMyEventsOpen(true)}
+                >
+                  My Events
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => navigate("/post-event")}
+                >
+                  Post Event
+                </button>
+              </>
+            ) : null}
+          </div>
+
+          <div className="home-category-panel">
+            <div className="panel-header">
+              <h2>Categories</h2>
+            </div>
+            <div className="category-list">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className={`category-pill ${hasCategorySelected(category) ? "active" : ""}`}
+                  onClick={() => toggleCategory(category)}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+
+            {tags.length > 1 ? (
+              <>
+                <div className="panel-header home-tags-header">
+                  <h2>Tags</h2>
+                </div>
+                <div className="category-list">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
         </section>
 
         <section
@@ -415,33 +593,12 @@ const Home = ({ session }) => {
                 monthLabel={monthLabel}
                 resetDateFilter={resetDateFilter}
                 selectedDate={selectedDate}
-                selectedDateCount={selectedDateCount}
                 visibleMonth={visibleMonth}
                 canNavigatePrevious={visibleMonth > minVisibleMonth}
                 canNavigateNext={visibleMonth < maxVisibleMonth}
               />
             </div>
 
-            <div className="home-panel">
-              <div className="panel-header">
-                <h2>Categories</h2>
-              </div>
-
-              <div className="category-list">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    className={`category-pill ${
-                      selectedCategory === category ? "active" : ""
-                    }`}
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
           </aside>
 
           <section className="home-events-section">
@@ -453,7 +610,7 @@ const Home = ({ session }) => {
                 </h2>
                 <p className="events-subtitle">
                   {eventsLoading
-                    ? "Loading approved events from Supabase..."
+                    ? "Loading approved events..."
                     : eventsError }
                 </p>
               </div>
@@ -470,7 +627,7 @@ const Home = ({ session }) => {
             ) : eventsLoading ? (
               <div className="empty-state">
                 <h3>Loading Events</h3>
-                <p>Fetching calendar events from Supabase.</p>
+                <p>Fetching calendar events.</p>
               </div>
             ) : (
               <div className={`event-grid ${session ? "event-grid-authenticated" : "event-grid-public"}`}>
@@ -485,17 +642,27 @@ const Home = ({ session }) => {
               </div>
             )}
           </section>
-
-          {session ? (
-            <MyEvents
-              session={session}
-              formatCompactDate={formatCompactDate}
-              formatTimeRange={formatTimeRange}
-            />
-          ) : null}
         </section>
-      </main>
 
+        {session && isMyEventsOpen ? (
+          <div
+            className="modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="My Events"
+            onClick={() => setIsMyEventsOpen(false)}
+          >
+            <div className="modal-content" onClick={(event) => event.stopPropagation()}>
+              <MyEvents
+                session={session}
+                formatCompactDate={formatCompactDate}
+                formatTimeRange={formatTimeRange}
+                onClose={() => setIsMyEventsOpen(false)}
+              />
+            </div>
+          </div>
+        ) : null}
+      </main>
     </div>
   );
 };

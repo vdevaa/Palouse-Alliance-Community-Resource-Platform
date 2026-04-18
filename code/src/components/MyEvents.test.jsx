@@ -55,6 +55,7 @@ describe('MyEvents', () => {
           end_datetime: '2026-04-01T11:00:00',
           status: 'pending',
           organizations: { name: 'Org A' },
+          event_tags: [{ tags: { name: 'Community' } }],
         },
         {
           id: 2,
@@ -63,6 +64,7 @@ describe('MyEvents', () => {
           end_datetime: '2026-04-02T11:00:00',
           status: 'approved',
           organizations: { name: 'Org B' },
+          event_tags: [{ tags: { name: 'Youth' } }],
         },
       ],
       error: null,
@@ -83,6 +85,8 @@ describe('MyEvents', () => {
     await waitFor(() => {
       expect(screen.getByText('Pending Event')).toBeInTheDocument();
       expect(screen.getByText('Approved Event')).toBeInTheDocument();
+      expect(screen.getByText('Community')).toBeInTheDocument();
+      expect(screen.getByText('Youth')).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: /Pending Events/i }));

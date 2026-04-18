@@ -94,11 +94,6 @@ const Navbar = ({ session }) => {
 
                         <Link to="/events" className="navbar-link navbar-link-text">Events</Link>
                         <Link to="/organizations" className="navbar-link navbar-link-text">Organizations</Link>
-                        {session ? (
-                            <Link to="/post-event" className="navbar-link navbar-link-accent">
-                                Post Event
-                            </Link>
-                        ) : null}
                     </div>
 
                     <div className="navbar-action-group">
@@ -181,11 +176,6 @@ const Navbar = ({ session }) => {
                     <Link to="/" className="navbar-mobile-link">Home</Link>
                     <Link to="/events" className="navbar-mobile-link">Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
-                    {session ? (
-                        <Link to="/post-event" className="navbar-mobile-link navbar-link-accent">
-                            Post Event
-                        </Link>
-                    ) : null}
                     {session ? (
                         <button
                             onClick={handleLogout}

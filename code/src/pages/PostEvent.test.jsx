@@ -6,14 +6,18 @@ const {
   mockNavigate,
   mockGetSession,
   mockCategoryOrder,
+  mockTagOrder,
   mockUserMaybeSingle,
   mockEventsInsert,
+  mockEventTagsInsert,
 } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockGetSession: vi.fn(),
   mockCategoryOrder: vi.fn(),
+  mockTagOrder: vi.fn(),
   mockUserMaybeSingle: vi.fn(),
   mockEventsInsert: vi.fn(),
+  mockEventTagsInsert: vi.fn(),
 }));
 
 vi.mock("react-router-dom", async () => {
@@ -38,6 +42,14 @@ vi.mock("../lib/supabase", () => ({
         };
       }
 
+      if (table === "tags") {
+        return {
+          select: vi.fn(() => ({
+            order: mockTagOrder,
+          })),
+        };
+      }
+
       if (table === "users") {
         return {
           select: vi.fn(() => ({
@@ -51,6 +63,12 @@ vi.mock("../lib/supabase", () => ({
       if (table === "events") {
         return {
           insert: mockEventsInsert,
+        };
+      }
+
+      if (table === "event_tags") {
+        return {
+          insert: mockEventTagsInsert,
         };
       }
 
@@ -89,6 +107,15 @@ describe("PostEvent", () => {
       error: null,
     });
 
+    mockTagOrder.mockResolvedValue({
+      data: [
+        { id: "tag-1", name: "Community" },
+        { id: "tag-2", name: "Family Friendly" },
+        { id: "tag-3", name: "Outdoor" },
+      ],
+      error: null,
+    });
+
     mockGetSession.mockResolvedValue({
       data: { session: { user: { id: "user-1" } } },
       error: null,
@@ -99,7 +126,16 @@ describe("PostEvent", () => {
       error: null,
     });
 
-    mockEventsInsert.mockResolvedValue({ error: null });
+    mockEventsInsert.mockReturnValue({
+      select: vi.fn(() => ({
+        single: vi.fn().mockResolvedValue({
+          data: { id: "event-1" },
+          error: null,
+        }),
+      })),
+    });
+
+    mockEventTagsInsert.mockResolvedValue({ error: null });
   });
 
   it("loads db categories and submits a pending multi-day online event request", async () => {
@@ -117,10 +153,14 @@ describe("PostEvent", () => {
       expect(screen.getByRole("option", { name: "Community Events" })).toBeInTheDocument();
       expect(screen.getByRole("option", { name: "Volunteer Opportunities" })).toBeInTheDocument();
       expect(screen.getByRole("option", { name: "Youth Programs" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Community" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Family Friendly" })).toBeInTheDocument();
     });
 
     await user.type(screen.getByLabelText("Event Title"), "Community Potluck");
     await user.selectOptions(screen.getByLabelText("Category"), "Volunteer Opportunities");
+    await user.click(screen.getByRole("button", { name: "Community" }));
+    await user.click(screen.getByRole("button", { name: "Outdoor" }));
     await user.type(screen.getByLabelText("Event Description"), "Bring a dish to share.");
     await user.click(screen.getByRole("button", { name: "Continue to Date & Location" }));
 
@@ -135,6 +175,7 @@ describe("PostEvent", () => {
 
     expect(screen.getByText("Step 3: Event Flyer (Optional)")).toBeInTheDocument();
     expect(screen.getByText(/Community Potluck/)).toBeInTheDocument();
+    expect(screen.getByText(/Community, Outdoor/)).toBeInTheDocument();
     expect(screen.getByText(/April 12, 2026 - April 13, 2026/)).toBeInTheDocument();
     expect(screen.getByText(/4:00 PM - 6:00 PM/)).toBeInTheDocument();
     expect(screen.getByText(/^Online$/)).toBeInTheDocument();
@@ -156,6 +197,11 @@ describe("PostEvent", () => {
           organization_id: "org-123",
           status: "pending",
         },
+      ]);
+
+      expect(mockEventTagsInsert).toHaveBeenCalledWith([
+        { event_id: "event-1", tag_id: "tag-1" },
+        { event_id: "event-1", tag_id: "tag-3" },
       ]);
     });
 

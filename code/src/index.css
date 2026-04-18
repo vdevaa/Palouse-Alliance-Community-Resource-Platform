@@ -181,6 +181,7 @@ button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-p
   background-color: var(--btn-secondary-bg) !important;
   color: var(--btn-secondary-text) !important;
   border: 1px solid var(--btn-secondary-border) !important;
+  height: 42px;
 }
 
 .btn-secondary:hover, .secondary-btn:hover {
