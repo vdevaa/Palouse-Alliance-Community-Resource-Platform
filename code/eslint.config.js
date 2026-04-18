@@ -28,11 +28,18 @@ export default defineConfig([
     },
   },
   {
+    files: ['index.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
     files: ['**/*.test.{js,jsx}'],
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.vitest,
+        global: 'readonly',
       },
     },
   },
