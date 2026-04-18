@@ -7,6 +7,13 @@ const Organizations = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const isVisibleOrg = (org) => {
+    const name = org.name?.trim()?.toLowerCase();
+    return Boolean(name && name !== "unaffiliated");
+  };
+
+  const isValid = (val) => val && val !== "NULL" && val.trim() !== "";
+
   useEffect(() => {
     const fetchOrgs = async () => {
       setLoading(true);
@@ -26,10 +33,8 @@ const Organizations = () => {
       if (error) {
         console.error(error.message);
       } else {
-        const validOrgs = data.filter(
-          (org) => org.name && org.name.trim() !== ""
-        );
-        const formattedData = validOrgs.map((org) => ({
+        const visibleOrgs = data.filter(isVisibleOrg);
+        const formattedData = visibleOrgs.map((org) => ({
           ...org,
           eventCount: org.events ? org.events.length : 0,
         }));
@@ -51,240 +56,112 @@ const Organizations = () => {
     setFilteredOrgs(results);
   }, [searchTerm, orgs]);
 
-  const iconStyle = {
-    fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-    fontSize: "18px",
-    verticalAlign: "middle",
-    color: "#718096",
-  };
-
-  const isValid = (val) => val && val !== "NULL" && val.trim() !== "";
-
   if (loading)
     return (
-      <div className="organizations-page page-root" style={{ padding: "4rem", textAlign: "center" }}>
+      <div className="organizations-page page-root organizations-loading">
         Loading Palouse Partners...
       </div>
     );
 
   return (
     <div className="organizations-page page-root">
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h1
-            style={{
-              fontSize: "2.5rem",
-              fontWeight: "700",
-              color: "#111",
-              marginBottom: "0.5rem",
-            }}
-          >
-            Community Organizations
-          </h1>
-          <p style={{ color: "#666", fontSize: "1.1rem" }}>
+      <div className="organizations-shell">
+        <div className="organizations-header">
+          <h1 className="organizations-title">Community Organizations</h1>
+          <p className="organizations-subtitle">
             Discover local organizations making a difference in the Palouse
             region
           </p>
         </div>
 
-        <div
-          style={{
-            position: "relative",
-            maxWidth: "600px",
-            margin: "0 auto 4rem auto",
-            width: "100%",
-            boxSizing: "border-box",
-          }}
-        >
+        <div className="search-wrapper">
           <input
             type="text"
             placeholder="Search by name or mission..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "1rem 1rem 1rem 3rem",
-              borderRadius: "12px",
-              border: "1px solid #ddd",
-              fontSize: "1rem",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              boxSizing: "border-box",
-            }}
+            className="search-input"
           />
-          <span
-            className="material-symbols-outlined"
-            style={{
-              position: "absolute",
-              left: "1.2rem",
-              top: "1.1rem",
-              color: "#999",
-              fontVariationSettings: "'FILL' 1",
-            }}
-          >
+          <span className="material-symbols-outlined search-input-icon">
             search
           </span>
         </div>
 
         <div className="masonry-container">
           {filteredOrgs.length > 0 ? (
-            filteredOrgs.map((org) => (
-              <div key={org.id} className="masonry-item">
-                <div
-                  className="org-card"
-                  style={{
-                    background: "#fff",
-                    borderRadius: "16px",
-                    padding: "1.5rem",
-                    border: "1px solid #edf2f7",
-                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <div style={{ marginBottom: "0.75rem" }}>
-                    <h3
-                      style={{
-                        fontSize: "1.3rem",
-                        margin: "0 0 0.3rem 0",
-                        color: "#1a202c",
-                        fontWeight: "800",
-                        lineHeight: "1.2",
-                      }}
-                    >
-                      {org.name}
-                    </h3>
-                    <div
-                      style={{
-                        backgroundColor: "#fef3c7",
-                        color: "#92400e",
-                        padding: "2px 8px",
-                        borderRadius: "6px",
-                        fontSize: "0.55rem",
-                        fontWeight: "800",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        display: "inline-block",
-                      }}
-                    >
-                      {isValid(org.location) ? org.location : "Palouse Area"}
+            filteredOrgs.map((org) => {
+              const displayName = isValid(org.name)
+                ? org.name
+                : "Community Organization";
+              const displayDescription = isValid(org.description)
+                ? org.description
+                : "Connecting the community through local outreach and support.";
+              const displayLocation = isValid(org.location)
+                ? org.location
+                : "Palouse Area";
+              const hasOrgInfo =
+                org.eventCount > 0 ||
+                isValid(org.phone_number) ||
+                isValid(org.email);
+
+              return (
+                <div key={org.id} className="masonry-item">
+                  <div className="org-card">
+                    <div className="org-card-heading">
+                      <h3 className="org-title">{displayName}</h3>
+                      <div className="org-location-chip">{displayLocation}</div>
                     </div>
-                  </div>
 
-                  <p
-                    style={{
-                      color: "#4a5568",
-                      fontSize: "0.85rem",
-                      lineHeight: "1.5",
-                      marginBottom: "1rem",
-                    }}
-                  >
-                    {org.description ||
-                      "Connecting the community through local outreach and support."}
-                  </p>
+                    <p className="org-description">{displayDescription}</p>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.6rem",
-                      color: "#718096",
-                      fontSize: "0.8rem",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
+                    {hasOrgInfo && (
+                      <div className="org-meta">
+                        {org.eventCount > 0 && (
+                          <span className="org-meta-row">
+                            <span className="material-symbols-outlined org-meta-icon">
+                              calendar_today
+                            </span>
+                            {org.eventCount} active{' '}
+                            {org.eventCount === 1 ? 'event' : 'events'}
+                          </span>
+                        )}
+
+                        {isValid(org.phone_number) && (
+                          <span className="org-meta-row">
+                            <span className="material-symbols-outlined org-meta-icon">
+                              call
+                            </span>
+                            {org.phone_number}
+                          </span>
+                        )}
+
+                        {isValid(org.email) && (
+                          <a
+                            href={`mailto:${org.email}`}
+                            className="email-link org-meta-row"
+                          >
+                            <span className="material-symbols-outlined org-meta-icon">
+                              mail
+                            </span>
+                            {org.email}
+                          </a>
+                        )}
+                      </div>
+                    )}
+
                     {org.eventCount > 0 && (
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={iconStyle}
-                        >
-                          calendar_today
-                        </span>
-                        {org.eventCount} active{" "}
-                        {org.eventCount === 1 ? "event" : "events"}
-                      </span>
-                    )}
-
-                    {isValid(org.phone_number) && (
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={iconStyle}
-                        >
-                          call
-                        </span>
-                        {org.phone_number}
-                      </span>
-                    )}
-
-                    {isValid(org.email) && (
-                      <a
-                        href={`mailto:${org.email}`}
-                        className="email-link"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          color: "#5f745d",
-                          textDecoration: "none",
-                          fontWeight: "600",
-                          width: "fit-content",
-                        }}
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ ...iconStyle, color: "#5f745d" }}
-                        >
-                          mail
-                        </span>
-                        {org.email}
-                      </a>
+                      <div className="org-card-footer">
+                        <button className="btn-primary org-cta-btn" type="button">
+                          View Events
+                        </button>
+                      </div>
                     )}
                   </div>
-
-                  {org.eventCount > 0 && (
-                    <div style={{ marginTop: "1rem" }}>
-                      <button
-                        style={{
-                          width: "100%",
-                          backgroundColor: "#5f745d",
-                          color: "white",
-                          border: "none",
-                          padding: "0.7rem",
-                          borderRadius: "10px",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                          fontSize: "0.85rem",
-                        }}
-                      >
-                        View Events
-                      </button>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
-            <div
-              style={{
-                textAlign: "center",
-                width: "100%",
-                padding: "4rem",
-                color: "#718096",
-              }}
-            >
+            <div className="no-results">
               <p>No organizations found matching "{searchTerm}"</p>
             </div>
           )}
@@ -293,6 +170,165 @@ const Organizations = () => {
 
       <style>
         {`
+          .organizations-header {
+            text-align: center;
+            margin-bottom: 3rem;
+          }
+
+          .organizations-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+          }
+
+          .organizations-subtitle {
+            color: var(--color-text-subtle);
+            font-size: 1.1rem;
+            margin: 0;
+          }
+
+          .search-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto 4rem auto;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border-2);
+            font-size: var(--text-sm);
+            box-shadow: var(--shadow-sm);
+            box-sizing: border-box;
+            background: var(--color-surface);
+            color: var(--color-text);
+          }
+
+          .search-input:focus {
+            outline: none;
+            box-shadow: var(--focus-ring);
+          }
+
+          .search-input-icon {
+            position: absolute;
+            left: 1.2rem;
+            top: 1.1rem;
+            color: var(--color-text-subtle);
+            font-variation-settings: 'FILL' 1;
+          }
+
+          .organizations-shell {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+          }
+
+          .organizations-loading {
+            padding: var(--space-6);
+            text-align: center;
+          }
+
+          .org-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--default-transition-duration) var(--default-transition-timing-function), box-shadow var(--default-transition-duration) var(--default-transition-timing-function);
+          }
+
+          .org-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 18px -4px rgba(0,0,0,0.15);
+          }
+
+          .org-card-heading {
+            margin-bottom: 0.75rem;
+          }
+
+          .org-title {
+            font-size: 1.3rem;
+            margin: 0 0 0.3rem 0;
+            color: var(--color-text);
+            font-weight: 800;
+            line-height: 1.2;
+          }
+
+          .org-location-chip {
+            background-color: var(--color-accent-50);
+            color: var(--color-warning);
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+          }
+
+          .org-description {
+            color: var(--color-text-subtle);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+          }
+
+          .org-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            color: var(--color-text-subtle);
+            font-size: 0.95rem;
+          }
+
+          .org-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+
+          .org-meta-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 18px;
+            color: var(--color-text-subtle);
+            vertical-align: middle;
+          }
+
+          .org-card-footer {
+            margin-top: 1rem;
+          }
+
+          .org-cta-btn {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+          }
+
+          .email-link.org-meta-row {
+            color: var(--color-primary-700);
+            text-decoration: none;
+            font-weight: 600;
+            width: fit-content;
+          }
+
+          .no-results {
+            text-align: center;
+            width: 100%;
+            padding: var(--space-6);
+            color: var(--color-text-subtle);
+          }
+
+          .email-link.org-meta-row:hover {
+            text-decoration: underline;
+          }
+
           .masonry-container {
             column-count: 3;
             column-gap: 1.5rem;
@@ -306,15 +342,6 @@ const Organizations = () => {
             width: 100%;
           }
 
-          .org-card {
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-          }
-
-          .org-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 10px 18px -4px rgba(0,0,0,0.15);
-          }
-
           .email-link:hover { text-decoration: underline !important; }
 
           @media (max-width: 1000px) {
@@ -322,7 +349,7 @@ const Organizations = () => {
           }
           @media (max-width: 700px) {
             .masonry-container { column-count: 1; }
-            .org-card { padding: 1.25rem !important; }
+            .org-card { padding: var(--space-5) !important; }
           }
         `}
       </style>
