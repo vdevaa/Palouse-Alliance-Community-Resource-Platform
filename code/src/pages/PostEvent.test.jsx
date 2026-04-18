@@ -89,7 +89,7 @@ describe("PostEvent", () => {
     mockEventsInsert.mockResolvedValue({ error: null });
   });
 
-  it("loads db categories and submits a pending event request", async () => {
+  it("loads db categories and submits a pending multi-day online event request", async () => {
     const user = userEvent.setup();
 
     render(
@@ -113,16 +113,19 @@ describe("PostEvent", () => {
 
     expect(screen.getByText("Step 2: When & Where")).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText("Event Date"), "2026-04-12");
+    await user.type(screen.getByLabelText("Start Date"), "2026-04-12");
+    await user.type(screen.getByLabelText("End Date"), "2026-04-13");
     await user.type(screen.getByLabelText("Start Time"), "16:00");
     await user.type(screen.getByLabelText("End Time"), "18:00");
-    await user.type(screen.getByLabelText("Location"), "City Hall");
+    await user.type(screen.getByLabelText("Location or Zoom Link"), "https://zoom.us/j/123456789");
     await user.click(screen.getByRole("button", { name: "Continue to Flyer Upload" }));
 
     expect(screen.getByText("Step 3: Event Flyer (Optional)")).toBeInTheDocument();
     expect(screen.getByText(/Community Potluck/)).toBeInTheDocument();
-    expect(screen.getByText(/City Hall/)).toBeInTheDocument();
+    expect(screen.getByText(/April 12, 2026 - April 13, 2026/)).toBeInTheDocument();
     expect(screen.getByText(/4:00 PM - 6:00 PM/)).toBeInTheDocument();
+    expect(screen.getByText(/^Online$/)).toBeInTheDocument();
+    expect(screen.getByText(/https:\/\/zoom\.us\/j\/123456789/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Submit for Review" }));
 
@@ -132,8 +135,9 @@ describe("PostEvent", () => {
           title: "Community Potluck",
           description: "Bring a dish to share.",
           start_datetime: "2026-04-12T16:00:00",
-          end_datetime: "2026-04-12T18:00:00",
-          location: "City Hall",
+          end_datetime: "2026-04-13T18:00:00",
+          location: "Online",
+          volunteer_url: "https://zoom.us/j/123456789",
           created_by: "user-1",
           category_id: "cat-17",
           organization_id: "org-123",

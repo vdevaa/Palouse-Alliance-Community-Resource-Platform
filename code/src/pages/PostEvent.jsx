@@ -51,6 +51,19 @@ function formatDisplayTime(time) {
   });
 }
 
+function isLikelyUrl(value) {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const parsedUrl = new URL(value);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 const PostEvent = () => {
   const [step, setStep] = useState(1);
 
@@ -62,6 +75,7 @@ const PostEvent = () => {
   const [category, setCategory] = useState(FALLBACK_CATEGORY_NAMES[0]);
 
   const [date, setDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
@@ -123,9 +137,10 @@ const PostEvent = () => {
     if (step === 2) {
       return (
         date !== "" &&
+        endDate !== "" &&
+        endDate >= date &&
         startTime !== "" &&
         endTime !== "" &&
-        endTime > startTime &&
         location.trim() !== ""
       );
     }
@@ -139,6 +154,7 @@ const PostEvent = () => {
     setDescription("");
     setCategory(categories[0]?.name || FALLBACK_CATEGORY_NAMES[0]);
     setDate("");
+    setEndDate("");
     setStartTime("");
     setEndTime("");
     setLocation("");
@@ -161,8 +177,13 @@ const PostEvent = () => {
       return;
     }
 
-    if (endTime <= startTime) {
-      setErrorMessage("End time must be after the start time.");
+    if (endDate < date) {
+      setErrorMessage("End date must be on or after the start date.");
+      return;
+    }
+
+    if (date === endDate && endTime <= startTime) {
+      setErrorMessage("End time must be after the start time for single-day events.");
       return;
     }
 
@@ -222,12 +243,15 @@ const PostEvent = () => {
         categoryId = categoryData.id;
       }
 
+      const trimmedLocation = location.trim();
+      const isOnlineEvent = isLikelyUrl(trimmedLocation);
       const payload = {
         title: title.trim(),
         description: description.trim(),
         start_datetime: `${date}T${startTime}:00`,
-        end_datetime: `${date}T${endTime}:00`,
-        location: location.trim(),
+        end_datetime: `${endDate}T${endTime}:00`,
+        location: isOnlineEvent ? "Online" : trimmedLocation,
+        volunteer_url: isOnlineEvent ? trimmedLocation : null,
         created_by: userId,
         category_id: categoryId,
         organization_id: userData.organization_id,
@@ -335,7 +359,7 @@ const PostEvent = () => {
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="date">
-                    Event Date
+                    Start Date
                   </label>
                   <input
                     id="date"
@@ -343,6 +367,21 @@ const PostEvent = () => {
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="end-date">
+                    End Date
+                  </label>
+                  <input
+                    id="end-date"
+                    className="form-input"
+                    type="date"
+                    value={endDate}
+                    min={date || undefined}
+                    onChange={(e) => setEndDate(e.target.value)}
                     required
                   />
                 </div>
@@ -377,13 +416,13 @@ const PostEvent = () => {
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="location">
-                    Location
+                    Location or Zoom Link
                   </label>
                   <input
                     id="location"
                     className="form-input"
                     type="text"
-                    placeholder="E.g., Moscow Community Center, 206 E 3rd St"
+                    placeholder="E.g., Moscow Community Center, 206 E 3rd St or https://zoom.us/j/..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     required
@@ -432,14 +471,22 @@ const PostEvent = () => {
                     <strong>Category:</strong> {category}
                   </p>
                   <p>
-                    <strong>Date:</strong> {formatDisplayDate(date)}
+                    <strong>Date:</strong>{" "}
+                    {date === endDate
+                      ? formatDisplayDate(date)
+                      : `${formatDisplayDate(date)} - ${formatDisplayDate(endDate)}`}
                   </p>
                   <p>
                     <strong>Time:</strong> {formatDisplayTime(startTime)} - {formatDisplayTime(endTime)}
                   </p>
                   <p>
-                    <strong>Location:</strong> {location}
+                    <strong>Location:</strong> {isLikelyUrl(location.trim()) ? "Online" : location}
                   </p>
+                  {isLikelyUrl(location.trim()) && (
+                    <p>
+                      <strong>Zoom Link:</strong> {location}
+                    </p>
+                  )}
                 </div>
               </>
             )}
