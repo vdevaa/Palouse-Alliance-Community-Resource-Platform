@@ -10,7 +10,8 @@
     "start:backend": "node index.js",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
