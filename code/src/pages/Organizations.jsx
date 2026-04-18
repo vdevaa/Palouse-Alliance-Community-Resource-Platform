@@ -87,6 +87,14 @@ const Organizations = () => {
           </span>
         </div>
 
+        <div className="events-header">
+          <div>
+            <h2>
+              {filteredOrgs.length} {filteredOrgs.length === 1 ? "Organization" : "Organizations"} Found
+            </h2>
+          </div>
+        </div>
+
         <div className="masonry-container">
           {filteredOrgs.length > 0 ? (
             filteredOrgs.map((org) => {
@@ -198,18 +206,21 @@ const Organizations = () => {
 
           .search-input {
             width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--color-border-2);
+            padding: 0.95rem 1rem 0.95rem 3rem;
+            border-radius: 999px;
+            border: 1px solid var(--color-border);
             font-size: var(--text-sm);
+            font-family: inherit;
             box-shadow: var(--shadow-sm);
             box-sizing: border-box;
             background: var(--color-surface);
             color: var(--color-text);
+            min-height: 44px;
           }
 
           .search-input:focus {
             outline: none;
+            border-color: var(--color-primary-700);
             box-shadow: var(--focus-ring);
           }
 
@@ -220,6 +231,14 @@ const Organizations = () => {
             transform: translateY(-50%);
             color: var(--color-text-subtle);
             font-variation-settings: 'FILL' 1;
+          }
+
+          .organizations-result-summary {
+            max-width: 600px;
+            margin: 0 auto 1.5rem auto;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            text-align: center;
           }
 
           .organizations-shell {

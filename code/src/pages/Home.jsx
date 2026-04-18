@@ -208,6 +208,7 @@ const Home = ({ session }) => {
     ALL_EVENTS_CATEGORY,
   ]);
   const [selectedTags, setSelectedTags] = useState([ALL_EVENTS_TAG]);
+  const [filterMenuOpen, setFilterMenuOpen] = useState(null);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState("");
   const [toast, setToast] = useState(() =>
@@ -473,6 +474,12 @@ const Home = ({ session }) => {
     setSelectedDate(null);
   }
 
+  function toggleFilterMenu(menuName) {
+    setFilterMenuOpen((currentOpen) =>
+      currentOpen === menuName ? null : menuName
+    );
+  }
+
   function toggleCategory(category) {
     setSelectedCategories((currentSelected) => {
       if (category === ALL_EVENTS_CATEGORY) {
@@ -544,7 +551,7 @@ const Home = ({ session }) => {
         ) : null}
 
         <section className="home-filter-bar">
-          <div className="home-filter-inputs">
+          <div className="home-filter-row">
             <div className="home-search-wrapper">
               <input
                 type="text"
@@ -556,6 +563,61 @@ const Home = ({ session }) => {
               <span className="material-symbols-outlined home-search-input-icon">
                 search
               </span>
+            </div>
+
+            <div className="home-filter-controls">
+              <div className="filter-button-group">
+                <button
+                  type="button"
+                  className={`filter-trigger ${filterMenuOpen === "categories" ? "active" : ""}`}
+                  onClick={() => toggleFilterMenu("categories")}
+                >
+                  Categories
+                </button>
+                <button
+                  type="button"
+                  className={`filter-trigger ${filterMenuOpen === "tags" ? "active" : ""}`}
+                  onClick={() => toggleFilterMenu("tags")}
+                >
+                  Tags
+                </button>
+              </div>
+
+              {filterMenuOpen === "categories" ? (
+                <div className="filter-menu">
+                  <div className="filter-menu-header">Choose categories</div>
+                  <div className="category-list">
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        className={`category-pill ${hasCategorySelected(category) ? "active" : ""}`}
+                        onClick={() => toggleCategory(category)}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {filterMenuOpen === "tags" ? (
+                <div className="filter-menu">
+                  <div className="filter-menu-header">Choose tags</div>
+                  <div className="category-list">
+                    {tags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -576,44 +638,6 @@ const Home = ({ session }) => {
                 >
                   Post Event
                 </button>
-              </>
-            ) : null}
-          </div>
-
-          <div className="home-category-panel">
-            <div className="panel-header">
-              <h2>Categories</h2>
-            </div>
-            <div className="category-list">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  className={`category-pill ${hasCategorySelected(category) ? "active" : ""}`}
-                  onClick={() => toggleCategory(category)}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-
-            {tags.length > 1 ? (
-              <>
-                <div className="panel-header home-tags-header">
-                  <h2>Tags</h2>
-                </div>
-                <div className="category-list">
-                  {tags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
-                      onClick={() => toggleTag(tag)}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
               </>
             ) : null}
           </div>
