@@ -9,6 +9,7 @@ const Navbar = ({ session }) => {
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
         setMobileMenuOpen(false);
@@ -67,9 +68,19 @@ const Navbar = ({ session }) => {
         setMobileMenuOpen(false);
     };
 
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 12);
+        };
+
+        handleScroll();
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
     return (
         <>
-            <nav className="site-navbar">
+            <nav className={`site-navbar${isScrolled ? " site-navbar--scrolled" : ""}`}>
                 <Link to="/" className="navbar-logo-link" aria-label="Palouse Alliance home">
                     <img
                         src={logo}
