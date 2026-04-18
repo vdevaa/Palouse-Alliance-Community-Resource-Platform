@@ -5,10 +5,9 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { supabase } from "./lib/supabase";
 import Landing from "./pages/Landing";
-import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
+import Events from "./pages/Events";
 import Organizations from "./pages/Organizations";
 import PostEvent from "./pages/PostEvent";
 import Admin from "./pages/Admin";
@@ -69,19 +68,7 @@ function App() {
                 <Register />
               </ProtectedRoute>
             } />
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute loading={loading} session={session}>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={<Navigate to="/home" replace />}
-            />
-            <Route path="/events" element={<Home session={session} />} />
+            <Route path="/events" element={<Events session={session} />} />
             <Route path="/organizations" element={<Organizations />} />
             <Route
               path="/post-event"
