@@ -9,7 +9,7 @@
   align-items: center;
   margin-bottom: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text);
 }
 
 .calendar-arrow {
@@ -19,7 +19,7 @@
   border-radius: 999px;
   background: var(--color-surface);
   font-size: 28px;
-  color: var(--color-accent);
+  color: var(--color-primary-700);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -30,8 +30,8 @@
 }
 
 .calendar-arrow:hover {
-  background: #eef3ea;
-  border-color: #c7d2c0;
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-300);
 }
 
 .calendar-weekdays,
@@ -49,7 +49,7 @@
 .calendar-weekdays span {
   font-size: 11px;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--color-text-subtle);
   text-align: center;
 }
 
@@ -59,7 +59,7 @@
   min-width: 0;
   min-height: 48px;
   border: 1px solid var(--color-border);
-  background: #f8faf7;
+  background: var(--color-surface-2);
   border-radius: var(--radius-md);
   cursor: pointer;
   font-size: 14px;
@@ -73,8 +73,8 @@
 }
 
 .calendar-day:hover {
-  background: #eef3ea;
-  border-color: #d6dfd0;
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-300);
 }
 
 .calendar-day-number {
@@ -83,19 +83,19 @@
 }
 
 .calendar-day.has-event .calendar-day-number {
-  color: var(--color-accent);
+  color: var(--color-accent-700);
 }
 
 .calendar-day.selected {
-  background: #dbe7d5;
-  border: 1px solid var(--color-accent);
+  background: var(--color-primary-200);
+  border: 1px solid var(--color-primary-700);
   font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(95, 116, 87, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(86, 104, 79, 0.12);
 }
 
 .calendar-day.outside-month {
-  background: #fbfcfa;
-  color: #a0a8a0;
+  background: var(--color-surface-2);
+  color: var(--color-text-subtle);
 }
 
 .event-dot {
@@ -104,14 +104,14 @@
   bottom: 8px;
   width: 6px;
   height: 6px;
-  background: #5f7457;
+  background: var(--color-primary-700);
   border-radius: 50%;
 }
 
 .selected-date-box {
   margin-top: 18px;
   padding: 16px;
-  background: #eef3ea;
+  background: var(--color-primary-100);
   border-radius: 12px;
   text-align: center;
 }
@@ -119,13 +119,13 @@
 .selected-date-box p {
   margin: 0 0 6px 0;
   font-size: 13px;
-  color: var(--color-muted);
+  color: var(--color-text-muted);
 }
 
 .selected-date-box strong {
   display: block;
   margin-bottom: 6px;
-  color: #1f2937;
+  color: var(--color-text);
 }
 
 .selected-date-meta {
@@ -133,13 +133,13 @@
   margin-bottom: 10px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-primary-700);
 }
 
 .view-all-btn {
   border: none;
   background: transparent;
-  color: #5f7457;
+  color: var(--color-primary-700);
   font-weight: 600;
   cursor: pointer;
 }

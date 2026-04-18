@@ -85,7 +85,7 @@ const Navbar = ({ session }) => {
                         href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="navbar-link navbar-link-primary"
+                        className="navbar-link navbar-link-text"
                     >
                         GivePulse
                     </a>
@@ -167,7 +167,7 @@ const Navbar = ({ session }) => {
                         href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="navbar-mobile-link navbar-link-secondary"
+                        className="navbar-mobile-link"
                     >
                         GivePulse
                     </a>

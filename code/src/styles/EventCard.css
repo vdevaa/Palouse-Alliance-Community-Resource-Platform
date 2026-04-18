@@ -19,16 +19,16 @@
 
 .event-category {
   display: inline-block;
-  background: #eef3ea;
-  color: var(--color-accent);
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
   font-size: 12px;
   font-weight: 700;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 6px 10px;
 }
 
 .event-status {
-  color: var(--color-muted);
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -44,14 +44,14 @@
 .event-org {
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: var(--color-accent);
+  color: var(--color-accent-700);
   font-weight: 600;
   font-weight: 600;
 }
 
 .event-description {
   margin: 0 0 16px 0;
-  color: var(--color-subtext);
+  color: var(--color-text-muted);
   line-height: 1.6;
   font-size: 14px;
 }
@@ -59,7 +59,7 @@
 .event-meta p {
   margin: 0 0 8px 0;
   font-size: 14px;
-  color: #374151;
+  color: var(--color-text-muted);
 }
 
 .event-actions {
@@ -81,12 +81,12 @@
 
 .primary-btn {
   border: none;
-  background: var(--color-accent);
-  color: var(--color-surface);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
 .primary-btn:hover {
-  background: var(--color-accent-strong);
+  background: var(--btn-primary-bg-hover);
 }
 
 .secondary-btn {
@@ -96,7 +96,7 @@
 }
 
 .secondary-btn:hover {
-  background: #f7f8f5;
+  background: var(--btn-secondary-bg-hover);
 }
 
 @media (max-width: 640px) {

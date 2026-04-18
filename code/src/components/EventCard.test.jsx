@@ -46,4 +46,16 @@ describe('EventCard', () => {
 
     expect(screen.getByText(/Wed Apr 01 2026 - Thu Apr 02 2026/)).toBeInTheDocument();
   });
+
+  it('does not render the location row when location is missing', () => {
+    render(
+      <EventCard
+        event={{ ...event, location: null }}
+        formatFullDate={(date) => date.toDateString()}
+        formatTimeRange={() => '10:00 AM - 12:00 PM'}
+      />
+    );
+
+    expect(screen.queryByText(/Location:/)).not.toBeInTheDocument();
+  });
 });

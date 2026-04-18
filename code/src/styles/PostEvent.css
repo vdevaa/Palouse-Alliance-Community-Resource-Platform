@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  background: #f5f7f3;
+  background: var(--color-bg);
   padding: 30px 10px;
 }
 
@@ -14,10 +14,10 @@
 .postevent-card {
   width: 80%;
   margin: 0 auto;
-  background: #ffffff;
-  border: 1px solid #e6e6e6;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
   padding: 8px 48px 36px 48px;
 }
 
@@ -29,13 +29,13 @@
   text-align: center;
   font-size: 36px;
   font-weight: 550;
-  color: #111827;
+  color: var(--color-text);
   margin: 0;
 }
 
 .postevent-subtitle {
   text-align: center;
-  color: #5F7457;
+  color: var(--color-text-muted);
   font-size: 20px;
   font-weight: 475;
   line-height: 1.5;
@@ -54,8 +54,8 @@
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: #e5e7eb;
-  color: #4b5563;
+  background: var(--color-divider);
+  color: var(--color-text-subtle);
   font-size: 18px;
   font-weight: 600;
   display: flex;
@@ -65,25 +65,25 @@
 }
 
 .step.current {
-  background: #5F7457;
-  color: white;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
 .step-line {
   height: 4px;
   width: 80px;
-  background: #e5e7eb;
+  background: var(--color-divider);
 }
 
 .step-title {
   font-size: 26px;
   font-weight: 550;
-  color: #111827;
+  color: var(--color-text);
   margin-bottom: 6px;
 }
 
 .step-description {
-  color: #4b5563;
+  color: var(--color-text-muted);
   font-size: 16px;
   font-weight: 450;
   margin-bottom: 24px;
@@ -91,7 +91,7 @@
 
 .postevent-help-text {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--color-text-subtle);
   margin-top: -6px;
   margin-bottom: 18px;
 }
@@ -121,21 +121,21 @@ textarea.form-input {
 textarea.form-input::placeholder {
   font-family: inherit;
   font-size: inherit;
-  color: #6b7280;
+  color: var(--color-text-subtle);
 }
 
 .file-upload {
-  border: 2px dashed #d1d5db;
+  border: 2px dashed var(--color-border-2);
   border-radius: 12px;
   padding: 25px 20px;
   text-align: center;
   cursor: pointer;
-  background: #f9fafb;
+  background: var(--color-surface-2);
 }
 
 .file-upload:hover {
-  border-color: #5F7457;
-  background: #f3f4f6;
+  border-color: var(--color-primary-700);
+  background: var(--color-primary-100);
 }
 
 .upload-icon {
@@ -148,7 +148,7 @@ textarea.form-input::placeholder {
   font-size: 18px;
   font-weight: 575;
   margin: 4px 0;
-  color: #111827;
+  color: var(--color-text);
 }
 
 .upload-subtext {
@@ -162,7 +162,7 @@ textarea.form-input::placeholder {
   padding: 20px 20px 8px 20px;
   line-height: 0.8;
   border-radius: 14px;
-  background: #D8E8D8;
+  background: var(--color-primary-200);
 }
 
 .summary-title {
@@ -177,8 +177,8 @@ textarea.form-input::placeholder {
   height: 48px;
   border: none;
   border-radius: 10px;
-  background: #5F7457;
-  color: #ffffff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -186,35 +186,38 @@ textarea.form-input::placeholder {
 }
 
 .postevent-button:hover {
-  background: #52684c;
+  background: var(--btn-primary-bg-hover);
 }
 
 .postevent-button:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(95, 116, 87, 0.22);
+  box-shadow: var(--focus-ring);
 }
 
 .postevent-button.secondary {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--btn-secondary-bg-hover);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--btn-secondary-border);
 }
 
 .postevent-button.secondary:hover {
-  background: #D1D5DB;
+  background: var(--color-primary-200);
 }
 
 .postevent-button:disabled {
-  background: #5F7457;
+  background: var(--btn-disabled-bg);
+  color: var(--btn-disabled-text);
+  border: 1px solid var(--btn-disabled-border);
   opacity: 0.5;
 }
 
 .postevent-button:disabled:hover {
-  background: #5F7457;
+  background: var(--btn-disabled-bg);
 }
 
 .postevent-button.submit {
-  background: #EAB308;
-  color: black;
+  background: var(--color-accent-500);
+  color: var(--color-text);
 }
 
 .postevent-button-row {
@@ -228,7 +231,7 @@ textarea.form-input::placeholder {
   margin: 16px 0;
   text-align: center;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--color-text-subtle);
 }
 
 @media (max-width: 520px) {

@@ -1,60 +1,98 @@
 :root {
-  /* typography */
+  /* Brand - Greens (primary) */
+  --color-primary-50: #F4F7F2; /* page tint / very light */
+  --color-primary-100: #EEF3EC; /* subtle hover bg for secondary */
+  --color-primary-200: #E3ECDF; /* stronger subtle bg */
+  --color-primary-300: #CFE2C9; /* soft highlight panels / selected */
+  --color-primary-400: #AFC6A8; /* optional mid tint (chips, hovers) */
+  --color-primary-500: #7D9274; /* optional mid tone (icons, accents) */
+  --color-primary-600: #667A5E; /* optional */
+  --color-primary-700: #56684F; /* primary button bg */
+  --color-primary-800: #3F4C3A; /* primary hover/active */
+  --color-primary-900: #2F382B; /* deepest (headers, emphasis) */
+
+  /* Accent - Gold (from logo / tags) */
+  --color-accent-50: #FFF7E0;
+  --color-accent-100: #FCE9B5;
+  --color-accent-200: #F6D989;
+  --color-accent-300: #EDC85B;
+  --color-accent-400: #E6BC3E;
+  --color-accent-500: #E0B12D; /* main gold */
+  --color-accent-600: #C9971F; /* hover/deeper */
+  --color-accent-700: #A97916;
+
+  /* Neutrals - Surfaces / borders */
+  --color-bg: #F4F7F2; /* app background */
+  --color-surface: #FFFFFF; /* cards, nav, modals */
+  --color-surface-2: #FAFBF9; /* subtle surface variation */
+
+  --color-border: #E6ECE3; /* card borders */
+  --color-border-2: #D7E2D4; /* inputs, secondary button border alt */
+  --color-divider: #E9EEE7;
+
+  /* Typography */
+  --color-text: #111111; /* primary text */
+  --color-text-muted: #5E6A5A; /* secondary text */
+  --color-text-subtle: #7A8676; /* tertiary/help text */
+  --color-text-inverse: #FFFFFF; /* on dark buttons */
+
+  /* Semantic */
+  --color-success: #56684F; /* aligned to primary */
+  --color-warning: #E0B12D; /* aligned to accent */
+  --color-danger: #B94A48;
+  --color-info: #3B6E8C;
+
+  /* Links */
+  --color-link: #3F4C3A;
+  --color-link-hover: #2F382B;
+
+  /* Focus ring / shadows */
+  --focus-ring: 0 0 0 3px rgba(86, 104, 79, 0.35);
+  --shadow-sm: 0 1px 2px rgba(17, 17, 17, 0.06);
+  --shadow-md: 0 6px 18px rgba(17, 17, 17, 0.10);
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Spacing (optional tokens) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  /* Button tokens (so components don't hardcode colors) */
+  --btn-primary-bg: var(--color-primary-700);
+  --btn-primary-bg-hover: var(--color-primary-800);
+  --btn-primary-text: var(--color-text-inverse);
+  --btn-primary-border: var(--color-primary-700);
+
+  /* Option A: Secondary (outline/ghost) for Login */
+  --btn-secondary-bg: transparent;
+  --btn-secondary-text: var(--color-primary-800);
+  --btn-secondary-border: var(--color-primary-700);
+  --btn-secondary-bg-hover: var(--color-primary-100);
+  --btn-secondary-text-hover: var(--color-primary-800);
+  --btn-secondary-border-hover: var(--color-primary-700);
+
+  /* Disabled */
+  --btn-disabled-bg: #E9EEE7;
+  --btn-disabled-text: #9AA59A;
+  --btn-disabled-border: #D7E2D4;
+
   --font-sans: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   --base-line-height: 1.5;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-
-  /* Palette */
-  --color-primary: #556E57; /* Primary Green - CTA, accents */
-  --color-primary-dark: #495D4B; /* Primary Dark - hover, strong surfaces */
-  --color-footer-bg: #485F4D; /* Footer Background - large dark surfaces */
-  --color-accent-mustard: #E6B400; /* Accent Mustard - badges/highlights */
-  --color-accent-lime: #78C25A; /* Accent Lime - logo & micro accents */
-  --color-bg: #F5F8F4; /* Background - subtle green tint */
-  --color-surface: #FFFFFF; /* Surface / Card Background */
-  --color-border: #E9EFE9; /* Border / subtle line */
-  --color-text: #213128; /* Text Primary */
-  --color-muted: #6B7A71; /* Text Muted */
-  --color-danger: #b91c1c;
-
-  /* Mockup variables (mapped to palette) */
-  --font-size: 16px;
-  --background: var(--color-surface);
-  --foreground: var(--color-text);
-  --card: var(--color-surface);
-  --card-foreground: var(--color-text);
-  --popover: var(--color-surface);
-  --popover-foreground: var(--color-text);
-  
-  --primary: var(--color-primary);
-  --primary-foreground: var(--color-surface);
-  --primary-dark: var(--color-primary-dark); 
-  
-  --secondary: var(--color-accent-mustard);
-  --secondary-foreground: var(--color-text);
-  --muted: var(--color-bg);
-  --muted-foreground: var(--color-muted);
-  --accent: #E8F3E5;
-  --accent-foreground: var(--color-text);
-  --destructive: #d4183d;
-  --destructive-foreground: #fff;
-  --border-weak: rgba(85,112,85,0.16);
-  --input: transparent;
-  --input-background: #f8faf7;
-  --switch-background: #cbced4;
-  --ring: var(--color-primary);
-  
-  /* Sizing - Vital for the "Design" feel */
-  --radius: 0.625rem;
-  --radius-md: 12px;
-  --spacing: .25rem;
-  
-  --text-sm: .875rem;
-  --text-sm--line-height: calc(1.25 / .875);
-  --default-transition-duration: .15s;
-  --default-transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+  --text-sm: 0.875rem;
+  --text-sm-line-height: calc(1.25 / 0.875);
+  --default-transition-duration: 0.15s;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 
   font-family: var(--font-sans);
   line-height: var(--base-line-height);
@@ -83,17 +121,21 @@ html, body {
 a {
   font-weight: 500;
   text-decoration: inherit;
-  color: var(--color-primary);
+  color: var(--color-link);
+}
+
+a:hover {
+  color: var(--color-link-hover);
 }
 
 /* Base reset for ALL buttons to ensure visibility */
 button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-pill {
-  border-radius: calc(var(--radius) - 2px);
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  padding-block: calc(var(--spacing) * 2);
-  padding-inline: calc(var(--spacing) * 4);
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
   font-size: var(--text-sm);
-  line-height: var(--text-sm--line-height);
+  line-height: var(--text-sm-line-height);
   font-weight: var(--font-weight-medium);
   font-family: inherit;
   cursor: pointer;
@@ -110,54 +152,57 @@ button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-p
 
 /* 1. Sign In / Details / Event Card Buttons */
 .btn-primary, .primary-btn, button[type="submit"] {
-  background-color: var(--color-primary) !important;
-  color: #FFFFFF !important;
+  background-color: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border-color: var(--btn-primary-border) !important;
   height: 42px; /* Matches your EventCard design */
 }
 
 .btn-primary:hover, .primary-btn:hover, button[type="submit"]:hover {
-  background-color: var(--color-primary-dark) !important;
+  background-color: var(--btn-primary-bg-hover) !important;
 }
 
 /* 2. Category Pills (All Events, etc.) */
 .category-pill {
-  background-color: #FFFFFF !important;
+  background-color: var(--color-surface) !important;
   color: var(--color-text) !important;
   border: 1px solid var(--color-border) !important;
-  border-radius: 999px !important; /* Forces the rounded pill look */
+  border-radius: var(--radius-pill) !important; /* Forces the rounded pill look */
 }
 
 .category-pill.active {
-  background-color: var(--color-accent-mustard) !important;
+  background-color: var(--color-accent-500) !important;
   color: var(--color-text) !important;
-  border-color: var(--color-accent-mustard) !important;
+  border-color: var(--color-accent-500) !important;
 }
 
 /* 3. Secondary Buttons */
 .btn-secondary, .secondary-btn {
-  background-color: #FFFFFF !important;
-  color: var(--color-text) !important;
-  border: 1px solid var(--color-border) !important;
+  background-color: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-text) !important;
+  border: 1px solid var(--btn-secondary-border) !important;
 }
 
 .btn-secondary:hover, .secondary-btn:hover {
-  background-color: #f7f8f5 !important;
+  background-color: var(--btn-secondary-bg-hover) !important;
+  color: var(--btn-secondary-text-hover) !important;
+  border-color: var(--btn-secondary-border-hover) !important;
 }
 
 /* 4. Calendar Navigation & All Dates */
 .calendar-arrow {
-  border-radius: 999px !important;
+  border-radius: var(--radius-pill) !important;
   width: 36px;
   height: 36px;
   padding: 0;
   background: var(--color-surface) !important;
-  color: var(--color-primary) !important;
+  color: var(--color-primary-700) !important;
   border: 1px solid var(--color-border) !important;
 }
 
 .view-all-btn {
   background: transparent !important;
-  color: var(--color-primary) !important;
+  color: var(--color-primary-700) !important;
   font-weight: 600;
   padding: 0;
 }
@@ -165,23 +210,23 @@ button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-p
 /* 5. Misc Design Restoration */
 .calendar-day {
   border-radius: var(--radius-md);
-  background: #f8faf7;
+  background: var(--color-surface-2);
   border: 1px solid var(--color-border);
 }
 
 .calendar-day.selected {
-  background: #dbe7d5 !important;
-  border: 1px solid var(--color-primary) !important;
+  background: var(--color-primary-200) !important;
+  border: 1px solid var(--color-primary-700) !important;
 }
 
 .event-category {
-  background-color: #eef3ea !important;
-  color: var(--color-primary) !important;
-  border-radius: 999px;
+  background-color: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+  border-radius: var(--radius-pill);
   padding: 6px 10px;
 }
 
 button:focus-visible {
-  outline: 2px solid var(--color-primary-dark);
+  outline: 2px solid var(--color-primary-800);
   outline-offset: 2px;
 }

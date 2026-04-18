@@ -47,17 +47,17 @@
 }
 
 .navbar-link-text:hover {
-  color: var(--color-primary-dark);
+  color: var(--color-primary-800);
 }
 
 .navbar-link-primary {
-  color: var(--color-surface);
-  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  background: var(--btn-primary-bg);
   padding: 0.65rem 1.3rem;
 }
 
 .navbar-link-primary:hover {
-  background: var(--color-primary-dark);
+  background: var(--btn-primary-bg-hover);
 }
 
 .navbar-link-outline {
@@ -68,12 +68,12 @@
 }
 
 .navbar-link-outline:hover {
-  background: #f7f7f7;
+  background: var(--color-primary-100);
 }
 
 .navbar-link-accent {
-  color: var(--color-surface);
-  background: var(--color-accent-mustard);
+  color: var(--color-text);
+  background: var(--color-accent-500);
   padding: 0.65rem 1.3rem;
 }
 
@@ -83,14 +83,14 @@
 
 /* Secondary / less prominent button (outline with primary text) */
 .navbar-link-secondary {
-  color: var(--color-text);
-  background: transparent;
-  border: 1px solid var(--color-border);
+  color: var(--btn-secondary-text);
+  background: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
   padding: 0.65rem 1.3rem;
 }
 
 .navbar-link-secondary:hover {
-  background: rgba(85,110,87,0.08); /* subtle primary tint */
+  background: var(--btn-secondary-bg-hover); /* subtle primary tint */
 }
 
 .navbar-button,
@@ -213,20 +213,20 @@
 .navbar-mobile-link.navbar-link-primary,
 .navbar-mobile-link.navbar-link-accent,
 .navbar-mobile-link.navbar-link-secondary {
-  color: #ffffff;
+  color: var(--color-text-inverse);
   border-color: transparent;
 }
 
 .navbar-mobile-link.navbar-link-primary {
-  background: var(--color-primary);
+  background: var(--btn-primary-bg);
 }
 
 .navbar-mobile-link.navbar-link-primary:hover {
-  background: var(--color-primary-dark);
+  background: var(--btn-primary-bg-hover);
 }
 
 .navbar-mobile-link.navbar-link-accent {
-  background: var(--color-accent-mustard);
+  background: var(--color-accent-500);
 }
 
 .navbar-mobile-link.navbar-link-accent:hover {
@@ -234,13 +234,13 @@
 }
 
 .navbar-mobile-link.navbar-link-secondary {
-  background: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--btn-secondary-border);
 }
 
 .navbar-mobile-link.navbar-link-secondary:hover {
-  background: rgba(85,110,87,0.08);
+  background: var(--btn-secondary-bg-hover);
 }
 
 .navbar-mobile-button {

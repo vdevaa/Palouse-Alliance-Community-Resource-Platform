@@ -18,6 +18,8 @@ function formatEventDateLabel(startDate, endDate, formatFullDate) {
 }
 
 function EventCard({ event, formatFullDate, formatTimeRange }) {
+  const hasLocation = Boolean(event.location?.trim());
+
   return (
     <article className="event-card">
       <div className="event-card-top">
@@ -40,9 +42,11 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
         <p>
           <strong>Time:</strong> {formatTimeRange(event.startDate, event.endDate)}
         </p>
-        <p>
-          <strong>Location:</strong> {event.location}
-        </p>
+        {hasLocation && (
+          <p>
+            <strong>Location:</strong> {event.location.trim()}
+          </p>
+        )}
       </div>
 
       <div className="event-actions">
