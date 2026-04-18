@@ -312,15 +312,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
                     {pendingMyEvents.map((event) => (
                       <article className="my-event-card" key={event.id}>
                         <h3>{event.title}</h3>
-                        {event.tags.length > 0 ? (
-                          <div className="category-list my-event-tag-list" aria-label="Event tags">
-                            {event.tags.map((tag) => (
-                              <span key={tag} className="category-pill">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
                         {event.location ? (
                           <p className="my-event-location">{event.location}</p>
                         ) : null}
@@ -358,15 +349,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
                     {approvedMyEvents.map((event) => (
                       <article className="my-event-card" key={event.id}>
                         <h3>{event.title}</h3>
-                        {event.tags.length > 0 ? (
-                          <div className="category-list my-event-tag-list" aria-label="Event tags">
-                            {event.tags.map((tag) => (
-                              <span key={tag} className="category-pill">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
                         {event.location ? (
                           <p className="my-event-location">{event.location}</p>
                         ) : null}
@@ -404,15 +386,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
                     {rejectedMyEvents.map((event) => (
                       <article className="my-event-card" key={event.id}>
                         <h3>{event.title}</h3>
-                        {event.tags.length > 0 ? (
-                          <div className="category-list my-event-tag-list" aria-label="Event tags">
-                            {event.tags.map((tag) => (
-                              <span key={tag} className="category-pill">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
                         {event.location ? (
                           <p className="my-event-location">{event.location}</p>
                         ) : null}

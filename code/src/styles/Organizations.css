@@ -68,16 +68,6 @@
   line-height: 1.2;
 }
 
-.org-location-chip {
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: inline-block;
-}
-
 .org-description {
   color: var(--color-text-subtle);
   font-size: 0.95rem;

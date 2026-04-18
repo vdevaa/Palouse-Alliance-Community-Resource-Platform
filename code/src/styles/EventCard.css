@@ -8,6 +8,13 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  transition: transform var(--default-transition-duration) var(--default-transition-timing-function),
+    box-shadow var(--default-transition-duration) var(--default-transition-timing-function);
+}
+
+.event-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 18px -4px rgba(0, 0, 0, 0.15);
 }
 
 .event-card-top {
@@ -19,8 +26,7 @@
 }
 
 .event-category {
-  display: inline-block;
-  padding: 6px 10px;
+  display: inline-flex;
 }
 
 .event-tag-list {
@@ -31,8 +37,7 @@
 }
 
 .event-tag {
-  display: inline-block;
-  padding: 6px 10px;
+  display: inline-flex;
 }
 
 .event-status {
@@ -45,8 +50,11 @@
 
 .event-card h3 {
   margin: 0 0 8px 0;
-  font-size: 22px;
-  color: var(--color-primary-900);
+  font-size: 1.3rem;
+  margin: 0 0 0.3rem 0;
+  color: var(--color-text);
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .event-org {

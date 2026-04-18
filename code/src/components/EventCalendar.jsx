@@ -28,7 +28,7 @@ function EventCalendar({
           aria-label="Previous month"
           disabled={!canNavigatePrevious}
         >
-          ‹
+          <span className="material-symbols-outlined">chevron_left</span>
         </button>
         <span>{monthLabel}</span>
         <button
@@ -38,7 +38,7 @@ function EventCalendar({
           aria-label="Next month"
           disabled={!canNavigateNext}
         >
-          ›
+          <span className="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
 

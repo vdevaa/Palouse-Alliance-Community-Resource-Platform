@@ -6,10 +6,10 @@
   --color-primary-300: #CFE2C9; /* soft highlight panels / selected */
   --color-primary-400: #AFC6A8; /* optional mid tint (chips, hovers) */
   --color-primary-500: #7D9274; /* optional mid tone (icons, accents) */
-  --color-primary-600: #667A5E; /* optional */
-  --color-primary-700: #56684F; /* primary button bg */
-  --color-primary-800: #3F4C3A; /* primary hover/active */
-  --color-primary-900: #2F382B; /* deepest (headers, emphasis) */
+  --color-primary-600: #6B7D63; /* optional */
+  --color-primary-700: #61755E; /* primary button bg */
+  --color-primary-800: #4A5E4A; /* primary hover/active */
+  --color-primary-900: #384E3F; /* deepest (headers, emphasis) */
 
   /* Accent - Gold (from logo / tags) */
   --color-accent-50: #FFF7E0;
