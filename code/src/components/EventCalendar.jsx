@@ -16,6 +16,8 @@ function EventCalendar({
   selectedDateCount,
   formatFullDate,
   visibleMonth,
+  canNavigatePrevious = true,
+  canNavigateNext = true,
 }) {
   return (
     <div className="calendar-card">
@@ -23,8 +25,9 @@ function EventCalendar({
         <button
           className="calendar-arrow"
           type="button"
-          onClick={() => handleMonthChange(-1)}
+          onClick={canNavigatePrevious ? () => handleMonthChange(-1) : undefined}
           aria-label="Previous month"
+          disabled={!canNavigatePrevious}
         >
           ‹
         </button>
@@ -32,8 +35,9 @@ function EventCalendar({
         <button
           className="calendar-arrow"
           type="button"
-          onClick={() => handleMonthChange(1)}
+          onClick={canNavigateNext ? () => handleMonthChange(1) : undefined}
           aria-label="Next month"
+          disabled={!canNavigateNext}
         >
           ›
         </button>

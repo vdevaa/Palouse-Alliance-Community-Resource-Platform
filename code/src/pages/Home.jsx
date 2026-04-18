@@ -17,6 +17,22 @@ function addDays(date, days) {
   return nextDate;
 }
 
+function addMonths(date, months) {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1);
+}
+
+function clampMonth(month, minMonth, maxMonth) {
+  if (month < minMonth) {
+    return minMonth;
+  }
+
+  if (month > maxMonth) {
+    return maxMonth;
+  }
+
+  return month;
+}
+
 function getDateKey(date) {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -147,6 +163,11 @@ const Home = ({ session }) => {
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
+  const today = new Date();
+  const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const minVisibleMonth = addMonths(currentMonth, -1);
+  const maxVisibleMonth = addMonths(currentMonth, 3);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -219,7 +240,11 @@ const Home = ({ session }) => {
             return currentVisibleMonth;
           }
 
-          return new Date(firstEventDate.getFullYear(), firstEventDate.getMonth(), 1);
+          return clampMonth(
+            new Date(firstEventDate.getFullYear(), firstEventDate.getMonth(), 1),
+            minVisibleMonth,
+            maxVisibleMonth
+          );
         });
       }
 
@@ -275,15 +300,18 @@ const Home = ({ session }) => {
   const selectedDateCount = selectedDate ? eventCountByDate[getDateKey(selectedDate)] || 0 : events.length;
 
   function handleMonthChange(offset) {
-    setVisibleMonth(
-      (currentMonth) =>
-        new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1)
-    );
+    setVisibleMonth((currentMonth) => {
+      const nextMonth = addMonths(currentMonth, offset);
+      return clampMonth(nextMonth, minVisibleMonth, maxVisibleMonth);
+    });
   }
 
   function handleSelectDay(day) {
     setSelectedDate(day);
-    setVisibleMonth(new Date(day.getFullYear(), day.getMonth(), 1));
+    setVisibleMonth((currentMonth) => {
+      const nextMonth = new Date(day.getFullYear(), day.getMonth(), 1);
+      return clampMonth(nextMonth, minVisibleMonth, maxVisibleMonth);
+    });
   }
 
   function resetDateFilter() {
@@ -337,6 +365,8 @@ const Home = ({ session }) => {
                 selectedDate={selectedDate}
                 selectedDateCount={selectedDateCount}
                 visibleMonth={visibleMonth}
+                canNavigatePrevious={visibleMonth > minVisibleMonth}
+                canNavigateNext={visibleMonth < maxVisibleMonth}
               />
             </div>
 

@@ -34,6 +34,13 @@
   border-color: var(--color-primary-300);
 }
 
+.calendar-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
 .calendar-weekdays,
 .calendar-grid {
   display: grid;
