@@ -163,10 +163,13 @@ const Home = ({ session }) => {
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
-  const today = new Date();
-  const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const minVisibleMonth = addMonths(currentMonth, -1);
-  const maxVisibleMonth = addMonths(currentMonth, 3);
+  const currentMonth = useMemo(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  }, []);
+
+  const minVisibleMonth = useMemo(() => addMonths(currentMonth, -1), [currentMonth]);
+  const maxVisibleMonth = useMemo(() => addMonths(currentMonth, 3), [currentMonth]);
 
   useEffect(() => {
     let isMounted = true;
@@ -256,7 +259,7 @@ const Home = ({ session }) => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [minVisibleMonth, maxVisibleMonth]);
 
   const calendarDays = useMemo(
     () => getMonthMatrix(visibleMonth.getFullYear(), visibleMonth.getMonth()),
@@ -308,7 +311,7 @@ const Home = ({ session }) => {
 
   function handleSelectDay(day) {
     setSelectedDate(day);
-    setVisibleMonth((currentMonth) => {
+    setVisibleMonth(() => {
       const nextMonth = new Date(day.getFullYear(), day.getMonth(), 1);
       return clampMonth(nextMonth, minVisibleMonth, maxVisibleMonth);
     });
