@@ -244,6 +244,47 @@
   padding: 0;
 }
 
+.modal-content.filter-popup {
+  width: min(100%, 420px);
+  padding: 22px 22px 18px;
+  max-height: calc(100vh - 120px);
+}
+
+.modal-content.filter-popup .panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.modal-content.filter-popup .panel-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-text);
+}
+
+.modal-content.filter-popup .panel-description {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.modal-content.filter-popup .category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.modal-content.filter-popup .category-pill {
+  padding: 0.75rem 1rem;
+}
+
+.modal-content.filter-popup .modal-close {
+  font-size: 28px;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

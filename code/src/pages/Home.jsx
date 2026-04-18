@@ -598,7 +598,7 @@ const Home = ({ session }) => {
               </span>
             </div>
 
-            <div className="home-filter-controls" ref={filterMenuRef}>
+            <div className="home-filter-controls">
               <div className="filter-button-group">
                 <button
                   type="button"
@@ -615,43 +615,71 @@ const Home = ({ session }) => {
                   Tags
                 </button>
               </div>
-
-              {filterMenuOpen === "categories" ? (
-                <div className="filter-menu">
-                  <div className="filter-menu-header">Choose categories</div>
-                  <div className="category-list">
-                    {categories.map((category) => (
-                      <button
-                        key={category}
-                        type="button"
-                        className={`category-pill ${hasCategorySelected(category) ? "active" : ""}`}
-                        onClick={() => toggleCategory(category)}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {filterMenuOpen === "tags" ? (
-                <div className="filter-menu">
-                  <div className="filter-menu-header">Choose tags</div>
-                  <div className="category-list">
-                    {tags.map((tag) => (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
-                        onClick={() => toggleTag(tag)}
-                      >
-                        {tag.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
             </div>
+
+            {filterMenuOpen ? (
+              <div
+                className="modal-overlay"
+                role="dialog"
+                aria-modal="true"
+                aria-label={
+                  filterMenuOpen === "categories"
+                    ? "Choose categories"
+                    : "Choose tags"
+                }
+                onClick={() => setFilterMenuOpen(null)}
+              >
+                <div
+                  className="modal-content filter-popup"
+                  onClick={(event) => event.stopPropagation()}
+                  ref={filterMenuRef}
+                >
+                  <div className="panel-header">
+                    <div>
+                      <h2>
+                        {filterMenuOpen === "categories"
+                          ? "Choose categories"
+                          : "Choose tags"}
+                      </h2>
+                      <p className="panel-description">
+                        Filter events by {filterMenuOpen === "categories" ? "category" : "tag"}.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="modal-close"
+                      onClick={() => setFilterMenuOpen(null)}
+                      aria-label="Close filters"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="category-list">
+                    {filterMenuOpen === "categories"
+                      ? categories.map((category) => (
+                          <button
+                            key={category}
+                            type="button"
+                            className={`category-pill ${hasCategorySelected(category) ? "active" : ""}`}
+                            onClick={() => toggleCategory(category)}
+                          >
+                            {category}
+                          </button>
+                        ))
+                      : tags.map((tag) => (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
+                            onClick={() => toggleTag(tag)}
+                          >
+                            {tag.name}
+                          </button>
+                        ))}
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {session ? (
               <div className="home-actions">
