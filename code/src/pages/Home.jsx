@@ -589,7 +589,7 @@ const Home = ({ session }) => {
               <input
                 type="text"
                 className="home-search-input"
-                placeholder="Search events by title, organization, location, or keyword..."
+                placeholder="Search events by title or keywords..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
