@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import EventCalendar from "../components/EventCalendar";
 import EventCard from "../components/EventCard";
@@ -209,6 +209,7 @@ const Home = ({ session }) => {
   ]);
   const [selectedTags, setSelectedTags] = useState([ALL_EVENTS_TAG]);
   const [filterMenuOpen, setFilterMenuOpen] = useState(null);
+  const filterMenuRef = useRef(null);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState("");
   const [toast, setToast] = useState(() =>
@@ -260,6 +261,23 @@ const Home = ({ session }) => {
       window.clearTimeout(timeoutId);
     };
   }, [toast]);
+
+  useEffect(() => {
+    if (!filterMenuOpen) {
+      return undefined;
+    }
+
+    const handleOutsideClick = (event) => {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
+        setFilterMenuOpen(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [filterMenuOpen]);
 
   useEffect(() => {
     let isMounted = true;
@@ -509,6 +527,21 @@ const Home = ({ session }) => {
     });
   }
 
+  useEffect(() => {
+    if (!filterMenuOpen) {
+      return undefined;
+    }
+
+    const handleOutsideClick = (event) => {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
+        setFilterMenuOpen(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [filterMenuOpen]);
+
   function hasCategorySelected(category) {
     if (category === ALL_EVENTS_CATEGORY) {
       return selectedCategories.includes(ALL_EVENTS_CATEGORY);
@@ -565,7 +598,7 @@ const Home = ({ session }) => {
               </span>
             </div>
 
-            <div className="home-filter-controls">
+            <div className="home-filter-controls" ref={filterMenuRef}>
               <div className="filter-button-group">
                 <button
                   type="button"
