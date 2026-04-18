@@ -43,11 +43,13 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div style={{ padding: "2rem", color: "#111827" }}>
-      <h1>{loading ? "Loading..." : `Hello, ${email}`}</h1>
-      {errorMessage && (
-        <p style={{ color: "#b91c1c", marginTop: "0.75rem" }}>{errorMessage}</p>
-      )}
+    <div className="dashboard-page page-root">
+      <div className="dashboard-content">
+        <h1>{loading ? "Loading..." : `Hello, ${email}`}</h1>
+        {errorMessage && (
+          <p className="dashboard-error-message">{errorMessage}</p>
+        )}
+      </div>
     </div>
   );
 };

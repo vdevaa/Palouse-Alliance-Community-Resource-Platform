@@ -62,21 +62,13 @@ const Organizations = () => {
 
   if (loading)
     return (
-      <div style={{ padding: "4rem", textAlign: "center" }}>
+      <div className="organizations-page page-root" style={{ padding: "4rem", textAlign: "center" }}>
         Loading Palouse Partners...
       </div>
     );
 
   return (
-    <div
-      style={{
-        backgroundColor: "#f9fafb",
-        minHeight: "100vh",
-        padding: "2rem 1rem",
-        boxSizing: "border-box",
-        overflowX: "hidden",
-      }}
-    >
+    <div className="organizations-page page-root">
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
           <h1

@@ -57,9 +57,9 @@ function App() {
 
   return (
     <Router>
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <div className="app-layout">
         <Navbar session={session} />
-        <main style={{ flex: 1, marginTop: "70px" }}>
+        <main className="app-main">
           <Routes>
             <Route path="/" element={<Home session={session} />} />
             <Route path="/login" element={<Login />} />
