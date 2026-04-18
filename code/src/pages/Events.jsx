@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import EventCalendar from "../components/EventCalendar";
 import EventCard from "../components/EventCard";
 import MyEvents from "../components/MyEvents";
+import Popup from "../components/Popup";
 import { supabase } from "../lib/supabase";
 import "../styles/Events.css";
 
@@ -618,67 +619,37 @@ const Events = ({ session }) => {
             </div>
 
             {filterMenuOpen ? (
-              <div
-                className="modal-overlay"
-                role="dialog"
-                aria-modal="true"
-                aria-label={
-                  filterMenuOpen === "categories"
-                    ? "Choose categories"
-                    : "Choose tags"
-                }
-                onClick={() => setFilterMenuOpen(null)}
+              <Popup
+                title={filterMenuOpen === "categories" ? "Choose categories" : "Choose tags"}
+                description={`Filter events by ${filterMenuOpen === "categories" ? "category" : "tag"}.`}
+                onClose={() => setFilterMenuOpen(null)}
+                ariaLabel={filterMenuOpen === "categories" ? "Choose categories" : "Choose tags"}
+                className="filter-popup"
               >
-                <div
-                  className="modal-content filter-popup"
-                  onClick={(event) => event.stopPropagation()}
-                  ref={filterMenuRef}
-                >
-                  <div className="panel-header">
-                    <div>
-                      <h2>
-                        {filterMenuOpen === "categories"
-                          ? "Choose categories"
-                          : "Choose tags"}
-                      </h2>
-                      <p className="panel-description">
-                        Filter events by {filterMenuOpen === "categories" ? "category" : "tag"}.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      className="modal-close"
-                      onClick={() => setFilterMenuOpen(null)}
-                      aria-label="Close filters"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="category-list">
-                    {filterMenuOpen === "categories"
-                      ? categories.map((category) => (
-                          <button
-                            key={category}
-                            type="button"
-                            className={`category-pill ${hasCategorySelected(category) ? "active" : ""}`}
-                            onClick={() => toggleCategory(category)}
-                          >
-                            {category}
-                          </button>
-                        ))
-                      : tags.map((tag) => (
-                          <button
-                            key={tag.id}
-                            type="button"
-                            className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
-                            onClick={() => toggleTag(tag)}
-                          >
-                            {tag.name}
-                          </button>
-                        ))}
-                  </div>
+                <div className="category-list">
+                  {filterMenuOpen === "categories"
+                    ? categories.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          className={`category-pill ${hasCategorySelected(category) ? "active" : ""}`}
+                          onClick={() => toggleCategory(category)}
+                        >
+                          {category}
+                        </button>
+                      ))
+                    : tags.map((tag) => (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          className={`category-pill ${hasTagSelected(tag) ? "active" : ""}`}
+                          onClick={() => toggleTag(tag)}
+                        >
+                          {tag.name}
+                        </button>
+                      ))}
                 </div>
-              </div>
+              </Popup>
             ) : null}
 
             {session ? (

@@ -1,0 +1,43 @@
+import React from "react";
+import "../styles/Popup.css";
+
+const Popup = ({
+  title,
+  description,
+  children,
+  actions,
+  onClose,
+  className = "",
+  ariaLabel,
+}) => {
+  return (
+    <div
+      className="popup-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={ariaLabel || title || "Popup"}
+      onClick={onClose}
+    >
+      <div className={`popup-content ${className}`} onClick={(event) => event.stopPropagation()}>
+        <div className="popup-header">
+          <div>
+            <h2>{title}</h2>
+            {description ? <p className="popup-description">{description}</p> : null}
+          </div>
+          <button
+            type="button"
+            className="popup-close"
+            onClick={onClose}
+            aria-label="Close popup"
+          >
+            ×
+          </button>
+        </div>
+        <div className="popup-body">{children}</div>
+        {actions ? <div className="popup-actions">{actions}</div> : null}
+      </div>
+    </div>
+  );
+};
+
+export default Popup;

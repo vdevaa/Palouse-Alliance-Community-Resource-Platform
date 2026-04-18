@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Popup from "./Popup";
 import "../styles/EventCard.css";
 
 function isSameCalendarDay(firstDate, secondDate) {
@@ -83,35 +84,12 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
       </article>
 
       {confirmOpen ? (
-        <div
-          className="event-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Leave site confirmation"
-          onClick={() => setConfirmOpen(false)}
-        >
-          <div className="event-modal-content" onClick={(event) => event.stopPropagation()}>
-            <div className="event-modal-header">
-              <h3>Leave site?</h3>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={() => setConfirmOpen(false)}
-                aria-label="Close confirmation"
-              >
-                ×
-              </button>
-            </div>
-            <p className="event-redirect-message">
-              You are about to leave the site to visit this event's volunteer page.
-            </p>
-            <p
-              className="event-redirect-url"
-              onCopy={(event) => event.preventDefault()}
-            >
-              {volunteerUrl}
-            </p>
-            <div className="event-actions event-modal-actions">
+        <Popup
+          title="Leave site?"
+          description="You are about to leave the site to visit this event's volunteer page."
+          onClose={() => setConfirmOpen(false)}
+          actions={
+            <>
               <button
                 type="button"
                 className="secondary-btn"
@@ -122,9 +100,12 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
               <button type="button" className="primary-btn" onClick={handleLeaveSite}>
                 Continue
               </button>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+          ariaLabel="Leave site confirmation"
+        >
+          <p className="event-redirect-url">{volunteerUrl}</p>
+        </Popup>
       ) : null}
     </>
   );
