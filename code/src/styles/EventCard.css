@@ -147,6 +147,7 @@
   color: var(--color-primary-700);
   font-size: 14px;
   word-break: break-all;
+  user-select: none;
 }
 
 .event-modal-actions {

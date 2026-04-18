@@ -105,7 +105,12 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
             <p className="event-redirect-message">
               You are about to leave the site to visit this event's volunteer page.
             </p>
-            <p className="event-redirect-url">{volunteerUrl}</p>
+            <p
+              className="event-redirect-url"
+              onCopy={(event) => event.preventDefault()}
+            >
+              {volunteerUrl}
+            </p>
             <div className="event-actions event-modal-actions">
               <button
                 type="button"
