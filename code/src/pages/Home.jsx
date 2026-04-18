@@ -619,11 +619,9 @@ const Home = ({ session }) => {
                 </div>
               ) : null}
             </div>
-          </div>
 
-          <div className="home-actions">
             {session ? (
-              <>
+              <div className="home-actions">
                 <button
                   type="button"
                   className="btn-secondary"
@@ -638,7 +636,7 @@ const Home = ({ session }) => {
                 >
                   Post Event
                 </button>
-              </>
+              </div>
             ) : null}
           </div>
         </section>

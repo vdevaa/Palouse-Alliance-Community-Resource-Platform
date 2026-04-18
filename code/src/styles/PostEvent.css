@@ -258,9 +258,13 @@ textarea.form-input::placeholder {
 
 .postevent-button {
   width: 100%;
-  height: 48px;
+  min-height: 42px;
   border: none;
   border-radius: 10px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   font-weight: 600;

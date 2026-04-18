@@ -1,101 +1,64 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 import logo from "../assets/PalouseLogo.avif";
+import "../styles/Footer.css";
 
 const Footer = () => {
-    const iconStyle = {
-        fontSize: "1.2rem",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "24px",
-        marginRight: "10px",
-        verticalAlign: "middle"
-    };
-
     return (
-        <footer style={{
-            background: "#5F7457",
-            color: "#ffffff",
-            padding: "4rem 0 2rem 0",
-            width: "100vw",
-            position: "relative",
-            left: "50%",
-            right: "50%",
-            marginLeft: "-50vw",
-            boxSizing: "border-box",
-            marginTop: "auto",
-            textAlign: "left"
-        }}>
-            <div style={{
-                maxWidth: "1200px",
-                margin: "0 auto",
-                padding: "0 2rem",
-                display: "flex",
-                justifyContent: "flex-start",
-                flexWrap: "wrap",
-                gap: "6rem",
-                boxSizing: "border-box"
-            }}>
-                <div style={{ flex: "0 1 auto", minWidth: "300px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "1.5rem" }}>
-                        <img 
-                            src={logo} 
-                            alt="Logo" 
-                            style={{ height: "50px", width: "auto" }} 
+        <footer className="site-footer">
+            <div className="footer-inner">
+                <div className="footer-brand">
+                    <div className="footer-logo-row">
+                        <img
+                            src={logo}
+                            alt="Palouse Alliance logo"
+                            className="footer-logo"
                         />
-                        <span style={{ fontWeight: "bold", fontSize: "1.4rem" }}>
-                            Palouse Alliance
-                        </span>
+                        <span className="footer-brand-name">Palouse Alliance</span>
                     </div>
-                    <p style={{ fontSize: "0.95rem", lineHeight: "1.6", color: "#f0f0f0", maxWidth: "400px", margin: "0" }}>
+                    <p className="footer-copy">
                         Connecting individuals, families, and communities through accessible community resources and events.
                     </p>
                 </div>
 
-                <div style={{ flex: "0 1 auto", minWidth: "150px" }}>
-                    <h4 style={{ margin: "0 0 1.2rem 0", fontSize: "1.1rem" }}>Quick Links</h4>
-                    <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "0.95rem", lineHeight: "2.2" }}>
-                        <li>Browse Events</li>
-                        <li>Organizations</li>
-                        <li>Register Organization</li>
+                <div className="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul className="footer-links">
+                        <li><Link to="/">Home</Link></li>
+                        <li><Link to="/events">Events</Link></li>
+                        <li><Link to="/organizations">Organizations</Link></li>
                         <li>
-                            <Link to="/post-event" style={{ color: "#ffffff"}}>
-                            Post an Event
-                            </Link>
+                            <a
+                                href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                GivePulse
+                            </a>
                         </li>
                     </ul>
                 </div>
 
-                <div style={{ flex: "0 1 auto", minWidth: "250px" }}>
-                    <h4 style={{ margin: "0 0 1.2rem 0", fontSize: "1.1rem" }}>Help & Support</h4>
-                    <div style={{ fontSize: "0.95rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <span style={iconStyle}>✉</span>
+                <div className="footer-col">
+                    <h4>Help & Support</h4>
+                    <div className="footer-contact-list">
+                        <div className="footer-contact-item">
+                            <span className="material-symbols-outlined footer-icon" aria-hidden="true">alternate_email</span>
                             <span>info@palousealliance.org</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <span style={iconStyle}>📞</span>
+                        <div className="footer-contact-item">
+                            <span className="material-symbols-outlined footer-icon" aria-hidden="true">phone</span>
                             <span>(555) 123-4567</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                            <span style={iconStyle}>📍</span>
+                        <div className="footer-contact-item">
+                            <span className="material-symbols-outlined footer-icon" aria-hidden="true">place</span>
                             <span>Palouse Region, Idaho & Washington</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div style={{
-                maxWidth: "1200px",
-                margin: "3rem auto 0 auto",
-                padding: "2rem 2rem 0 2rem",
-                borderTop: "1px solid rgba(255,255,255,0.2)",
-                fontSize: "0.85rem",
-                color: "#f0f0f0",
-                boxSizing: "border-box",
-                textAlign: "left"
-            }}>
+            <div className="footer-bottom">
                 © 2026 Palouse Alliance. All rights reserved. Serving individuals, families, and communities.
             </div>
         </footer>

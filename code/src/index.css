@@ -128,8 +128,7 @@ a:hover {
   color: var(--color-link-hover);
 }
 
-/* Base reset for ALL buttons to ensure visibility */
-button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-pill {
+button {
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   padding-block: var(--space-2);
@@ -144,87 +143,6 @@ button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-p
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  
-  /* FORCE VISIBILITY */
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* 1. Sign In / Details / Event Card Buttons */
-.btn-primary, .primary-btn, button[type="submit"] {
-  background-color: var(--btn-primary-bg) !important;
-  color: var(--btn-primary-text) !important;
-  border-color: var(--btn-primary-border) !important;
-  height: 42px; /* Matches your EventCard design */
-}
-
-.btn-primary:hover, .primary-btn:hover, button[type="submit"]:hover {
-  background-color: var(--btn-primary-bg-hover) !important;
-}
-
-/* 2. Category Pills (All Events, etc.) */
-.category-pill {
-  background-color: var(--color-surface) !important;
-  color: var(--color-text) !important;
-  border: 1px solid var(--color-border) !important;
-  border-radius: var(--radius-pill) !important; /* Forces the rounded pill look */
-}
-
-.category-pill.active {
-  background-color: var(--color-accent-500) !important;
-  color: var(--color-text) !important;
-  border-color: var(--color-accent-500) !important;
-}
-
-/* 3. Secondary Buttons */
-.btn-secondary, .secondary-btn {
-  background-color: var(--btn-secondary-bg) !important;
-  color: var(--btn-secondary-text) !important;
-  border: 1px solid var(--btn-secondary-border) !important;
-  height: 42px;
-}
-
-.btn-secondary:hover, .secondary-btn:hover {
-  background-color: var(--btn-secondary-bg-hover) !important;
-  color: var(--btn-secondary-text-hover) !important;
-  border-color: var(--btn-secondary-border-hover) !important;
-}
-
-/* 4. Calendar Navigation & All Dates */
-.calendar-arrow {
-  border-radius: var(--radius-pill) !important;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  background: var(--color-surface) !important;
-  color: var(--color-primary-700) !important;
-  border: 1px solid var(--color-border) !important;
-}
-
-.view-all-btn {
-  background: transparent !important;
-  color: var(--color-primary-700) !important;
-  font-weight: 600;
-  padding: 0;
-}
-
-/* 5. Misc Design Restoration */
-.calendar-day {
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-}
-
-.calendar-day.selected {
-  background: var(--color-primary-200) !important;
-  border: 1px solid var(--color-primary-700) !important;
-}
-
-.event-category {
-  background-color: var(--color-primary-100) !important;
-  color: var(--color-primary-700) !important;
-  border-radius: var(--radius-pill);
-  padding: 6px 10px;
 }
 
 button:focus-visible {

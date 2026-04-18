@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/PalouseAlliance.avif";
-import mobileMenuCloseIcon from "../assets/mobile-menu-close.svg";
-import mobileMenuOpenIcon from "../assets/mobile-menu-open.svg";
 import { supabase } from "../lib/supabase";
 import "../styles/Navbar.css";
 
@@ -100,16 +98,16 @@ const Navbar = ({ session }) => {
                         {session ? (
                             <button
                                 onClick={handleLogout}
-                                className="navbar-link navbar-link-secondary navbar-button"
+                                className="navbar-link navbar-link-secondary navbar-button btn-secondary"
                                 type="button"
                             >
                                 Logout
                             </button>
                         ) : (
-                            <Link to="/login" className="navbar-link navbar-link-primary">Login</Link>
+                            <Link to="/login" className="navbar-link navbar-link-primary btn-primary">Login</Link>
                         )}
                         {isAdmin ? (
-                            <Link to="/register" className="navbar-link navbar-link-primary">Register</Link>
+                            <Link to="/register" className="navbar-link navbar-link-primary btn-primary">Register</Link>
                         ) : null}
                     </div>
                 </div>
@@ -122,12 +120,9 @@ const Navbar = ({ session }) => {
                     aria-controls="mobile-navigation"
                     aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                 >
-                    <img
-                        src={mobileMenuOpenIcon}
-                        alt=""
-                        className="navbar-menu-icon"
-                        aria-hidden="true"
-                    />
+                    <span className="material-symbols-outlined navbar-menu-icon" aria-hidden="true">
+                        menu
+                    </span>
                 </button>
             </nav>
 
@@ -154,12 +149,9 @@ const Navbar = ({ session }) => {
                         onClick={closeMobileMenu}
                         aria-label="Close navigation menu"
                     >
-                        <img
-                            src={mobileMenuCloseIcon}
-                            alt=""
-                            className="navbar-close-icon"
-                            aria-hidden="true"
-                        />
+                        <span className="material-symbols-outlined navbar-close-icon" aria-hidden="true">
+                            close
+                        </span>
                     </button>
                 </div>
 
@@ -179,16 +171,16 @@ const Navbar = ({ session }) => {
                     {session ? (
                         <button
                             onClick={handleLogout}
-                            className="navbar-mobile-link navbar-link-secondary navbar-mobile-button"
+                            className="navbar-mobile-link navbar-link-secondary navbar-mobile-button btn-secondary"
                             type="button"
                         >
                             Logout
                         </button>
                     ) : (
-                        <Link to="/login" className="navbar-mobile-link navbar-link-primary">Login</Link>
+                        <Link to="/login" className="navbar-mobile-link navbar-link-primary btn-primary">Login</Link>
                     )}
                     {isAdmin ? (
-                        <Link to="/register" className="navbar-mobile-link navbar-link-primary">Register</Link>
+                        <Link to="/register" className="navbar-mobile-link navbar-link-primary btn-primary">Register</Link>
                     ) : null}
                 </div>
             </aside>
