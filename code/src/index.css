@@ -6,10 +6,10 @@
   --color-primary-300: #CFE2C9; /* soft highlight panels / selected */
   --color-primary-400: #AFC6A8; /* optional mid tint (chips, hovers) */
   --color-primary-500: #7D9274; /* optional mid tone (icons, accents) */
-  --color-primary-600: #667A5E; /* optional */
-  --color-primary-700: #56684F; /* primary button bg */
-  --color-primary-800: #3F4C3A; /* primary hover/active */
-  --color-primary-900: #2F382B; /* deepest (headers, emphasis) */
+  --color-primary-600: #6B7D63; /* optional */
+  --color-primary-700: #61755E; /* primary button bg */
+  --color-primary-800: #4A5E4A; /* primary hover/active */
+  --color-primary-900: #384E3F; /* deepest (headers, emphasis) */
 
   /* Accent - Gold (from logo / tags) */
   --color-accent-50: #FFF7E0;
@@ -128,8 +128,7 @@ a:hover {
   color: var(--color-link-hover);
 }
 
-/* Base reset for ALL buttons to ensure visibility */
-button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-pill {
+button {
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   padding-block: var(--space-2);
@@ -144,89 +143,39 @@ button, .btn-primary, .btn-secondary, [type="submit"], .primary-btn, .category-p
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  
-  /* FORCE VISIBILITY */
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* 1. Sign In / Details / Event Card Buttons */
-.btn-primary, .primary-btn, button[type="submit"] {
-  background-color: var(--btn-primary-bg) !important;
-  color: var(--btn-primary-text) !important;
-  border-color: var(--btn-primary-border) !important;
-  height: 42px; /* Matches your EventCard design */
-}
-
-.btn-primary:hover, .primary-btn:hover, button[type="submit"]:hover {
-  background-color: var(--btn-primary-bg-hover) !important;
-}
-
-/* 2. Category Pills (All Events, etc.) */
-.category-pill {
-  background-color: var(--color-surface) !important;
-  color: var(--color-text) !important;
-  border: 1px solid var(--color-border) !important;
-  border-radius: var(--radius-pill) !important; /* Forces the rounded pill look */
-}
-
-.category-pill.active {
-  background-color: var(--color-accent-500) !important;
-  color: var(--color-text) !important;
-  border-color: var(--color-accent-500) !important;
-}
-
-/* 3. Secondary Buttons */
-.btn-secondary, .secondary-btn {
-  background-color: var(--btn-secondary-bg) !important;
-  color: var(--btn-secondary-text) !important;
-  border: 1px solid var(--btn-secondary-border) !important;
-}
-
-.btn-secondary:hover, .secondary-btn:hover {
-  background-color: var(--btn-secondary-bg-hover) !important;
-  color: var(--btn-secondary-text-hover) !important;
-  border-color: var(--btn-secondary-border-hover) !important;
-}
-
-/* 4. Calendar Navigation & All Dates */
-.calendar-arrow {
-  border-radius: var(--radius-pill) !important;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  background: var(--color-surface) !important;
-  color: var(--color-primary-700) !important;
-  border: 1px solid var(--color-border) !important;
-}
-
-.view-all-btn {
-  background: transparent !important;
-  color: var(--color-primary-700) !important;
-  font-weight: 600;
-  padding: 0;
-}
-
-/* 5. Misc Design Restoration */
-.calendar-day {
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-}
-
-.calendar-day.selected {
-  background: var(--color-primary-200) !important;
-  border: 1px solid var(--color-primary-700) !important;
-}
-
-.event-category {
-  background-color: var(--color-primary-100) !important;
-  color: var(--color-primary-700) !important;
-  border-radius: var(--radius-pill);
-  padding: 6px 10px;
 }
 
 button:focus-visible {
   outline: 2px solid var(--color-primary-800);
   outline-offset: 2px;
+}
+
+/* Custom scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(97, 117, 94, 0.85) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(97, 117, 94, 0.85);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(61, 82, 60, 0.95);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }

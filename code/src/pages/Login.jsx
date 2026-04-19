@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import Popup from "../components/Popup";
 
 import PalouseLogo from "../assets/PalouseLogo.avif";
 import "../styles/Login.css";
@@ -10,6 +11,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,9 +66,13 @@ const Login = () => {
                 <label className="form-label" htmlFor="password">
                   Password
                 </label>
-                <Link className="forgot-link" to="/forgot-password">
+                <button
+                  type="button"
+                  className="forgot-link"
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                >
                   Forgot password?
-                </Link>
+                </button>
               </div>
 
               <input
@@ -90,14 +96,30 @@ const Login = () => {
                 {errorMessage}
               </p>
             )}
-
-            <p className="login-footer-text">
-              Don&apos;t have an account?{" "}
-              <Link className="register-link" to="/register">
-                Register your organization
-              </Link>
-            </p>
           </form>
+
+          {isForgotPasswordOpen ? (
+            <Popup
+              title="Password reset help"
+              description="Contact Palouse Alliance to reset your password and regain access to your account."
+              onClose={() => setIsForgotPasswordOpen(false)}
+              actions={
+                <button
+                  type="button"
+                  className="primary-btn"
+                  onClick={() => setIsForgotPasswordOpen(false)}
+                >
+                  Close
+                </button>
+              }
+              ariaLabel="Forgot password help"
+            >
+              <p className="login-forgot-body">
+                Please reach out to Palouse Alliance to reset your password. They will be able to verify
+                your account and walk you through the next steps.
+              </p>
+            </Popup>
+          ) : null}
         </div>
       </main>
     </div>

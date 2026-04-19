@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import "../styles/Organizations.css";
 
 const Organizations = () => {
   const [orgs, setOrgs] = useState([]);
@@ -77,7 +78,7 @@ const Organizations = () => {
         <div className="search-wrapper">
           <input
             type="text"
-            placeholder="Search by name or mission..."
+            placeholder="Search by organization name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -85,6 +86,14 @@ const Organizations = () => {
           <span className="material-symbols-outlined search-input-icon">
             search
           </span>
+        </div>
+
+        <div className="events-header">
+          <div>
+            <h2>
+              {filteredOrgs.length} {filteredOrgs.length === 1 ? "Organization" : "Organizations"} Found
+            </h2>
+          </div>
         </div>
 
         <div className="masonry-container">
@@ -167,192 +176,6 @@ const Organizations = () => {
           )}
         </div>
       </div>
-
-      <style>
-        {`
-          .organizations-header {
-            text-align: center;
-            margin-bottom: 3rem;
-          }
-
-          .organizations-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--color-text);
-            margin-bottom: 0.5rem;
-          }
-
-          .organizations-subtitle {
-            color: var(--color-text-subtle);
-            font-size: 1.1rem;
-            margin: 0;
-          }
-
-          .search-wrapper {
-            position: relative;
-            max-width: 600px;
-            margin: 0 auto 4rem auto;
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          .search-input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--color-border-2);
-            font-size: var(--text-sm);
-            box-shadow: var(--shadow-sm);
-            box-sizing: border-box;
-            background: var(--color-surface);
-            color: var(--color-text);
-          }
-
-          .search-input:focus {
-            outline: none;
-            box-shadow: var(--focus-ring);
-          }
-
-          .search-input-icon {
-            position: absolute;
-            left: 1.2rem;
-            top: 1.1rem;
-            color: var(--color-text-subtle);
-            font-variation-settings: 'FILL' 1;
-          }
-
-          .organizations-shell {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-          }
-
-          .organizations-loading {
-            padding: var(--space-6);
-            text-align: center;
-          }
-
-          .org-card {
-            background: var(--color-surface);
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            border: 1px solid var(--color-border);
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            transition: transform var(--default-transition-duration) var(--default-transition-timing-function), box-shadow var(--default-transition-duration) var(--default-transition-timing-function);
-          }
-
-          .org-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 10px 18px -4px rgba(0,0,0,0.15);
-          }
-
-          .org-card-heading {
-            margin-bottom: 0.75rem;
-          }
-
-          .org-title {
-            font-size: 1.3rem;
-            margin: 0 0 0.3rem 0;
-            color: var(--color-text);
-            font-weight: 800;
-            line-height: 1.2;
-          }
-
-          .org-location-chip {
-            background-color: var(--color-accent-50);
-            color: var(--color-warning);
-            padding: 0.25rem 0.5rem;
-            border-radius: 999px;
-            font-size: 0.65rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: inline-block;
-          }
-
-          .org-description {
-            color: var(--color-text-subtle);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-          }
-
-          .org-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            color: var(--color-text-subtle);
-            font-size: 0.95rem;
-          }
-
-          .org-meta-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-          }
-
-          .org-meta-icon {
-            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            font-size: 18px;
-            color: var(--color-text-subtle);
-            vertical-align: middle;
-          }
-
-          .org-card-footer {
-            margin-top: 1rem;
-          }
-
-          .org-cta-btn {
-            width: 100%;
-            padding: var(--space-3) var(--space-4);
-            border-radius: var(--radius-md);
-            font-size: var(--text-sm);
-          }
-
-          .email-link.org-meta-row {
-            color: var(--color-primary-700);
-            text-decoration: none;
-            font-weight: 600;
-            width: fit-content;
-          }
-
-          .no-results {
-            text-align: center;
-            width: 100%;
-            padding: var(--space-6);
-            color: var(--color-text-subtle);
-          }
-
-          .email-link.org-meta-row:hover {
-            text-decoration: underline;
-          }
-
-          .masonry-container {
-            column-count: 3;
-            column-gap: 1.5rem;
-            width: 100%;
-          }
-
-          .masonry-item {
-            break-inside: avoid;
-            margin-bottom: 1.5rem;
-            display: inline-block;
-            width: 100%;
-          }
-
-          .email-link:hover { text-decoration: underline !important; }
-
-          @media (max-width: 1000px) {
-            .masonry-container { column-count: 2; }
-          }
-          @media (max-width: 700px) {
-            .masonry-container { column-count: 1; }
-            .org-card { padding: var(--space-5) !important; }
-          }
-        `}
-      </style>
     </div>
   );
 };

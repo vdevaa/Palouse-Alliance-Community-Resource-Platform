@@ -162,6 +162,20 @@
   margin-bottom: 18px;
 }
 
+.postevent-help-text-tight {
+  margin-bottom: 12px;
+}
+
+.postevent-tag-list {
+  margin-top: 4px;
+}
+
+.postevent-empty-tags {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-subtle);
+}
+
 .form-group {
   margin-bottom: 18px;
 }
@@ -238,11 +252,19 @@ textarea.form-input::placeholder {
   margin-top: 0px;
 }
 
+.summary-tags {
+  margin-bottom: 0;
+}
+
 .postevent-button {
   width: 100%;
-  height: 48px;
+  min-height: 42px;
   border: none;
   border-radius: 10px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--btn-primary-bg);
   color: var(--btn-primary-text);
   font-weight: 600;

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/PalouseAlliance.avif";
-import mobileMenuCloseIcon from "../assets/mobile-menu-close.svg";
-import mobileMenuOpenIcon from "../assets/mobile-menu-open.svg";
 import { supabase } from "../lib/supabase";
 import "../styles/Navbar.css";
 
@@ -11,6 +9,7 @@ const Navbar = ({ session }) => {
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
         setMobileMenuOpen(false);
@@ -69,9 +68,19 @@ const Navbar = ({ session }) => {
         setMobileMenuOpen(false);
     };
 
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 12);
+        };
+
+        handleScroll();
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
     return (
         <>
-            <nav className="site-navbar">
+            <nav className={`site-navbar${isScrolled ? " site-navbar--scrolled" : ""}`}>
                 <Link to="/" className="navbar-logo-link" aria-label="Palouse Alliance home">
                     <img
                         src={logo}
@@ -94,27 +103,22 @@ const Navbar = ({ session }) => {
 
                         <Link to="/events" className="navbar-link navbar-link-text">Events</Link>
                         <Link to="/organizations" className="navbar-link navbar-link-text">Organizations</Link>
-                        {session ? (
-                            <Link to="/post-event" className="navbar-link navbar-link-accent">
-                                Post Event
-                            </Link>
-                        ) : null}
                     </div>
 
                     <div className="navbar-action-group">
                         {session ? (
                             <button
                                 onClick={handleLogout}
-                                className="navbar-link navbar-link-secondary navbar-button"
+                                className="navbar-link navbar-link-secondary navbar-button btn-secondary"
                                 type="button"
                             >
                                 Logout
                             </button>
                         ) : (
-                            <Link to="/login" className="navbar-link navbar-link-primary">Login</Link>
+                            <Link to="/login" className="navbar-link navbar-link-primary btn-primary">Login</Link>
                         )}
                         {isAdmin ? (
-                            <Link to="/register" className="navbar-link navbar-link-primary">Register</Link>
+                            <Link to="/register" className="navbar-link navbar-link-primary btn-primary">Register</Link>
                         ) : null}
                     </div>
                 </div>
@@ -127,12 +131,9 @@ const Navbar = ({ session }) => {
                     aria-controls="mobile-navigation"
                     aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                 >
-                    <img
-                        src={mobileMenuOpenIcon}
-                        alt=""
-                        className="navbar-menu-icon"
-                        aria-hidden="true"
-                    />
+                    <span className="material-symbols-outlined navbar-menu-icon" aria-hidden="true">
+                        menu
+                    </span>
                 </button>
             </nav>
 
@@ -159,12 +160,9 @@ const Navbar = ({ session }) => {
                         onClick={closeMobileMenu}
                         aria-label="Close navigation menu"
                     >
-                        <img
-                            src={mobileMenuCloseIcon}
-                            alt=""
-                            className="navbar-close-icon"
-                            aria-hidden="true"
-                        />
+                        <span className="material-symbols-outlined navbar-close-icon" aria-hidden="true">
+                            close
+                        </span>
                     </button>
                 </div>
 
@@ -182,23 +180,18 @@ const Navbar = ({ session }) => {
                     <Link to="/events" className="navbar-mobile-link">Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
                     {session ? (
-                        <Link to="/post-event" className="navbar-mobile-link navbar-link-accent">
-                            Post Event
-                        </Link>
-                    ) : null}
-                    {session ? (
                         <button
                             onClick={handleLogout}
-                            className="navbar-mobile-link navbar-link-secondary navbar-mobile-button"
+                            className="navbar-mobile-link navbar-link-secondary navbar-mobile-button btn-secondary"
                             type="button"
                         >
                             Logout
                         </button>
                     ) : (
-                        <Link to="/login" className="navbar-mobile-link navbar-link-primary">Login</Link>
+                        <Link to="/login" className="navbar-mobile-link navbar-link-primary btn-primary">Login</Link>
                     )}
                     {isAdmin ? (
-                        <Link to="/register" className="navbar-mobile-link navbar-link-primary">Register</Link>
+                        <Link to="/register" className="navbar-mobile-link navbar-link-primary btn-primary">Register</Link>
                     ) : null}
                 </div>
             </aside>

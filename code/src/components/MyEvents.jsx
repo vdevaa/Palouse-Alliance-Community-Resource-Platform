@@ -27,30 +27,60 @@ function parseSupabaseDateTime(timestamp) {
   );
 }
 
-function normalizeSupabaseEvent(event) {
+function normalizeTagName(tag) {
+  return typeof tag === "string" ? tag.trim() : "";
+}
+
+function parseTags(tags, tagLookup = {}) {
+  if (!Array.isArray(tags)) {
+    return [];
+  }
+
+  return tags
+    .map((tagItem) => {
+      if (typeof tagItem === "string") {
+        const normalized = normalizeTagName(tagItem);
+        return typeof tagLookup[normalized] === "string"
+          ? normalizeTagName(tagLookup[normalized])
+          : normalized;
+      }
+      if (typeof tagItem?.name === "string") {
+        return normalizeTagName(tagItem.name);
+      }
+      const nestedTag = tagItem?.tags || tagItem?.tag;
+      if (typeof nestedTag?.name === "string") {
+        return normalizeTagName(nestedTag.name);
+      }
+      const tagId = tagItem?.tag_id || tagItem?.tagId || nestedTag?.id;
+      if (typeof tagId === "string" && tagLookup[tagId]) {
+        return normalizeTagName(tagLookup[tagId]);
+      }
+      return "";
+    })
+    .map((tagName) => (typeof tagName === "string" ? tagName.trim() : ""))
+    .filter((tagName) => tagName.length > 0)
+    .filter((tagName, index, self) => self.indexOf(tagName) === index);
+}
+
+function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
   return {
     ...event,
     startDate: parseSupabaseDateTime(event.start_datetime),
     endDate: parseSupabaseDateTime(event.end_datetime),
     organizationName: event.organizations?.name || "Unknown Organization",
+    location: event.location || "",
+    tags: parseTags(eventTagIds.length > 0 ? eventTagIds : event.event_tags || event.tags, tagLookup),
   };
 }
 
-function getStatusLabel(status) {
-  if (!status) {
-    return "In Review";
-  }
-
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
+const MyEvents = ({ session, formatTimeRange, onClose }) => {
   const [myEvents, setMyEvents] = useState([]);
   const [myEventsLoading, setMyEventsLoading] = useState(false);
   const [myEventsError, setMyEventsError] = useState("");
   const [myEventsSections, setMyEventsSections] = useState({
-    pending: true,
-    approved: true,
+    pending: false,
+    approved: false,
+    rejected: false,
   });
 
   useEffect(() => {
@@ -67,24 +97,33 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
       setMyEventsLoading(true);
       setMyEventsError("");
 
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          `
-            id,
-            title,
-            start_datetime,
-            end_datetime,
-            status,
-            created_by,
-            organizations ( name )
-          `
-        )
-        .eq("created_by", session.user.id)
-        .order("start_datetime", { ascending: true });
+      const [{ data, error }, { data: tagRows, error: tagsError }] = await Promise.all([
+        supabase
+          .from("events")
+          .select(
+            `
+              id,
+              title,
+              start_datetime,
+              end_datetime,
+              status,
+              location,
+              created_by,
+              organizations ( name ),
+              event_tags ( tag_id )
+            `
+          )
+          .eq("created_by", session.user.id)
+          .order("start_datetime", { ascending: true }),
+        supabase.from("tags").select("id, name").order("name", { ascending: true }),
+      ]);
 
       if (!isMounted) {
         return;
+      }
+
+      if (tagsError) {
+        console.warn("Tag lookup data loaded with a partial error:", tagsError);
       }
 
       if (error) {
@@ -95,7 +134,44 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
         return;
       }
 
-      setMyEvents((data || []).map(normalizeSupabaseEvent));
+      const tagLookup = (tagRows || []).reduce((lookup, tag) => {
+        if (typeof tag?.id === "string" && typeof tag.name === "string") {
+          lookup[tag.id] = tag.name;
+        }
+        return lookup;
+      }, {});
+
+      const eventIds = (data || []).map((event) => event.id).filter(Boolean);
+      let eventTagRows = [];
+
+      if (eventIds.length > 0) {
+        const { data: fetchedEventTagRows, error: eventTagsError } = await supabase
+          .from("event_tags")
+          .select("event_id, tag_id")
+          .in("event_id", eventIds);
+
+        if (eventTagsError) {
+          console.warn("My events tag lookup failed:", eventTagsError);
+        }
+
+        eventTagRows = fetchedEventTagRows || [];
+      }
+
+      const tagsByEventId = (eventTagRows || []).reduce((acc, row) => {
+        if (!row || !row.event_id) {
+          return acc;
+        }
+
+        const ids = acc[row.event_id] || [];
+        if (row.tag_id) {
+          acc[row.event_id] = [...ids, row.tag_id];
+        }
+        return acc;
+      }, {});
+
+      setMyEvents(
+        (data || []).map((event) => normalizeSupabaseEvent(event, tagLookup, tagsByEventId[event.id] || []))
+      );
       setMyEventsLoading(false);
     };
 
@@ -109,24 +185,27 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
   const myEventCounts = useMemo(() => {
     return myEvents.reduce(
       (counts, event) => {
-        const statusKey = event.status?.toLowerCase() || "other";
+        const statusKey = (event.status || "").toLowerCase();
 
         if (statusKey === "approved") {
           counts.approved += 1;
-        } else if (statusKey === "pending") {
-          counts.pending += 1;
+        } else if (statusKey === "rejected") {
+          counts.rejected += 1;
         } else {
-          counts.other += 1;
+          counts.pending += 1;
         }
 
         return counts;
       },
-      { approved: 0, pending: 0, other: 0 }
+      { approved: 0, pending: 0, rejected: 0 }
     );
   }, [myEvents]);
 
   const pendingMyEvents = useMemo(
-    () => myEvents.filter((event) => (event.status || "").toLowerCase() === "pending"),
+    () => myEvents.filter((event) => {
+      const statusKey = (event.status || "").toLowerCase();
+      return statusKey === "pending" || statusKey === "";
+    }),
     [myEvents]
   );
 
@@ -135,54 +214,49 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
     [myEvents]
   );
 
-  const otherMyEvents = useMemo(
-    () =>
-      myEvents.filter((event) => {
-        const statusKey = (event.status || "").toLowerCase();
-        return statusKey !== "pending" && statusKey !== "approved";
-      }),
+  const rejectedMyEvents = useMemo(
+    () => myEvents.filter((event) => (event.status || "").toLowerCase() === "rejected"),
     [myEvents]
   );
 
   function toggleMyEventsSection(sectionName) {
-    setMyEventsSections((currentSections) => ({
-      ...currentSections,
-      [sectionName]: !currentSections[sectionName],
-    }));
+    setMyEventsSections((currentSections) => {
+      const isOpen = currentSections[sectionName];
+      return {
+        pending: false,
+        approved: false,
+        rejected: false,
+        [sectionName]: !isOpen,
+      };
+    });
   }
 
   return (
-    <aside className="home-right-column">
-      <div className="home-panel home-my-events-panel">
-        <div className="panel-header">
-          <h2>My Events</h2>
-          <p className="panel-description">
-            Track where your community submissions stand.
-          </p>
+    <div className="my-events-popup">
+      <div className="my-events-popup-panel">
+        <div className="panel-header my-events-popup-header">
+          <div>
+            <h2>My Events</h2>
+            <p className="panel-description">
+              Track where your community submissions stand.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close My Events"
+          >
+            ×
+          </button>
         </div>
 
-        <div className="my-events-summary">
-          <div className="my-events-stat">
-            <span className="my-events-stat-label">Pending</span>
-            <strong>{myEventCounts.pending}</strong>
-          </div>
-          <div className="my-events-stat">
-            <span className="my-events-stat-label">Approved</span>
-            <strong>{myEventCounts.approved}</strong>
-          </div>
-        </div>
-
-        {myEventsLoading ? (
-          <div className="my-events-empty-state">
-            <h3>Loading Your Events</h3>
-            <p>Checking the status of your recent submissions.</p>
-          </div>
-        ) : myEventsError ? (
+        {myEventsError ? (
           <div className="my-events-empty-state">
             <h3>Unable to Load</h3>
             <p>{myEventsError}</p>
           </div>
-        ) : myEvents.length === 0 ? (
+        ) : myEvents.length === 0 && !myEventsLoading ? (
           <div className="my-events-empty-state">
             <h3>No Submitted Events Yet</h3>
             <p>
@@ -195,6 +269,21 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
           </div>
         ) : (
           <div className="my-events-list">
+            <div className="my-events-summary my-events-summary-popup">
+              <div className="my-events-stat">
+                <span className="my-events-stat-label">Pending</span>
+                <strong>{myEventsLoading ? "—" : myEventCounts.pending}</strong>
+              </div>
+              <div className="my-events-stat">
+                <span className="my-events-stat-label">Approved</span>
+                <strong>{myEventsLoading ? "—" : myEventCounts.approved}</strong>
+              </div>
+              <div className="my-events-stat">
+                <span className="my-events-stat-label">Rejected</span>
+                <strong>{myEventsLoading ? "—" : myEventCounts.rejected}</strong>
+              </div>
+            </div>
+
             <section className="my-events-group">
               <button
                 className="my-events-group-toggle"
@@ -203,7 +292,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
               >
                 <span className="my-events-group-title">Pending Events</span>
                 <span className="my-events-group-meta">
-                  {pendingMyEvents.length}
                   <span className="my-events-group-chevron">
                     {myEventsSections.pending ? "−" : "+"}
                   </span>
@@ -215,16 +303,10 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
                   <div className="my-events-group-list">
                     {pendingMyEvents.map((event) => (
                       <article className="my-event-card" key={event.id}>
-                        <div className="my-event-card-top">
-                          <span className="my-event-status my-event-status-pending">
-                            {getStatusLabel(event.status)}
-                          </span>
-                          <span className="my-event-date">
-                            {formatCompactDate(event.startDate)}
-                          </span>
-                        </div>
                         <h3>{event.title}</h3>
-                        <p className="my-event-org">{event.organizationName}</p>
+                        {event.location ? (
+                          <p className="my-event-location">{event.location}</p>
+                        ) : null}
                         <p className="my-event-time">
                           {formatTimeRange(event.startDate, event.endDate)}
                         </p>
@@ -247,7 +329,6 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
               >
                 <span className="my-events-group-title">Approved Events</span>
                 <span className="my-events-group-meta">
-                  {approvedMyEvents.length + otherMyEvents.length}
                   <span className="my-events-group-chevron">
                     {myEventsSections.approved ? "−" : "+"}
                   </span>
@@ -255,24 +336,14 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
               </button>
 
               {myEventsSections.approved ? (
-                approvedMyEvents.length > 0 || otherMyEvents.length > 0 ? (
+                approvedMyEvents.length > 0 ? (
                   <div className="my-events-group-list">
-                    {[...approvedMyEvents, ...otherMyEvents].map((event) => (
+                    {approvedMyEvents.map((event) => (
                       <article className="my-event-card" key={event.id}>
-                        <div className="my-event-card-top">
-                          <span
-                            className={`my-event-status my-event-status-${(
-                              event.status || "approved"
-                            ).toLowerCase()}`}
-                          >
-                            {getStatusLabel(event.status)}
-                          </span>
-                          <span className="my-event-date">
-                            {formatCompactDate(event.startDate)}
-                          </span>
-                        </div>
                         <h3>{event.title}</h3>
-                        <p className="my-event-org">{event.organizationName}</p>
+                        {event.location ? (
+                          <p className="my-event-location">{event.location}</p>
+                        ) : null}
                         <p className="my-event-time">
                           {formatTimeRange(event.startDate, event.endDate)}
                         </p>
@@ -286,10 +357,48 @@ const MyEvents = ({ session, formatCompactDate, formatTimeRange }) => {
                 )
               ) : null}
             </section>
+
+            <section className="my-events-group">
+              <button
+                className="my-events-group-toggle"
+                onClick={() => toggleMyEventsSection("rejected")}
+                type="button"
+              >
+                <span className="my-events-group-title">Rejected Events</span>
+                <span className="my-events-group-meta">
+                  <span className="my-events-group-chevron">
+                    {myEventsSections.rejected ? "−" : "+"}
+                  </span>
+                </span>
+              </button>
+
+              {myEventsSections.rejected ? (
+                rejectedMyEvents.length > 0 ? (
+                  <div className="my-events-group-list">
+                    {rejectedMyEvents.map((event) => (
+                      <article className="my-event-card" key={event.id}>
+                        <h3>{event.title}</h3>
+                        {event.location ? (
+                          <p className="my-event-location">{event.location}</p>
+                        ) : null}
+                        <p className="my-event-time">
+                          {formatTimeRange(event.startDate, event.endDate)}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="my-events-group-empty">
+                    No rejected events yet.
+                  </p>
+                )
+              ) : null}
+            </section>
+
           </div>
         )}
       </div>
-    </aside>
+    </div>
   );
 };
 

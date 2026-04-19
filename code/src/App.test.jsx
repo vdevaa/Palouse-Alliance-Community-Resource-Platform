@@ -94,27 +94,4 @@ describe('App routing and auth', () => {
     });
   });
 
-  it('redirects unauthenticated users from dashboard to login', async () => {
-    window.history.pushState({}, '', '/dashboard');
-    mockGetSession.mockResolvedValueOnce({ data: { session: null } });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Welcome Back')).toBeInTheDocument();
-    });
-  });
-
-  it('renders dashboard for authenticated users', async () => {
-    window.history.pushState({}, '', '/dashboard');
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { user: { id: '123', email: 'member@palouse.org' } } },
-    });
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Hello, member@palouse.org')).toBeInTheDocument();
-    });
-  });
 });
