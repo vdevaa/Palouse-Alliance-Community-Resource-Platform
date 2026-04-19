@@ -44,6 +44,18 @@ const Admin = () => {
   const [userEditLoading, setUserEditLoading] = useState(false);
   const [userEditError, setUserEditError] = useState("");
 
+  const [manageEventsPopupOpen, setManageEventsPopupOpen] = useState(false);
+  const [manageEvents, setManageEvents] = useState([]);
+  const [manageEventsLoading, setManageEventsLoading] = useState(false);
+  const [manageEventsError, setManageEventsError] = useState("");
+  const [manageEventActionLoading, setManageEventActionLoading] = useState(null);
+  const [manageEventsSections, setManageEventsSections] = useState({
+    pending: true,
+    rejected: false,
+    approved: false,
+  });
+  const [volunteerConfirmUrl, setVolunteerConfirmUrl] = useState("");
+
   const [registerOrgForm, setRegisterOrgForm] = useState(emptyOrgForm);
   const [registerOrgFieldErrors, setRegisterOrgFieldErrors] = useState({});
   const [registerOrgLoading, setRegisterOrgLoading] = useState(false);
@@ -101,10 +113,10 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen || userManagePopupOpen) {
+    if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen || userManagePopupOpen || manageEventsPopupOpen) {
       loadOrgs();
     }
-  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen]);
+  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen, manageEventsPopupOpen]);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -120,6 +132,12 @@ const Admin = () => {
       loadUsers();
     }
   }, [userManagePopupOpen]);
+
+  useEffect(() => {
+    if (manageEventsPopupOpen) {
+      loadManageEvents();
+    }
+  }, [manageEventsPopupOpen]);
 
   async function loadUsers() {
     setUsersLoading(true);
@@ -138,6 +156,180 @@ const Admin = () => {
       setUsersLoading(false);
     }
   }
+
+  async function loadManageEvents() {
+    setManageEventsLoading(true);
+    setManageEventsError("");
+
+    try {
+      const [eventResponse, tagResponse] = await Promise.all([
+        supabase
+          .from("events")
+          .select(
+            `
+              id,
+              title,
+              description,
+              start_datetime,
+              end_datetime,
+              location,
+              volunteer_url,
+              created_by,
+              status,
+              organization_id,
+              category_id,
+              created_at,
+              organizations ( name ),
+              categories ( name ),
+              event_tags ( tag_id )
+            `
+          )
+          .order("start_datetime", { ascending: true }),
+        supabase.from("tags").select("id, name").order("name", { ascending: true }),
+      ]);
+
+      if (eventResponse.error) {
+        throw eventResponse.error;
+      }
+
+      const tags = (tagResponse.data || []).reduce((lookup, tag) => {
+        if (tag?.id && tag.name) {
+          lookup[tag.id] = tag.name;
+        }
+        return lookup;
+      }, {});
+
+      const events = (eventResponse.data || []).map((event) => {
+        const tagIds = Array.isArray(event.event_tags)
+          ? event.event_tags.map((tagRow) => tagRow?.tag_id).filter(Boolean)
+          : [];
+
+        const eventTags = tagIds
+          .map((tagId) => tags[tagId])
+          .filter(Boolean);
+
+        return {
+          ...event,
+          description: event.description || "",
+          location: event.location || "",
+          categoryName: event.categories?.name || null,
+          organizationName: event.organizations?.name || null,
+          tags: eventTags,
+          tagIds,
+          startDate: event.start_datetime ? new Date(event.start_datetime) : null,
+          endDate: event.end_datetime ? new Date(event.end_datetime) : null,
+        };
+      });
+
+      setManageEvents(events);
+    } catch (error) {
+      setManageEventsError(error.message || "Unable to load event submissions.");
+    } finally {
+      setManageEventsLoading(false);
+    }
+  }
+
+  const openManageEventsPopup = () => {
+    setManageEventsSections({
+      pending: true,
+      rejected: false,
+      approved: false,
+    });
+    setManageEventsPopupOpen(true);
+  };
+
+  const closeManageEventsPopup = () => {
+    setManageEventsPopupOpen(false);
+    setManageEvents([]);
+    setManageEventsError("");
+    setManageEventActionLoading(null);
+    setVolunteerConfirmUrl("");
+  };
+
+  const toggleManageEventsSection = (sectionName) => {
+    setManageEventsSections((currentSections) => {
+      const isOpen = currentSections[sectionName];
+      return {
+        pending: false,
+        rejected: false,
+        approved: false,
+        [sectionName]: !isOpen,
+      };
+    });
+  };
+
+  const openVolunteerConfirm = (url) => {
+    setVolunteerConfirmUrl(url);
+  };
+
+  const closeVolunteerConfirm = () => {
+    setVolunteerConfirmUrl("");
+  };
+
+  const confirmVolunteerLink = () => {
+    if (!volunteerConfirmUrl) {
+      return;
+    }
+    window.open(volunteerConfirmUrl, "_blank", "noopener,noreferrer");
+    setVolunteerConfirmUrl("");
+  };
+
+  const formatEventTimestamp = (timestamp) => {
+    if (!timestamp) return "Unknown";
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return "Unknown";
+    return date.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const updateEventStatus = async (eventId, status) => {
+    setManageEventActionLoading(eventId);
+
+    try {
+      const { error } = await supabase
+        .from("events")
+        .update({ status })
+        .eq("id", eventId);
+
+      if (error) {
+        throw error;
+      }
+
+      setManageEvents((current) =>
+        current.map((event) =>
+          event.id === eventId ? { ...event, status } : event
+        )
+      );
+
+      openAdminAlert({
+        title: status === "approved" ? "Event Approved" : "Event Rejected",
+        description: `The event has been ${status === "approved" ? "approved" : "rejected"}.`,
+        message: `Event status updated successfully! Updates are visible to the public.`,
+      });
+    } catch (error) {
+      openAdminAlert({
+        title: "Event status update failed",
+        description: "Unable to update event status.",
+        message: error?.message || "Please try again.",
+      });
+    } finally {
+      setManageEventActionLoading(null);
+    }
+  };
+
+  const pendingManageEvents = manageEvents.filter((event) => {
+    const statusKey = (event.status || "").toLowerCase();
+    return statusKey === "pending" || statusKey === "";
+  });
+
+  const rejectedManageEvents = manageEvents.filter((event) => (event.status || "").toLowerCase() === "rejected");
+
+  const approvedManageEvents = manageEvents.filter((event) => (event.status || "").toLowerCase() === "approved");
 
   const clearOrgFieldError = (name) => {
     setOrgFieldErrors((current) => {
@@ -692,7 +884,7 @@ const Admin = () => {
             <button
               type="button"
               className="navbar-link navbar-link-primary btn-primary admin-action-button"
-              disabled
+              onClick={openManageEventsPopup}
             >
               Manage Events
             </button>
@@ -1094,6 +1286,163 @@ const Admin = () => {
           )}
         </Popup>
       )}
+      {manageEventsPopupOpen && (
+        <Popup
+          title="Manage Events"
+          description="Review every event submission with full details, then approve or reject it."
+          onClose={closeManageEventsPopup}
+          className="regular-popup admin-popup"
+        >
+          {manageEventsLoading ? (
+            <div className="admin-org-empty">Loading events...</div>
+          ) : manageEventsError ? (
+            <div className="admin-org-empty admin-org-error">{manageEventsError}</div>
+          ) : manageEvents.length === 0 ? (
+            <div className="admin-org-empty">No events available for review.</div>
+          ) : (
+            <div className="admin-events-list">
+              {[
+                { key: "pending", title: "Pending Events", items: pendingManageEvents },
+                { key: "rejected", title: "Rejected Events", items: rejectedManageEvents },
+                { key: "approved", title: "Approved Events", items: approvedManageEvents },
+              ].map(({ key, title, items }) => (
+                <section key={key} className="admin-events-group">
+                  <button
+                    type="button"
+                    className="admin-events-group-toggle"
+                    onClick={() => toggleManageEventsSection(key)}
+                  >
+                    <span>{title}</span>
+                    <span className="admin-events-group-chevron">
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {manageEventsSections[key] ? "expand_less" : "expand_more"}
+                      </span>
+                    </span>
+                  </button>
+                  {manageEventsSections[key] && (
+                    <>
+                      {items.length === 0 ? (
+                        <p className="admin-events-group-empty">No {title.toLowerCase()}.</p>
+                      ) : (
+                        <div className="admin-events-group-list">
+                      {items.map((event) => (
+                        <div key={event.id} className="admin-event-card">
+                          <div className="admin-event-card-header">
+                            <div>
+                              <h4>{event.title}</h4>
+                              {(event.organizationName || event.categoryName) ? (
+                                <p className="admin-event-meta">
+                                  {[event.organizationName, event.categoryName].filter(Boolean).join(" · ")}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div className="admin-event-status">{event.status || "Pending"}</div>
+                          </div>
+                          <div className="admin-event-detail-grid">
+                            <div>
+                              <strong>When</strong>
+                              <p>{formatEventTimestamp(event.start_datetime)} — {formatEventTimestamp(event.end_datetime)}</p>
+                            </div>
+                            {event.location ? (
+                              <div>
+                                <strong>Location</strong>
+                                <p>{event.location}</p>
+                              </div>
+                            ) : null}
+                            {event.created_by ? (
+                              <div>
+                                <strong>Created By</strong>
+                                <p>{event.created_by}</p>
+                              </div>
+                            ) : null}
+                            {event.created_at ? (
+                              <div>
+                                <strong>Submitted</strong>
+                                <p>{new Date(event.created_at).toLocaleString()}</p>
+                              </div>
+                            ) : null}
+                            {event.volunteer_url ? (
+                              <div>
+                                <strong>Volunteer Link</strong>
+                                <p>
+                                  <button
+                                    type="button"
+                                    className="primary-btn"
+                                    onClick={() => openVolunteerConfirm(event.volunteer_url)}
+                                  >
+                                    View Link
+                                  </button>
+                                </p>
+                              </div>
+                            ) : null}
+                            {event.tags?.length > 0 ? (
+                              <div className="admin-event-tags-row">
+                                <strong>Tags</strong>
+                                <p>{event.tags.join(", ")}</p>
+                              </div>
+                            ) : null}
+                          </div>
+                          {event.description ? (
+                            <div className="admin-event-description">
+                              <strong>Description</strong>
+                              <p>{event.description}</p>
+                            </div>
+                          ) : null}
+                          <div className="popup-actions admin-event-actions">
+                            {event.status?.toLowerCase() !== "approved" && (
+                              <button
+                                type="button"
+                                className="btn-primary"
+                                disabled={manageEventActionLoading === event.id}
+                                onClick={() => updateEventStatus(event.id, "approved")}
+                              >
+                                {manageEventActionLoading === event.id ? "Updating..." : "Approve"}
+                              </button>
+                            )}
+                            {event.status?.toLowerCase() !== "rejected" && (
+                              <button
+                                type="button"
+                                className="btn-danger"
+                                disabled={manageEventActionLoading === event.id}
+                                onClick={() => updateEventStatus(event.id, "rejected")}
+                              >
+                                {manageEventActionLoading === event.id ? "Updating..." : event.status?.toLowerCase() === "approved" ? "Reject" : "Reject"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                      )}
+                    </>
+                  )}
+                </section>
+              ))}
+            </div>
+          )}
+        </Popup>
+      )}
+      {volunteerConfirmUrl ? (
+        <Popup
+          title="Leave site?"
+          description="You are about to leave the site to visit this event's volunteer page."
+          onClose={closeVolunteerConfirm}
+          className="dialog-popup"
+          actions={
+            <>
+              <button type="button" className="secondary-btn" onClick={closeVolunteerConfirm}>
+                Cancel
+              </button>
+              <button type="button" className="primary-btn" onClick={confirmVolunteerLink}>
+                Continue
+              </button>
+            </>
+          }
+          ariaLabel="Leave site confirmation"
+        >
+          <p className="popup-description no-select">{volunteerConfirmUrl}</p>
+        </Popup>
+      ) : null}
       {resetPasswordPopupOpen && (
         <Popup
           title="Password Reset"

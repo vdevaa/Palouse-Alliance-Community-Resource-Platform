@@ -80,6 +80,13 @@
   line-height: 1.6;
 }
 
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
 .popup-body {
   color: var(--color-text);
   font-size: 0.95rem;
