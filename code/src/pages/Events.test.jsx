@@ -292,4 +292,78 @@ describe('Events', () => {
 
     expect(await screen.findByRole('heading', { name: /Post a Community Event/i })).toBeInTheDocument();
   });
+
+  it('clears session-scoped events UI when switching accounts', async () => {
+    mockEventsOrder.mockResolvedValueOnce({
+      data: [
+        {
+          id: 1,
+          title: 'Food Drive',
+          description: 'Collect canned foods',
+          start_datetime: '2026-04-01T10:00:00',
+          end_datetime: '2026-04-01T11:00:00',
+          location: 'Downtown',
+          status: 'approved',
+          organizations: { name: 'Org A' },
+          categories: { name: 'Food' },
+          event_tags: [{ tags: { name: 'Community' } }],
+        },
+      ],
+      error: null,
+    });
+
+    mockCategoriesOrder.mockResolvedValueOnce({
+      data: [{ name: 'Food' }],
+      error: null,
+    });
+
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [{ name: 'Community' }],
+      error: null,
+    });
+
+    mockCategoriesOrder.mockResolvedValueOnce({
+      data: [{ id: 'cat-1', name: 'Community Events' }],
+      error: null,
+    });
+
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [{ id: 'tag-1', name: 'Community' }],
+      error: null,
+    });
+
+    const adminSession = { user: { id: 'admin-1', email: 'admin@palouse.org' } };
+    const memberSession = { user: { id: 'member-1', email: 'member@palouse.org' } };
+
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <MemoryRouter>
+        <Events session={adminSession} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Food Drive')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Post Event' })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Post Event' }));
+    expect(await screen.findByRole('heading', { name: /Post a Community Event/i })).toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <Events session={memberSession} />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /Post a Community Event/i })).not.toBeInTheDocument();
+    });
+
+    expect(screen.queryByRole('button', { name: 'My Events' })).not.toBeInTheDocument();
+    expect(screen.getByText('Food Drive')).toBeInTheDocument();
+  });
 });

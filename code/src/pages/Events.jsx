@@ -227,6 +227,27 @@ const Events = ({ session }) => {
   const [isPostEventOpen, setIsPostEventOpen] = useState(false);
   const [postEventSuccessOpen, setPostEventSuccessOpen] = useState(false);
   const [hasMyEvents, setHasMyEvents] = useState(false);
+  const previousSessionUserIdRef = useRef(session?.user?.id || null);
+
+  useEffect(() => {
+    const currentSessionUserId = session?.user?.id || null;
+
+    if (previousSessionUserIdRef.current === currentSessionUserId) {
+      return;
+    }
+
+    previousSessionUserIdRef.current = currentSessionUserId;
+
+    setSelectedCategories([ALL_EVENTS_CATEGORY]);
+    setSelectedTags([ALL_EVENTS_TAG]);
+    setSelectedDates([]);
+    setFilterMenuOpen(null);
+    setToast(null);
+    setIsMyEventsOpen(false);
+    setIsPostEventOpen(false);
+    setPostEventSuccessOpen(false);
+    setHasMyEvents(false);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     setSearchQuery(searchParams.get("q")?.trim() || "");

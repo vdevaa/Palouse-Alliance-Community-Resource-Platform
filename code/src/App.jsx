@@ -158,7 +158,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Landing session={session} />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/events" element={<Events session={session} />} />
+            <Route
+              path="/events"
+              element={<Events key={session?.user?.id || "public"} session={session} />}
+            />
             <Route path="/organizations" element={<Organizations />} />
             <Route
               path="/admin"
