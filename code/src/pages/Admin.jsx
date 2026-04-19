@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Popup from "../components/Popup";
 import FormField from "../components/FormField";
 import "../styles/Admin.css";
+import "../styles/Login.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
 
@@ -17,8 +17,9 @@ const emptyOrgForm = {
 const isValidEmail = (value) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 const Admin = () => {
-  const navigate = useNavigate();
   const [orgPopupOpen, setOrgPopupOpen] = useState(false);
+  const [registerOrgPopupOpen, setRegisterOrgPopupOpen] = useState(false);
+  const [userPopupOpen, setUserPopupOpen] = useState(false);
   const [orgs, setOrgs] = useState([]);
   const [orgsLoading, setOrgsLoading] = useState(false);
   const [orgsError, setOrgsError] = useState("");
@@ -29,6 +30,21 @@ const Admin = () => {
   const [orgFormError, setOrgFormError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [registerOrgForm, setRegisterOrgForm] = useState(emptyOrgForm);
+  const [registerOrgFieldErrors, setRegisterOrgFieldErrors] = useState({});
+  const [registerOrgLoading, setRegisterOrgLoading] = useState(false);
+  const [registerOrgError, setRegisterOrgError] = useState("");
+
+  const [userForm, setUserForm] = useState({
+    email: "",
+    password: "",
+    role: "member",
+    organization_id: "",
+  });
+  const [userFieldErrors, setUserFieldErrors] = useState({});
+  const [userLoading, setUserLoading] = useState(false);
+  const [userError, setUserError] = useState("");
 
   const openOrgPopup = () => {
     setOrgPopupOpen(true);
@@ -63,13 +79,27 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (orgPopupOpen) {
+    if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen) {
       loadOrgs();
     }
-  }, [orgPopupOpen]);
+  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen]);
 
   const clearOrgFieldError = (name) => {
     setOrgFieldErrors((current) => {
+      const { [name]: _, ...rest } = current;
+      return rest;
+    });
+  };
+
+  const clearRegisterOrgFieldError = (name) => {
+    setRegisterOrgFieldErrors((current) => {
+      const { [name]: _, ...rest } = current;
+      return rest;
+    });
+  };
+
+  const clearUserFieldError = (name) => {
+    setUserFieldErrors((current) => {
       const { [name]: _, ...rest } = current;
       return rest;
     });
@@ -83,6 +113,22 @@ const Admin = () => {
     }
   };
 
+  const handleRegisterOrgChange = (e) => {
+    const { name, value } = e.target;
+    setRegisterOrgForm((current) => ({ ...current, [name]: value }));
+    if (registerOrgFieldErrors[name]) {
+      clearRegisterOrgFieldError(name);
+    }
+  };
+
+  const handleUserChange = (e) => {
+    const { name, value } = e.target;
+    setUserForm((current) => ({ ...current, [name]: value }));
+    if (userFieldErrors[name]) {
+      clearUserFieldError(name);
+    }
+  };
+
   const validateOrgForm = () => {
     const errors = {};
     if (!orgForm.name.trim()) {
@@ -92,6 +138,37 @@ const Admin = () => {
       errors.email = "Please enter a valid email address.";
     }
     setOrgFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateRegisterOrg = () => {
+    const errors = {};
+    if (!registerOrgForm.name.trim()) {
+      errors.name = "Organization name is required.";
+    }
+    if (registerOrgForm.email && !isValidEmail(registerOrgForm.email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+    setRegisterOrgFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateUserRegister = () => {
+    const errors = {};
+    if (!userForm.email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+    if (!userForm.password) {
+      errors.password = "Password is required.";
+    } else if (userForm.password.length < 8) {
+      errors.password = "Password must be at least 8 characters.";
+    }
+    if (!userForm.organization_id) {
+      errors.organization_id = "Please select an organization.";
+    }
+    setUserFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -151,6 +228,106 @@ const Admin = () => {
     }
   };
 
+  const openRegisterOrgPopup = () => {
+    setRegisterOrgPopupOpen(true);
+  };
+
+  const closeRegisterOrgPopup = () => {
+    setRegisterOrgPopupOpen(false);
+    setRegisterOrgForm(emptyOrgForm);
+    setRegisterOrgFieldErrors({});
+    setRegisterOrgError("");
+  };
+
+  const openUserPopup = () => {
+    setUserPopupOpen(true);
+  };
+
+  const closeUserPopup = () => {
+    setUserPopupOpen(false);
+    setUserForm({
+      email: "",
+      password: "",
+      role: "member",
+      organization_id: "",
+    });
+    setUserFieldErrors({});
+    setUserError("");
+  };
+
+  const handleRegisterOrgSubmit = async (event) => {
+    event.preventDefault();
+    setRegisterOrgError("");
+
+    if (!validateRegisterOrg()) {
+      return;
+    }
+
+    setRegisterOrgLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/organizations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: registerOrgForm.name.trim(),
+          description: registerOrgForm.description.trim() || null,
+          phone_number: registerOrgForm.phone_number.trim() || null,
+          email: registerOrgForm.email.trim() || null,
+          location: registerOrgForm.location.trim() || null,
+        }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        if (body?.error === 'name_taken' || (body?.message && body.message.toLowerCase().includes('name')) ) {
+          setRegisterOrgFieldErrors({ name: 'An organization with that name already exists.' });
+          return;
+        }
+        throw new Error(body?.message || "Organization registration failed.");
+      }
+      closeRegisterOrgPopup();
+      await loadOrgs();
+    } catch (error) {
+      setRegisterOrgError(error.message || "Organization registration failed.");
+    } finally {
+      setRegisterOrgLoading(false);
+    }
+  };
+
+  const handleRegisterUser = async (event) => {
+    event.preventDefault();
+    setUserError("");
+
+    if (!validateUserRegister()) {
+      return;
+    }
+
+    setUserLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userForm.email.trim(),
+          password: userForm.password,
+          role: userForm.role.toLowerCase(),
+          organization_id: userForm.organization_id,
+        }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message = body?.message || body?.error || "Registration failed.";
+        throw new Error(message);
+      }
+      closeUserPopup();
+    } catch (error) {
+      setUserError(error.message || "Registration failed. Please try again.");
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
   const handleDeleteOrg = async () => {
     if (!deleteTarget) {
       return;
@@ -194,7 +371,7 @@ const Admin = () => {
             <button
               type="button"
               className="navbar-link navbar-link-primary btn-primary admin-action-button"
-              onClick={() => navigate("/register")}
+              onClick={openUserPopup}
             >
               Register User
             </button>
@@ -208,7 +385,7 @@ const Admin = () => {
               <button
                 type="button"
                 className="navbar-link navbar-link-primary btn-primary admin-action-button"
-                onClick={() => navigate("/register-organization")}
+                onClick={openRegisterOrgPopup}
               >
                 Register Organization
               </button>
@@ -343,6 +520,156 @@ const Admin = () => {
               </div>
             </div>
           )}
+        </Popup>
+      )}
+
+      {registerOrgPopupOpen && (
+        <Popup
+          title="Register Organization"
+          description="Add a new organization to the directory from this popup."
+          onClose={closeRegisterOrgPopup}
+          className="admin-popup"
+        >
+          <form onSubmit={handleRegisterOrgSubmit}>
+            <div className="form-grid admin-org-form-grid">
+              <FormField htmlFor="register_name" label="Organization Name" error={registerOrgFieldErrors.name} required>
+                <input
+                  id="register_name"
+                  name="name"
+                  className="form-input"
+                  type="text"
+                  value={registerOrgForm.name}
+                  onChange={handleRegisterOrgChange}
+                  required
+                />
+              </FormField>
+              <FormField htmlFor="register_email" label="Contact Email" error={registerOrgFieldErrors.email}>
+                <input
+                  id="register_email"
+                  name="email"
+                  className="form-input"
+                  type="email"
+                  value={registerOrgForm.email}
+                  onChange={handleRegisterOrgChange}
+                />
+              </FormField>
+              <FormField htmlFor="register_phone_number" label="Phone Number">
+                <input
+                  id="register_phone_number"
+                  name="phone_number"
+                  className="form-input"
+                  type="tel"
+                  value={registerOrgForm.phone_number}
+                  onChange={handleRegisterOrgChange}
+                />
+              </FormField>
+              <FormField htmlFor="register_location" label="Location">
+                <input
+                  id="register_location"
+                  name="location"
+                  className="form-input"
+                  type="text"
+                  value={registerOrgForm.location}
+                  onChange={handleRegisterOrgChange}
+                />
+              </FormField>
+              <FormField htmlFor="register_description" label="Description" className="full-width-field">
+                <textarea
+                  id="register_description"
+                  name="description"
+                  className="form-input"
+                  rows="4"
+                  value={registerOrgForm.description}
+                  onChange={handleRegisterOrgChange}
+                  style={{ minHeight: "112px", resize: "vertical" }}
+                />
+              </FormField>
+            </div>
+            {registerOrgError && <p className="form-error-message">{registerOrgError}</p>}
+            <div className="popup-actions">
+              <button type="button" className="btn-secondary" onClick={closeRegisterOrgPopup}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary" disabled={registerOrgLoading}>
+                {registerOrgLoading ? "Creating..." : "Create organization"}
+              </button>
+            </div>
+          </form>
+        </Popup>
+      )}
+
+      {userPopupOpen && (
+        <Popup
+          title="Register User"
+          description="Create a new member or admin account from this popup."
+          onClose={closeUserPopup}
+          className="admin-popup"
+        >
+          <form onSubmit={handleRegisterUser}>
+            <div className="form-grid admin-org-form-grid">
+              <FormField htmlFor="register_email" label="Email Address" error={userFieldErrors.email} required>
+                <input
+                  id="register_email"
+                  name="email"
+                  className="form-input"
+                  type="email"
+                  value={userForm.email}
+                  onChange={handleUserChange}
+                  required
+                />
+              </FormField>
+              <FormField htmlFor="register_password" label="Password" error={userFieldErrors.password} required>
+                <input
+                  id="register_password"
+                  name="password"
+                  className="form-input"
+                  type="password"
+                  value={userForm.password}
+                  onChange={handleUserChange}
+                  required
+                />
+              </FormField>
+              <FormField htmlFor="register_role" label="Role" required>
+                <select
+                  id="register_role"
+                  name="role"
+                  className="form-input"
+                  value={userForm.role}
+                  onChange={handleUserChange}
+                  required
+                >
+                  <option value="member">Member</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </FormField>
+              <FormField htmlFor="register_organization_id" label="Organization" error={userFieldErrors.organization_id} required>
+                <select
+                  id="register_organization_id"
+                  name="organization_id"
+                  className="form-input"
+                  value={userForm.organization_id}
+                  onChange={handleUserChange}
+                  required
+                >
+                  <option value="" disabled>Select Organization</option>
+                  {orgs.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
+            {userError && <p className="form-error-message">{userError}</p>}
+            <div className="popup-actions">
+              <button type="button" className="btn-secondary" onClick={closeUserPopup}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary" disabled={userLoading || orgsLoading}>
+                {userLoading ? "Creating..." : "Create user"}
+              </button>
+            </div>
+          </form>
         </Popup>
       )}
       {deleteTarget && (

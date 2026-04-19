@@ -6,8 +6,6 @@ import Footer from "./components/Footer";
 import { supabase } from "./lib/supabase";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
-import RegisterOrganization from "./pages/RegisterOrganization";
 import Events from "./pages/Events";
 import Organizations from "./pages/Organizations";
 import PostEvent from "./pages/PostEvent";
@@ -131,7 +129,7 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [session]);
+  }, [session, sessionResolved]);
 
   return (
     <Router>
@@ -142,11 +140,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Landing session={session} />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={
-              <ProtectedRoute loading={loading} session={session}>
-                <Register />
-              </ProtectedRoute>
-            } />
             <Route path="/events" element={<Events session={session} />} />
             <Route path="/organizations" element={<Organizations />} />
             <Route
@@ -166,18 +159,6 @@ function App() {
                   isAdmin={isAdmin}
                 >
                   <Admin />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/register-organization"
-              element={
-                <AdminRoute
-                  loading={loading || !sessionResolved || isAdminLoading}
-                  session={session}
-                  isAdmin={isAdmin}
-                >
-                  <RegisterOrganization />
                 </AdminRoute>
               }
             />
