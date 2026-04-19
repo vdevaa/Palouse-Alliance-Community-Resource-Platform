@@ -12,6 +12,7 @@ describe('EventCard', () => {
     startDate: new Date('2026-04-01T10:00:00'),
     endDate: new Date('2026-04-01T12:00:00'),
     location: 'Main Park',
+    volunteer_url: 'https://example.com/volunteer',
   };
 
   it('renders core event details', () => {

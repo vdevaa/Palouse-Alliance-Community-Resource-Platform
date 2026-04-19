@@ -5,13 +5,15 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 const { mockEventsOrder, mockCategoriesOrder, mockTagsOrder, mockFrom } = vi.hoisted(() => {
     const eventsOrder = vi.fn();
     const eventsEq = vi.fn(() => ({ order: eventsOrder }));
-    const eventsSelect = vi.fn(() => ({ eq: eventsEq }));
+    const eventsSelect = vi.fn(() => ({ eq: eventsEq, order: eventsOrder, in: vi.fn(() => ({ order: eventsOrder })) }));
 
     const categoriesOrder = vi.fn();
-    const categoriesSelect = vi.fn(() => ({ order: categoriesOrder }));
+    const categoriesSelect = vi.fn(() => ({ order: categoriesOrder, in: vi.fn(() => ({ order: categoriesOrder })) }));
 
     const tagsOrder = vi.fn();
-    const tagsSelect = vi.fn(() => ({ order: tagsOrder }));
+    const tagsSelect = vi.fn(() => ({ order: tagsOrder, in: vi.fn(() => ({ order: tagsOrder })) }));
+
+    const select = vi.fn(() => ({ eq: eventsEq, order: eventsOrder, in: vi.fn(() => ({ order: eventsOrder })) }));
 
     const from = vi.fn((table) => {
       if (table === 'events') {
@@ -26,7 +28,11 @@ const { mockEventsOrder, mockCategoriesOrder, mockTagsOrder, mockFrom } = vi.hoi
         return { select: tagsSelect };
       }
 
-      return { select: vi.fn() };
+      if (table === 'event_tags') {
+        return { select };
+      }
+
+      return { select: vi.fn(() => ({ order: vi.fn(), in: vi.fn(() => ({ order: vi.fn() })) })) };
     });
 
     return {
@@ -87,13 +93,18 @@ describe('Events', () => {
       error: null,
     });
 
+    const user = userEvent.setup();
     renderEvents();
 
     await waitFor(() => {
       expect(screen.getByText('Food Drive')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Food' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
     });
+
+    await user.click(screen.getByRole('button', { name: 'Categories' }));
+    expect(screen.getByRole('button', { name: 'Food' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Tags' }));
+    expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
   });
 
   it('filters events by search query', async () => {
@@ -142,13 +153,21 @@ describe('Events', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Food Drive')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'View All Dates' })).toBeInTheDocument();
     });
 
+    const dayOneButtons = screen.getAllByRole('button', { name: '1' });
+    const currentMonthDayButton = dayOneButtons.find(
+      (button) => !button.className.includes('outside-month')
+    );
+    await user.click(currentMonthDayButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'View All Dates' })).toBeInTheDocument();
+    });
     await user.click(screen.getByRole('button', { name: 'View All Dates' }));
 
     await user.type(
-      screen.getByPlaceholderText('Search events by title, organization, location, or keyword...'),
+      screen.getByPlaceholderText('Search events by title or keywords...'),
       'tech'
     );
 

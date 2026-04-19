@@ -5,7 +5,8 @@ import userEvent from '@testing-library/user-event';
 const { mockOrder, mockFrom } = vi.hoisted(() => {
   const order = vi.fn();
   const eq = vi.fn(() => ({ order }));
-  const select = vi.fn(() => ({ eq }));
+  const _in = vi.fn(() => ({ order }));
+  const select = vi.fn(() => ({ eq, order, in: _in }));
   const from = vi.fn(() => ({ select }));
 
   return {
@@ -28,6 +29,7 @@ describe('MyEvents', () => {
   });
 
   it('shows empty state when user has no events', async () => {
+    mockOrder.mockResolvedValueOnce({ data: [], error: null });
     mockOrder.mockResolvedValueOnce({ data: [], error: null });
 
     render(
@@ -69,6 +71,7 @@ describe('MyEvents', () => {
       ],
       error: null,
     });
+    mockOrder.mockResolvedValueOnce({ data: [], error: null });
 
     const user = userEvent.setup();
 
@@ -83,13 +86,14 @@ describe('MyEvents', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Event')).toBeInTheDocument();
-      expect(screen.getByText('Approved Event')).toBeInTheDocument();
-      expect(screen.getByText('Community')).toBeInTheDocument();
-      expect(screen.getByText('Youth')).toBeInTheDocument();
+      expect(screen.getByText(/Pending Events/i)).toBeInTheDocument();
+      expect(screen.getByText(/Approved Events/i)).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: /Pending Events/i }));
-    expect(screen.queryByText('Pending Event')).not.toBeInTheDocument();
+    expect(screen.getByText('Pending Event')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Approved Events/i }));
+    expect(screen.getByText('Approved Event')).toBeInTheDocument();
   });
 });
