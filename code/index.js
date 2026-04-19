@@ -153,6 +153,103 @@ app.post('/api/organizations', async (req, res) => {
   }
 });
 
+app.get('/api/organizations', async (_req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('organizations')
+      .select('id, name, description, phone_number, email, location')
+      .neq('name', 'Unaffiliated')
+      .order('name', { ascending: true });
+
+    if (error) {
+      return res.status(400).json({ error: 'organizations_fetch_failed', message: error.message, details: error });
+    }
+
+    return res.status(200).json(data || []);
+  } catch (err) {
+    console.error('Unexpected /api/organizations GET error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
+app.patch('/api/organizations/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, phone_number, email, location } = req.body || {};
+
+  if (!validateUuid(id)) {
+    return res.status(400).json({ error: 'invalid_id', message: 'Organization id must be a valid UUID.' });
+  }
+
+  if (!isNonEmptyString(name)) {
+    return res.status(400).json({ error: 'name_required', message: 'Organization name is required.' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'invalid_email', message: 'Please provide a valid email address.' });
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('organizations')
+      .update({
+        name: name.trim(),
+        description: description?.trim() || null,
+        phone_number: phone_number?.trim() || null,
+        email: email?.trim() || null,
+        location: location?.trim() || null,
+      })
+      .eq('id', id)
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === '23505' || error.details?.includes('organizations_name_key')) {
+        return res.status(409).json({ error: 'name_taken', message: 'An organization with that name already exists.' });
+      }
+      return res.status(400).json({ error: 'organization_update_failed', message: error.message, details: error });
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: 'not_found', message: 'Organization not found.' });
+    }
+
+    return res.status(200).json({ id: data.id, name: name.trim() });
+  } catch (err) {
+    console.error('Unexpected /api/organizations PATCH error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
+app.delete('/api/organizations/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateUuid(id)) {
+    return res.status(400).json({ error: 'invalid_id', message: 'Organization id must be a valid UUID.' });
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('organizations')
+      .delete()
+      .eq('id', id)
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      return res.status(400).json({ error: 'organization_delete_failed', message: error.message, details: error });
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: 'not_found', message: 'Organization not found.' });
+    }
+
+    return res.status(200).json({ id: data.id });
+  } catch (err) {
+    console.error('Unexpected /api/organizations DELETE error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Backend listening on http://localhost:${PORT}`);
 });

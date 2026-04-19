@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import './App.css'
-import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
+import {BrowserRouter as Router, Routes, Route, Navigate, useLocation} from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { supabase } from "./lib/supabase";
@@ -39,6 +39,16 @@ function AdminRoute({ children, session, loading, isAdmin }) {
   }
 
   return children;
+}
+
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname]);
+
+  return null;
 }
 
 function App() {
@@ -127,6 +137,7 @@ function App() {
     <Router>
       <div className="app-layout">
         <Navbar session={session} isAdmin={isAdmin} />
+        <ScrollToTop />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<Landing session={session} />} />

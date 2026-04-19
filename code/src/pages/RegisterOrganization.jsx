@@ -78,6 +78,10 @@ const RegisterOrganization = () => {
 
       const body = await resp.json().catch(() => null);
       if (!resp.ok) {
+        if (body?.error === 'name_taken' || (body?.message && body.message.toLowerCase().includes('name'))) {
+          setFieldErrors({ name: 'An organization with that name already exists.' });
+          return;
+        }
         throw new Error((body && (body.message || body.error)) || "Organization registration failed.");
       }
 

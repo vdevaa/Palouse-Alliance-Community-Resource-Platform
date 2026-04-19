@@ -63,3 +63,65 @@
     gap: 12px;
   }
 }
+
+.admin-card-actions-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-popup {
+  width: min(100%, 620px);
+  max-width: 620px;
+  max-height: calc(100vh - 96px);
+  overflow: auto;
+}
+
+.admin-org-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-org-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface-2);
+}
+
+.admin-org-row-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.admin-org-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-org-empty {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+.admin-org-error {
+  color: var(--color-danger);
+}
+
+.admin-org-form-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.full-width-field {
+  grid-column: 1 / -1;
+}
