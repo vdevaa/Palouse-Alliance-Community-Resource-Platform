@@ -78,8 +78,8 @@ describe('Navbar', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: 'Admin' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin');
+    expect(screen.getByRole('link', { name: 'Admin Dashboard' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Admin Dashboard' })).toHaveAttribute('href', '/admin');
   });
 
   it('toggles mobile menu', async () => {

@@ -7,6 +7,7 @@ import { supabase } from "./lib/supabase";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import RegisterOrganization from "./pages/RegisterOrganization";
 import Events from "./pages/Events";
 import Organizations from "./pages/Organizations";
 import PostEvent from "./pages/PostEvent";
@@ -154,6 +155,18 @@ function App() {
                   isAdmin={isAdmin}
                 >
                   <Admin />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/register-organization"
+              element={
+                <AdminRoute
+                  loading={loading || !sessionResolved || isAdminLoading}
+                  session={session}
+                  isAdmin={isAdmin}
+                >
+                  <RegisterOrganization />
                 </AdminRoute>
               }
             />

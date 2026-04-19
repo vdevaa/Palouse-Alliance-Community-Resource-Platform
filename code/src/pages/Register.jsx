@@ -147,7 +147,7 @@ const Register = () => {
         throw new Error((body && (body.message || body.error)) || 'Registration failed');
       }
 
-      navigate("/");
+      navigate("/admin");
 
     } catch (err) {
       setErrorMessage(err.message || "Registration failed. Please try again.");

@@ -26,7 +26,7 @@ const Admin = () => {
               className="navbar-link navbar-link-primary btn-primary admin-action-button"
               onClick={() => navigate("/register")}
             >
-              Register users
+              Register User
             </button>
           </div>
 
@@ -38,9 +38,9 @@ const Admin = () => {
             <button
               type="button"
               className="navbar-link navbar-link-primary btn-primary admin-action-button"
-              disabled
+              onClick={() => navigate("/register-organization")}
             >
-              Register organization
+              Register Organization
             </button>
           </div>
 

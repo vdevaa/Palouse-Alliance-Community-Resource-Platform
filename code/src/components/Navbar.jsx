@@ -78,7 +78,7 @@ const Navbar = ({ session, isAdmin }) => {
 
                     <div className="navbar-action-group">
                         {isAdmin ? (
-                            <Link to="/admin" className="navbar-link navbar-link-primary btn-primary">Admin</Link>
+                            <Link to="/admin" className="navbar-link navbar-link-primary btn-primary">Admin Dashboard</Link>
                         ) : null}
                         {session ? (
                             <button
@@ -150,7 +150,7 @@ const Navbar = ({ session, isAdmin }) => {
                     <Link to="/events" className="navbar-mobile-link">Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
                     {isAdmin ? (
-                        <Link to="/admin" className="navbar-mobile-link navbar-link-primary btn-primary">Admin</Link>
+                        <Link to="/admin" className="navbar-mobile-link navbar-link-primary btn-primary">Admin Dashboard</Link>
                     ) : null}
                     {session ? (
                         <button

@@ -105,6 +105,54 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+function isNonEmptyString(value) {
+  return typeof value === 'string' && value.trim() !== '';
+}
+
+function isValidEmail(value) {
+  return !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+app.post('/api/organizations', async (req, res) => {
+  const { name, description, phone_number, email, location } = req.body || {};
+
+  if (!isNonEmptyString(name)) {
+    return res.status(400).json({ error: 'name_required', message: 'Organization name is required.' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'invalid_email', message: 'Please provide a valid email address.' });
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('organizations')
+      .insert([
+        {
+          name: name.trim(),
+          description: description?.trim() || null,
+          phone_number: phone_number?.trim() || null,
+          email: email?.trim() || null,
+          location: location?.trim() || null,
+        },
+      ])
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === '23505' || error.details?.includes('organizations_name_key')) {
+        return res.status(409).json({ error: 'name_taken', message: 'An organization with that name already exists.' });
+      }
+      return res.status(400).json({ error: 'organization_create_failed', message: error.message, details: error });
+    }
+
+    return res.status(201).json({ id: data?.id, name: name.trim() });
+  } catch (err) {
+    console.error('Unexpected /api/organizations error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Backend listening on http://localhost:${PORT}`);
 });
