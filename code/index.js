@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { validate as validateUuid } from 'uuid';
 
@@ -25,6 +26,18 @@ app.use(express.json());
 
 function isValidRole(role) {
   return role === 'admin' || role === 'member';
+}
+
+function generateSecurePassword(length = 24) {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
+  const randomBytes = crypto.randomBytes(length);
+  let password = '';
+
+  for (let i = 0; i < length; i += 1) {
+    password += charset[randomBytes[i] % charset.length];
+  }
+
+  return password;
 }
 
 app.post('/api/register', async (req, res) => {
@@ -328,6 +341,31 @@ app.patch('/api/users/:id', async (req, res) => {
     return res.status(200).json({ id: data.id });
   } catch (err) {
     console.error('Unexpected /api/users PATCH error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
+app.post('/api/users/:id/reset-password', async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateUuid(id)) {
+    return res.status(400).json({ error: 'invalid_id', message: 'User id must be a valid UUID.' });
+  }
+
+  const password = generateSecurePassword(16);
+
+  try {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(id, {
+      password,
+    });
+
+    if (error) {
+      return res.status(400).json({ error: 'user_password_reset_failed', message: error.message, details: error });
+    }
+
+    return res.status(200).json({ password });
+  } catch (err) {
+    console.error('Unexpected /api/users RESET PASSWORD error:', err);
     return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
   }
 });

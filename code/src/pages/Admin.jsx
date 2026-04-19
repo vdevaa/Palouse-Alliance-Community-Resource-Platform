@@ -56,6 +56,11 @@ const Admin = () => {
   const [userFieldErrors, setUserFieldErrors] = useState({});
   const [userLoading, setUserLoading] = useState(false);
   const [userError, setUserError] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [resetPasswordError, setResetPasswordError] = useState("");
+  const [resetPasswordCopied, setResetPasswordCopied] = useState(false);
+  const [resetPasswordPopupOpen, setResetPasswordPopupOpen] = useState(false);
 
   const openOrgPopup = () => {
     setOrgPopupOpen(true);
@@ -188,6 +193,10 @@ const Admin = () => {
       organization_id: user.organization_id || 'unaffiliated',
     });
     setUserEditError("");
+    setResetPassword("");
+    setResetPasswordError("");
+    setResetPasswordCopied(false);
+    setResetPasswordPopupOpen(false);
   };
 
   const validateOrgForm = () => {
@@ -325,6 +334,10 @@ const Admin = () => {
     setEditingUser(null);
     setUserEditForm({ role: "member", organization_id: "unaffiliated" });
     setUserEditError("");
+    setResetPassword("");
+    setResetPasswordError("");
+    setResetPasswordCopied(false);
+    setResetPasswordPopupOpen(false);
     setUsersError("");
     setDeleteUserTarget(null);
   };
@@ -434,6 +447,45 @@ const Admin = () => {
       setUserEditError(error.message || "Unable to update user.");
     } finally {
       setUserEditLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!editingUser) {
+      return;
+    }
+
+    setResetPasswordLoading(true);
+    setResetPasswordError("");
+    setResetPasswordCopied(false);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/users/${editingUser.id}/reset-password`, {
+        method: "POST",
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(body?.message || "Unable to reset password.");
+      }
+      setResetPassword(body?.password || "");
+      setResetPasswordPopupOpen(true);
+    } catch (error) {
+      setResetPasswordError(error.message || "Unable to reset password.");
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
+  const handleCopyPassword = async () => {
+    if (!resetPassword) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(resetPassword);
+      setResetPasswordCopied(true);
+    } catch (error) {
+      setResetPasswordError("Unable to copy the password automatically. Please copy it manually.");
     }
   };
 
@@ -869,9 +921,18 @@ const Admin = () => {
                 </FormField>
               </div>
               {userEditError && <p className="form-error-message">{userEditError}</p>}
+              {resetPasswordError && <p className="form-error-message">{resetPasswordError}</p>}
               <div className="popup-actions">
                 <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>
                   Back to list
+                </button>
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={handleResetPassword}
+                  disabled={resetPasswordLoading || userEditLoading}
+                >
+                  {resetPasswordLoading ? "Resetting..." : "Reset Password"}
                 </button>
                 <button type="submit" className="btn-primary" disabled={userEditLoading}>
                   {userEditLoading ? "Saving..." : "Save Changes"}
@@ -914,6 +975,46 @@ const Admin = () => {
               </div>
             </div>
           )}
+        </Popup>
+      )}
+      {resetPasswordPopupOpen && (
+        <Popup
+          title="Password Reset"
+          description="A secure temporary password was generated. Copy it and share it with the user safely."
+          onClose={() => setResetPasswordPopupOpen(false)}
+          className="dialog-popup admin-popup"
+          actions={
+            <>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setResetPasswordPopupOpen(false)}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleCopyPassword}
+                disabled={!resetPassword}
+              >
+                {resetPasswordCopied ? 'Copied' : 'Copy password'}
+              </button>
+            </>
+          }
+        >
+          <div className="form-grid admin-org-form-grid">
+            <FormField htmlFor="reset_password_preview" label="Temporary Password">
+              <input
+                id="reset_password_preview"
+                className="form-input"
+                type="text"
+                value={resetPassword}
+                readOnly
+              />
+            </FormField>
+          </div>
+          {resetPasswordCopied && <p className="popup-description">Password copied to clipboard.</p>}
         </Popup>
       )}
       {deleteTarget && (
