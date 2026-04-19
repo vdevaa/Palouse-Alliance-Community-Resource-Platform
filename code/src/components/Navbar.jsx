@@ -147,7 +147,7 @@ const Navbar = ({ session, isAdmin }) => {
                     >
                         GivePulse
                     </a>
-                    <Link to="/events" className="navbar-mobile-link">Events</Link>
+                    <Link to="/events" className="navbar-mobile-link">Member Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
                     {isAdmin ? (
                         <Link to="/admin" className="navbar-mobile-link navbar-link-primary btn-primary">Admin Dashboard</Link>
