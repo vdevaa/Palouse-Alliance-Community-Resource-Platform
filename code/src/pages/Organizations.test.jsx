@@ -83,7 +83,7 @@ describe('Organizations', () => {
       expect(screen.getByText('Health Outreach')).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText('Search by name or mission...'), 'health');
+    await user.type(screen.getByPlaceholderText('Search by organization name...'), 'health');
 
     expect(screen.queryByText('Food Bank Partners')).not.toBeInTheDocument();
     expect(screen.getByText('Health Outreach')).toBeInTheDocument();

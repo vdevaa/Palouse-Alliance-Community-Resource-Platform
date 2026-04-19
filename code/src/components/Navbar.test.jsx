@@ -53,7 +53,7 @@ describe('Navbar', () => {
     expect(screen.queryByRole('link', { name: 'Register' })).not.toBeInTheDocument();
   });
 
-  it('shows dashboard/logout when session exists and logs out', async () => {
+  it('shows logout when session exists and logs out', async () => {
     const user = userEvent.setup();
 
     render(
@@ -62,7 +62,7 @@ describe('Navbar', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: 'Post Event' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Post Event' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Logout' }));
 
     await waitFor(() => {

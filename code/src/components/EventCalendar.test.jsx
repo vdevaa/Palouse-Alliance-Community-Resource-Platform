@@ -21,8 +21,7 @@ describe('EventCalendar', () => {
     isSameDay: (a, b) => a.toDateString() === b.toDateString(),
     monthLabel: 'April 2026',
     resetDateFilter: vi.fn(),
-    selectedDate: new Date('2026-04-01T00:00:00'),
-    selectedDateCount: 1,
+    selectedDates: [new Date('2026-04-01T00:00:00')],
     formatFullDate: () => 'April 1, 2026',
     visibleMonth: new Date('2026-04-01T00:00:00'),
   };

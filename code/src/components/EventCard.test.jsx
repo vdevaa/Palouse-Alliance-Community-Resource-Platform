@@ -6,11 +6,13 @@ describe('EventCard', () => {
     id: 1,
     title: 'Community Cleanup',
     categoryName: 'Community Service',
+    tags: ['Outdoor', 'Volunteer'],
     organizationName: 'Palouse Helpers',
     description: 'Join us to clean the neighborhood park.',
     startDate: new Date('2026-04-01T10:00:00'),
     endDate: new Date('2026-04-01T12:00:00'),
     location: 'Main Park',
+    volunteer_url: 'https://example.com/volunteer',
   };
 
   it('renders core event details', () => {
@@ -26,6 +28,8 @@ describe('EventCard', () => {
     expect(screen.getByText('Palouse Helpers')).toBeInTheDocument();
     expect(screen.getByText('Join us to clean the neighborhood park.')).toBeInTheDocument();
     expect(screen.getByText('Community Service')).toBeInTheDocument();
+    expect(screen.getByText('Outdoor')).toBeInTheDocument();
+    expect(screen.getByText('Volunteer')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'View Details' })).toBeInTheDocument();
   });
 

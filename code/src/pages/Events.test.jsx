@@ -2,13 +2,18 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
-const { mockEventsOrder, mockCategoriesOrder, mockFrom } = vi.hoisted(() => {
+const { mockEventsOrder, mockCategoriesOrder, mockTagsOrder, mockFrom } = vi.hoisted(() => {
     const eventsOrder = vi.fn();
     const eventsEq = vi.fn(() => ({ order: eventsOrder }));
-    const eventsSelect = vi.fn(() => ({ eq: eventsEq }));
+    const eventsSelect = vi.fn(() => ({ eq: eventsEq, order: eventsOrder, in: vi.fn(() => ({ order: eventsOrder })) }));
 
     const categoriesOrder = vi.fn();
-    const categoriesSelect = vi.fn(() => ({ order: categoriesOrder }));
+    const categoriesSelect = vi.fn(() => ({ order: categoriesOrder, in: vi.fn(() => ({ order: categoriesOrder })) }));
+
+    const tagsOrder = vi.fn();
+    const tagsSelect = vi.fn(() => ({ order: tagsOrder, in: vi.fn(() => ({ order: tagsOrder })) }));
+
+    const select = vi.fn(() => ({ eq: eventsEq, order: eventsOrder, in: vi.fn(() => ({ order: eventsOrder })) }));
 
     const from = vi.fn((table) => {
       if (table === 'events') {
@@ -19,12 +24,21 @@ const { mockEventsOrder, mockCategoriesOrder, mockFrom } = vi.hoisted(() => {
         return { select: categoriesSelect };
       }
 
-      return { select: vi.fn() };
+      if (table === 'tags') {
+        return { select: tagsSelect };
+      }
+
+      if (table === 'event_tags') {
+        return { select };
+      }
+
+      return { select: vi.fn(() => ({ order: vi.fn(), in: vi.fn(() => ({ order: vi.fn() })) })) };
     });
 
     return {
       mockEventsOrder: eventsOrder,
       mockCategoriesOrder: categoriesOrder,
+      mockTagsOrder: tagsOrder,
       mockFrom: from,
     };
   });
@@ -35,17 +49,17 @@ vi.mock('../lib/supabase', () => ({
   },
 }));
 
-import Home from './Home';
+import Events from './Events';
 
-function renderHome(session = null) {
+function renderEvents(session = null) {
   return render(
     <MemoryRouter>
-      <Home session={session} />
+      <Events session={session} />
     </MemoryRouter>
   );
 }
 
-describe('Home', () => {
+describe('Events', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -63,6 +77,7 @@ describe('Home', () => {
           status: 'approved',
           organizations: { name: 'Org A' },
           categories: { name: 'Food' },
+          event_tags: [{ tags: { name: 'Community' } }],
         },
       ],
       error: null,
@@ -73,12 +88,23 @@ describe('Home', () => {
       error: null,
     });
 
-    renderHome();
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [{ name: 'Community' }],
+      error: null,
+    });
+
+    const user = userEvent.setup();
+    renderEvents();
 
     await waitFor(() => {
       expect(screen.getByText('Food Drive')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Food' })).toBeInTheDocument();
     });
+
+    await user.click(screen.getByRole('button', { name: 'Categories' }));
+    expect(screen.getByRole('button', { name: 'Food' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Tags' }));
+    expect(screen.getByRole('button', { name: 'Community' })).toBeInTheDocument();
   });
 
   it('filters events by search query', async () => {
@@ -94,6 +120,7 @@ describe('Home', () => {
           status: 'approved',
           organizations: { name: 'Org A' },
           categories: { name: 'Food' },
+          event_tags: [{ tags: { name: 'Community' } }],
         },
         {
           id: 2,
@@ -105,6 +132,7 @@ describe('Home', () => {
           status: 'approved',
           organizations: { name: 'Org B' },
           categories: { name: 'Technology' },
+          event_tags: [{ tags: { name: 'Youth' } }],
         },
       ],
       error: null,
@@ -115,18 +143,31 @@ describe('Home', () => {
       error: null,
     });
 
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [{ name: 'Community' }, { name: 'Youth' }],
+      error: null,
+    });
+
     const user = userEvent.setup();
-    renderHome();
+    renderEvents();
 
     await waitFor(() => {
       expect(screen.getByText('Food Drive')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'View All Dates' })).toBeInTheDocument();
     });
 
+    const dayOneButtons = screen.getAllByRole('button', { name: '1' });
+    const currentMonthDayButton = dayOneButtons.find(
+      (button) => !button.className.includes('outside-month')
+    );
+    await user.click(currentMonthDayButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'View All Dates' })).toBeInTheDocument();
+    });
     await user.click(screen.getByRole('button', { name: 'View All Dates' }));
 
     await user.type(
-      screen.getByPlaceholderText('Search events by title, organization, location, or keyword...'),
+      screen.getByPlaceholderText('Search events by title or keywords...'),
       'tech'
     );
 
@@ -145,6 +186,11 @@ describe('Home', () => {
       error: null,
     });
 
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [],
+      error: null,
+    });
+
     render(
       <MemoryRouter
         initialEntries={[
@@ -157,7 +203,7 @@ describe('Home', () => {
         ]}
       >
         <Routes>
-          <Route path="/events" element={<Home session={null} />} />
+          <Route path="/events" element={<Events session={null} />} />
         </Routes>
       </MemoryRouter>
     );

@@ -12,8 +12,7 @@ function EventCalendar({
   isSameDay,
   monthLabel,
   resetDateFilter,
-  selectedDate,
-  selectedDateCount,
+  selectedDates = [],
   formatFullDate,
   visibleMonth,
   canNavigatePrevious = true,
@@ -29,7 +28,7 @@ function EventCalendar({
           aria-label="Previous month"
           disabled={!canNavigatePrevious}
         >
-          ‹
+          <span className="material-symbols-outlined">chevron_left</span>
         </button>
         <span>{monthLabel}</span>
         <button
@@ -39,7 +38,7 @@ function EventCalendar({
           aria-label="Next month"
           disabled={!canNavigateNext}
         >
-          ›
+          <span className="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
 
@@ -53,7 +52,7 @@ function EventCalendar({
         {calendarDays.map((day) => {
           const dayKey = getDateKey(day);
           const isCurrentMonth = day.getMonth() === visibleMonth.getMonth();
-          const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+          const isSelected = selectedDates.some((selectedDate) => isSameDay(day, selectedDate));
           const eventCount = eventCountByDate[dayKey] || 0;
 
           return (
@@ -73,12 +72,15 @@ function EventCalendar({
       </div>
 
       <div className="selected-date-box">
-        <p>{selectedDate ? "Showing events for" : "Showing all upcoming events"}</p>
-        <strong>{selectedDate ? formatFullDate(selectedDate) : monthLabel}</strong>
-        <span className="selected-date-meta">
-          {selectedDateCount} {selectedDateCount === 1 ? "event" : "events"}
-        </span>
-        {selectedDate && (
+        <p>{selectedDates.length > 0 ? "Showing events for" : "Showing all upcoming events"}</p>
+        <strong>
+          {selectedDates.length === 0
+            ? monthLabel
+            : selectedDates.length === 1
+            ? formatFullDate(selectedDates[0])
+            : `${selectedDates.length} dates selected`}
+        </strong>
+        {selectedDates.length > 0 && (
           <button className="view-all-btn" type="button" onClick={resetDateFilter}>
             View All Dates
           </button>
