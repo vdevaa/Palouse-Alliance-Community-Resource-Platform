@@ -34,8 +34,29 @@
 }
 
 .popup-content.filter-popup {
-  width: min(100%, 760px);
-  max-width: 760px;
+  width: min(100%, 640px);
+  max-width: 640px;
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  padding: 24px;
+}
+
+.popup-content.filter-popup .category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.popup-content.filter-popup .category-pill {
+  width: 100%;
+  justify-content: center;
+  padding: 0.9rem 1rem;
+}
+
+.popup-content.filter-popup .category-pill.active {
+  border-color: var(--color-primary-700);
+  background: var(--color-primary-700);
+  color: var(--color-text-inverse);
 }
 
 .popup-header {
@@ -89,5 +110,12 @@
     width: min(100%, 100%);
     max-width: 100%;
     padding: 20px;
+  }
+
+  .popup-content.filter-popup {
+    width: min(100%, 100%);
+    max-width: 100%;
+    padding: 20px;
+    margin: 0 10px;
   }
 }

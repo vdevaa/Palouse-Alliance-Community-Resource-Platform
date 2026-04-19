@@ -110,7 +110,7 @@ const Login = () => {
                   className="forgot-link"
                   onClick={() => setIsForgotPasswordOpen(true)}
                 >
-                  Forgot password?
+                  Forgot Password?
                 </button>
               }
             >

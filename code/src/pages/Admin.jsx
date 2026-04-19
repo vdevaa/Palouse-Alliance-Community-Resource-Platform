@@ -121,7 +121,7 @@ const Admin = () => {
     }
   }, [userManagePopupOpen]);
 
-  const loadUsers = async () => {
+  async function loadUsers() {
     setUsersLoading(true);
     setUsersError("");
 
@@ -137,7 +137,7 @@ const Admin = () => {
     } finally {
       setUsersLoading(false);
     }
-  };
+  }
 
   const clearOrgFieldError = (name) => {
     setOrgFieldErrors((current) => {
@@ -552,7 +552,7 @@ const Admin = () => {
     try {
       await navigator.clipboard.writeText(resetPassword);
       setResetPasswordCopied(true);
-    } catch (error) {
+    } catch {
       setResetPasswordError("Unable to copy the password automatically. Please copy it manually.");
     }
   };
@@ -769,7 +769,7 @@ const Admin = () => {
               {orgFormError && <p className="form-error-message">{orgFormError}</p>}
               <div className="popup-actions">
                 <button type="button" className="btn-secondary" onClick={() => setEditingOrg(null)}>
-                  Back to list
+                  Back to List
                 </button>
                 <button type="submit" className="btn-primary" disabled={orgFormLoading}>
                   {orgFormLoading ? "Saving..." : "Save Changes"}
@@ -877,7 +877,7 @@ const Admin = () => {
                 Cancel
               </button>
               <button type="submit" className="btn-primary" disabled={registerOrgLoading}>
-                {registerOrgLoading ? "Creating..." : "Create organization"}
+                {registerOrgLoading ? "Creating..." : "Create Organization"}
               </button>
             </div>
           </form>
@@ -951,7 +951,7 @@ const Admin = () => {
                 Cancel
               </button>
               <button type="submit" className="btn-primary" disabled={userLoading || orgsLoading}>
-                {userLoading ? "Creating..." : "Create user"}
+                {userLoading ? "Creating..." : "Create User"}
               </button>
             </div>
           </form>
@@ -1016,7 +1016,7 @@ const Admin = () => {
               {resetPasswordError && <p className="form-error-message">{resetPasswordError}</p>}
               <div className="popup-actions">
                 <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>
-                  Back to list
+                  Back to List
                 </button>
                 <button
                   type="button"
@@ -1096,7 +1096,7 @@ const Admin = () => {
                 onClick={handleCopyPassword}
                 disabled={!resetPassword}
               >
-                {resetPasswordCopied ? 'Copied' : 'Copy password'}
+                {resetPasswordCopied ? 'Copied Password' : 'Copy Password'}
               </button>
             </>
           }
