@@ -26,6 +26,7 @@ const FALLBACK_CATEGORY_NAMES = [
   "Youth Programs",
 ];
 const TOAST_DURATION_MS = 4000;
+const MAX_VOLUNTEER_URL_LENGTH = 50;
 
 function formatDisplayDate(date) {
   if (!date) {
@@ -179,6 +180,10 @@ const PostEvent = () => {
     [tagOptions, selectedTagIds]
   );
 
+  const trimmedLocation = location.trim();
+  const isOnlineLocation = isLikelyUrl(trimmedLocation);
+  const isVolunteerUrlTooLong = isOnlineLocation && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH;
+
   const isStepValid = () => {
     if (step === 1) {
       return (
@@ -189,13 +194,17 @@ const PostEvent = () => {
     }
 
     if (step === 2) {
+      const trimmedLocation = location.trim();
+      const isOnlineEvent = isLikelyUrl(trimmedLocation);
+
       return (
         date !== "" &&
         endDate !== "" &&
         endDate >= date &&
         startTime !== "" &&
         endTime !== "" &&
-        location.trim() !== ""
+        trimmedLocation !== "" &&
+        !(isOnlineEvent && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH)
       );
     }
 
@@ -242,6 +251,17 @@ const PostEvent = () => {
     if (date === endDate && endTime <= startTime) {
       setToast({
         message: "End time must be after the start time for single-day events.",
+        type: "error",
+      });
+      return;
+    }
+
+    const trimmedLocation = location.trim();
+    const isOnlineEvent = isLikelyUrl(trimmedLocation);
+
+    if (isOnlineEvent && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH) {
+      setToast({
+        message: `Volunteer URL cannot exceed ${MAX_VOLUNTEER_URL_LENGTH} characters.`,
         type: "error",
       });
       return;
@@ -322,8 +342,6 @@ const PostEvent = () => {
         .map((tagOption) => ({ event_id: null, tag_id: tagOption.id }))
         .filter((tagRow) => Boolean(tagRow.tag_id));
 
-      const trimmedLocation = location.trim();
-      const isOnlineEvent = isLikelyUrl(trimmedLocation);
       const payload = {
         title: title.trim(),
         description: description.trim(),
@@ -577,6 +595,11 @@ const PostEvent = () => {
                     onChange={(e) => setLocation(e.target.value)}
                     required
                   />
+                  {isVolunteerUrlTooLong && (
+                    <p className="postevent-help-text" style={{ color: "#b42318" }}>
+                      Volunteer URL must be 50 characters or less.
+                    </p>
+                  )}
                 </div>
               </>
             )}
