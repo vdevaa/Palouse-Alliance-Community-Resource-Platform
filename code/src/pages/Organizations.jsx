@@ -59,13 +59,6 @@ const Organizations = () => {
     setFilteredOrgs(results);
   }, [searchTerm, orgs]);
 
-  if (loading)
-    return (
-      <div className="organizations-page page-root organizations-loading">
-        Loading Palouse Partners...
-      </div>
-    );
-
   return (
     <div className="organizations-page page-root">
       <div className="organizations-shell">
@@ -177,7 +170,13 @@ const Organizations = () => {
             })
           ) : (
             <div className="no-results">
-              <p>No organizations found matching "{searchTerm}"</p>
+              {loading ? (
+                <>
+                  <p>Loading organizations...</p>
+                </>
+              ) : (
+                <p>No organizations found matching "{searchTerm}"</p>
+              )}
             </div>
           )}
         </div>

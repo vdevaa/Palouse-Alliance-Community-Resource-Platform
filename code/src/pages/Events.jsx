@@ -767,7 +767,7 @@ const Events = ({ session }) => {
                 </h2>
                 <p className="events-subtitle">
                   {eventsLoading
-                    ? "Loading approved events..."
+                    ? "Loading events..."
                     : eventsError }
                 </p>
               </div>
@@ -782,10 +782,7 @@ const Events = ({ session }) => {
                 </p>
               </div>
             ) : eventsLoading ? (
-              <div className="empty-state">
-                <h3>Loading Events</h3>
-                <p>Fetching calendar events.</p>
-              </div>
+              <div></div>
             ) : (
               <div className={`event-grid ${session ? "event-grid-authenticated" : "event-grid-public"}`}>
                 {filteredEvents.map((event) => (

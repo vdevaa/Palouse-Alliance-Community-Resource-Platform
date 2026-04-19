@@ -26,7 +26,11 @@ const {
 
     if (table === 'users') {
       return {
-        select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { role: 'member' }, error: null }) }) }),
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: { role: window.__mockUserRole || 'member' }, error: null }),
+          }),
+        }),
       };
     }
 
@@ -62,6 +66,7 @@ import App from './App';
 describe('App routing and auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.__mockUserRole = 'member';
     mockGetUser.mockResolvedValue({
       data: { user: { email: 'member@palouse.org' } },
       error: null,
@@ -91,6 +96,20 @@ describe('App routing and auth', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Welcome, member@palouse.org')).toBeInTheDocument();
+    });
+  });
+
+  it('keeps admin users on the admin dashboard after refresh', async () => {
+    window.history.pushState({}, '', '/admin');
+    window.__mockUserRole = 'admin';
+    mockGetSession.mockResolvedValueOnce({
+      data: { session: { user: { id: '123', email: 'admin@palouse.org' } } },
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
     });
   });
 

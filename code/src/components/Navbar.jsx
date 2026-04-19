@@ -4,11 +4,10 @@ import logo from "../assets/PalouseTextLogo.png";
 import { supabase } from "../lib/supabase";
 import "../styles/Navbar.css";
 
-const Navbar = ({ session }) => {
+const Navbar = ({ session, isAdmin }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
@@ -23,40 +22,12 @@ const Navbar = ({ session }) => {
         };
     }, [mobileMenuOpen]);
 
-    // Fetch user's role to determine whether to show Register link
-    useEffect(() => {
-        let mounted = true;
-        const loadRole = async () => {
-            setIsAdmin(false);
-            if (!session?.user?.id) return;
-
-            const userId = session.user.id;
-            const { data, error } = await supabase
-                .from("users")
-                .select("role")
-                .eq("id", userId)
-                .maybeSingle();
-
-            if (!mounted) return;
-            if (!error && data && data.role === "admin") {
-                setIsAdmin(true);
-            } else {
-                setIsAdmin(false);
-            }
-        };
-
-        loadRole();
-        return () => {
-            mounted = false;
-        };
-    }, [session]);
-
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
 
         if (!error) {
             setMobileMenuOpen(false);
-            navigate("/login");
+            navigate("/", { replace: true });
         }
     };
 
@@ -106,6 +77,9 @@ const Navbar = ({ session }) => {
                     </div>
 
                     <div className="navbar-action-group">
+                        {isAdmin ? (
+                            <Link to="/admin" className="navbar-link navbar-link-primary btn-primary">Admin</Link>
+                        ) : null}
                         {session ? (
                             <button
                                 onClick={handleLogout}
@@ -117,9 +91,6 @@ const Navbar = ({ session }) => {
                         ) : (
                             <Link to="/login" className="navbar-link navbar-link-primary btn-primary">Login</Link>
                         )}
-                        {isAdmin ? (
-                            <Link to="/register" className="navbar-link navbar-link-primary btn-primary">Register</Link>
-                        ) : null}
                     </div>
                 </div>
 
@@ -178,6 +149,9 @@ const Navbar = ({ session }) => {
                     </a>
                     <Link to="/events" className="navbar-mobile-link">Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
+                    {isAdmin ? (
+                        <Link to="/admin" className="navbar-mobile-link navbar-link-primary btn-primary">Admin</Link>
+                    ) : null}
                     {session ? (
                         <button
                             onClick={handleLogout}
@@ -189,9 +163,6 @@ const Navbar = ({ session }) => {
                     ) : (
                         <Link to="/login" className="navbar-mobile-link navbar-link-primary btn-primary">Login</Link>
                     )}
-                    {isAdmin ? (
-                        <Link to="/register" className="navbar-mobile-link navbar-link-primary btn-primary">Register</Link>
-                    ) : null}
                 </div>
             </aside>
         </>

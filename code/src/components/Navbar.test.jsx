@@ -58,17 +58,28 @@ describe('Navbar', () => {
 
     render(
       <MemoryRouter>
-        <Navbar session={{ user: { id: '123' } }} />
+        <Navbar session={{ user: { id: '123' } }} isAdmin={false} />
       </MemoryRouter>
     );
 
-    expect(screen.queryByRole('link', { name: 'Post Event' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Logout' }));
 
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith('/login');
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
     });
+  });
+
+  it('shows admin button for admin users', () => {
+    render(
+      <MemoryRouter>
+        <Navbar session={{ user: { id: '123' } }} isAdmin={true} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('link', { name: 'Admin' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Admin' })).toHaveAttribute('href', '/admin');
   });
 
   it('toggles mobile menu', async () => {

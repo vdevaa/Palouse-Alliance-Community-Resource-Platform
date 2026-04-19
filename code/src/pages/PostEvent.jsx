@@ -68,6 +68,55 @@ function isLikelyUrl(value) {
   }
 }
 
+function getTodayDate() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function formatDateInputValue(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`;
+}
+
+function getMaxAdvanceDate() {
+  const today = getTodayDate();
+  return new Date(today.getFullYear(), today.getMonth() + 3, today.getDate());
+}
+
+function buildDateTime(date, time) {
+  if (!date || !time) {
+    return null;
+  }
+
+  return new Date(`${date}T${time}:00`);
+}
+
+function isDateTimeInPast(date, time) {
+  const dateTime = buildDateTime(date, time);
+  return dateTime ? dateTime < new Date() : false;
+}
+
+function isDateTimeBeyondMaxAdvance(date, time) {
+  const dateTime = buildDateTime(date, time);
+  if (!dateTime) {
+    return false;
+  }
+
+  const maxAdvance = getMaxAdvanceDate();
+  const maxAdvanceEnd = new Date(
+    maxAdvance.getFullYear(),
+    maxAdvance.getMonth(),
+    maxAdvance.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
+
+  return dateTime > maxAdvanceEnd;
+}
+
 const PostEvent = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -194,6 +243,9 @@ const PostEvent = () => {
       ? "Volunteer URL must be 50 characters or less."
       : undefined;
 
+  const minStartDate = formatDateInputValue(getTodayDate());
+  const maxStartDate = formatDateInputValue(getMaxAdvanceDate());
+
   const isStepValid = () => {
     if (step === 1) {
       return (
@@ -211,10 +263,16 @@ const PostEvent = () => {
         trimmedLocation.includes("://") &&
         !isOnlineEvent;
 
-      return (
+      const hasValidDates =
         date !== "" &&
         endDate !== "" &&
         endDate >= date &&
+        !isDateTimeInPast(date, startTime) &&
+        !isDateTimeBeyondMaxAdvance(date, startTime) &&
+        !isDateTimeBeyondMaxAdvance(endDate, endTime);
+
+      return (
+        hasValidDates &&
         startTime !== "" &&
         endTime !== "" &&
         trimmedLocation !== "" &&
@@ -276,6 +334,30 @@ const PostEvent = () => {
     if (date === endDate && endTime <= startTime) {
       setToast({
         message: "End time must be after the start time for single-day events.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (isDateTimeInPast(date, startTime)) {
+      setToast({
+        message: "Event start cannot be in the past.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (isDateTimeBeyondMaxAdvance(date, startTime)) {
+      setToast({
+        message: "Event start must be within 3 months of today.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (isDateTimeBeyondMaxAdvance(endDate, endTime)) {
+      setToast({
+        message: "Event end must be within 3 months of today.",
         type: "error",
       });
       return;
@@ -547,6 +629,8 @@ const PostEvent = () => {
                     className="form-input"
                     type="date"
                     value={date}
+                    min={minStartDate}
+                    max={maxStartDate}
                     onChange={(e) => setDate(e.target.value)}
                     required
                   />
@@ -558,7 +642,8 @@ const PostEvent = () => {
                     className="form-input"
                     type="date"
                     value={endDate}
-                    min={date || undefined}
+                    min={date || minStartDate}
+                    max={maxStartDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     required
                   />

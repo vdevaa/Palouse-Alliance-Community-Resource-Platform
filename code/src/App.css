@@ -21,11 +21,12 @@
   background: var(--color-bg);
   color: var(--color-text);
   overflow-x: hidden;
+  padding: 40px 32px 60px;
+  box-sizing: border-box;
 }
 
 .admin-page,
 .organizations-page {
   min-height: 100vh;
-  padding: 2rem;
   background: var(--color-bg);
 }
