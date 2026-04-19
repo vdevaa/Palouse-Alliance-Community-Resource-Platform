@@ -720,13 +720,11 @@
 }
 
 .event-grid-public {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
-  justify-content: start;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .event-grid-authenticated {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
-  justify-content: start;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .empty-state {
