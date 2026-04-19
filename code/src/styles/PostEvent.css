@@ -67,7 +67,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 28px;
+  margin-bottom: 14px;
 }
 
 .step {
@@ -85,6 +85,11 @@
 }
 
 .step.current {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.step.completed {
   background: var(--btn-primary-bg);
   color: var(--btn-primary-text);
 }
@@ -304,21 +309,24 @@ textarea.form-input::placeholder {
 .popup-content.post-event-popup .postevent-main {
   width: 100%;
   max-width: none;
-  padding: 24px 28px;
+  padding: 0;
+  margin: 0;
 }
 
 .popup-content.post-event-popup .postevent-form {
   width: 100%;
   margin: 0;
+  padding: 0;
 }
 
 @media (max-width: 760px) {
   .popup-content.post-event-popup {
-    padding: 0;
+    padding: 24px;
   }
 
   .popup-content.post-event-popup .postevent-main {
-    padding: 16px 16px 20px;
+    padding: 0;
+    margin: 0;
   }
 
   .popup-content.post-event-popup .postevent-form {

@@ -836,6 +836,7 @@ const Events = ({ session }) => {
             <PostEventForm
               onClose={() => setIsPostEventOpen(false)}
               onSuccess={() => setPostEventSuccessOpen(true)}
+              isPopup={true}
             />
           </Popup>
         ) : null}

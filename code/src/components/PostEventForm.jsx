@@ -95,7 +95,7 @@ function isDateTimeBeyondMaxAdvance(date, time) {
   return dateTime > maxAdvanceEnd;
 }
 
-const PostEventForm = ({ onClose, onSuccess }) => {
+const PostEventForm = ({ onClose, onSuccess, isPopup = false }) => {
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -103,11 +103,10 @@ const PostEventForm = ({ onClose, onSuccess }) => {
   const [tagOptions, setTagOptions] = useState([]);
   const [category, setCategory] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState([]);
-  const [date, setDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
   const [location, setLocation] = useState("");
+  const [volunteerUrl, setVolunteerUrl] = useState("");
   const [flyer, setFlyer] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -194,13 +193,10 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
   const canSelectMoreTags = selectedTagIds.length < MAX_TAG_SELECTIONS;
   const trimmedLocation = location.trim();
-  const isOnlineLocation = isLikelyUrl(trimmedLocation);
-  const isVolunteerUrlTooLong = isOnlineLocation && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH;
-  const isVolunteerUrlInvalid =
-    trimmedLocation !== "" &&
-    trimmedLocation.includes("://") &&
-    !isOnlineLocation;
-  const locationError = isVolunteerUrlInvalid
+  const trimmedVolunteerUrl = volunteerUrl.trim();
+  const isVolunteerUrlTooLong = trimmedVolunteerUrl.length > MAX_VOLUNTEER_URL_LENGTH;
+  const isVolunteerUrlInvalid = trimmedVolunteerUrl !== "" && !isLikelyUrl(trimmedVolunteerUrl);
+  const volunteerUrlError = isVolunteerUrlInvalid
     ? "Volunteer URL must be a valid http(s) address."
     : isVolunteerUrlTooLong
     ? "Volunteer URL must be 50 characters or less."
@@ -208,6 +204,9 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
   const minStartDate = formatDateInputValue(getTodayDate());
   const maxStartDate = formatDateInputValue(getMaxAdvanceDate());
+  const minStartDateTime = `${minStartDate}T00:00`;
+  const maxStartDateTime = `${maxStartDate}T23:59`;
+  const minEndDateTime = startDateTime ? startDateTime : `${minStartDate}T00:00`;
 
   const isStepValid = () => {
     if (step === 1) {
@@ -219,28 +218,19 @@ const PostEventForm = ({ onClose, onSuccess }) => {
     }
 
     if (step === 3) {
-      const trimmedLocation = location.trim();
-      const isOnlineEvent = isLikelyUrl(trimmedLocation);
-      const isVolunteerUrlInvalid =
-        trimmedLocation !== "" &&
-        trimmedLocation.includes("://") &&
-        !isOnlineEvent;
-
       const hasValidDates =
-        date !== "" &&
-        endDate !== "" &&
-        endDate >= date &&
-        !isDateTimeInPast(date, startTime) &&
-        !isDateTimeBeyondMaxAdvance(date, startTime) &&
-        !isDateTimeBeyondMaxAdvance(endDate, endTime);
+        startDateTime !== "" &&
+        endDateTime !== "" &&
+        endDateTime >= startDateTime &&
+        !isDateTimeInPast(startDateTime.split("T")[0], startDateTime.split("T")[1]) &&
+        !isDateTimeBeyondMaxAdvance(startDateTime.split("T")[0], startDateTime.split("T")[1]) &&
+        !isDateTimeBeyondMaxAdvance(endDateTime.split("T")[0], endDateTime.split("T")[1]);
 
       return (
         hasValidDates &&
-        startTime !== "" &&
-        endTime !== "" &&
         trimmedLocation !== "" &&
-        !(isOnlineEvent && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH) &&
-        !isVolunteerUrlInvalid
+        !isVolunteerUrlInvalid &&
+        !isVolunteerUrlTooLong
       );
     }
 
@@ -253,11 +243,10 @@ const PostEventForm = ({ onClose, onSuccess }) => {
     setDescription("");
     setCategory(categories[0]?.name || "");
     setSelectedTagIds([]);
-    setDate("");
-    setEndDate("");
-    setStartTime("");
-    setEndTime("");
+    setStartDateTime("");
+    setEndDateTime("");
     setLocation("");
+    setVolunteerUrl("");
     setFlyer(null);
     setErrorMessage("");
   };
@@ -294,35 +283,32 @@ const PostEventForm = ({ onClose, onSuccess }) => {
       return;
     }
 
-    if (endDate < date) {
-      setErrorMessage("End date must be on or after the start date.");
+    if (endDateTime < startDateTime) {
+      setErrorMessage("End date and time must be on or after the start date and time.");
       return;
     }
 
-    if (date === endDate && endTime <= startTime) {
-      setErrorMessage("End time must be after the start time for single-day events.");
+    if (startDateTime === endDateTime) {
+      setErrorMessage("End date and time must be after the start date and time.");
       return;
     }
 
-    if (isDateTimeInPast(date, startTime)) {
+    if (isDateTimeInPast(startDateTime.split("T")[0], startDateTime.split("T")[1])) {
       setErrorMessage("Event start cannot be in the past.");
       return;
     }
 
-    if (isDateTimeBeyondMaxAdvance(date, startTime)) {
+    if (isDateTimeBeyondMaxAdvance(startDateTime.split("T")[0], startDateTime.split("T")[1])) {
       setErrorMessage("Event start must be within 3 months of today.");
       return;
     }
 
-    if (isDateTimeBeyondMaxAdvance(endDate, endTime)) {
+    if (isDateTimeBeyondMaxAdvance(endDateTime.split("T")[0], endDateTime.split("T")[1])) {
       setErrorMessage("Event end must be within 3 months of today.");
       return;
     }
 
-    const trimmedLocation = location.trim();
-    const isOnlineEvent = isLikelyUrl(trimmedLocation);
-
-    if (isOnlineEvent && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH) {
+    if (isVolunteerUrlTooLong) {
       setErrorMessage(`Volunteer URL cannot exceed ${MAX_VOLUNTEER_URL_LENGTH} characters.`);
       return;
     }
@@ -390,10 +376,10 @@ const PostEventForm = ({ onClose, onSuccess }) => {
       const payload = {
         title: title.trim(),
         description: description.trim(),
-        start_datetime: `${date}T${startTime}:00`,
-        end_datetime: `${endDate}T${endTime}:00`,
-        location: isOnlineEvent ? "Online" : trimmedLocation,
-        volunteer_url: isOnlineEvent ? trimmedLocation : null,
+        start_datetime: startDateTime,
+        end_datetime: endDateTime,
+        location: trimmedLocation,
+        volunteer_url: trimmedVolunteerUrl || null,
         created_by: userId,
         category_id: categoryId,
         organization_id: userData.organization_id,
@@ -450,20 +436,18 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
       <main className="postevent-main">
         <div className="postevent-steps">
-          <div className={`step ${step === 1 ? "current" : ""}`}>1</div>
+          <div className={`step ${step === 1 ? "current" : step > 1 ? "completed" : ""}`}>1</div>
           <div className="step-line"></div>
-          <div className={`step ${step === 2 ? "current" : ""}`}>2</div>
+          <div className={`step ${step === 2 ? "current" : step > 2 ? "completed" : ""}`}>2</div>
           <div className="step-line"></div>
-          <div className={`step ${step === 3 ? "current" : ""}`}>3</div>
+          <div className={`step ${step === 3 ? "current" : step > 3 ? "completed" : ""}`}>3</div>
           <div className="step-line"></div>
-          <div className={`step ${step === 4 ? "current" : ""}`}>4</div>
+          <div className={`step ${step === 4 ? "current" : step > 4 ? "completed" : ""}`}>4</div>
         </div>
 
         <form className={`postevent-form ${step === 4 ? "step-4" : ""}`} onSubmit={handleSubmit}>
             {step === 1 && (
               <>
-                <h2 className="step-title">Step 1: Basic Information</h2>
-
                 <FormField htmlFor="event-title" label="Event Title" required>
                   <input
                     id="event-title"
@@ -492,8 +476,6 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
             {step === 2 && (
               <>
-                <h2 className="step-title">Step 2: Category & Tags</h2>
-
                 <FormField htmlFor="category" label="Category" required>
                   <select
                     id="category"
@@ -517,7 +499,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
                 <div className="form-group">
                   <label className="form-label">Tags</label>
                   <p className="postevent-help-text postevent-help-text-tight">
-                    Select up to {MAX_TAG_SELECTIONS} tags for your event. Tags are optional.
+                    Select up to {MAX_TAG_SELECTIONS} tags for your event.
                   </p>
                   <div className="category-list postevent-tag-list">
                     {tagOptions.length > 0 ? (
@@ -551,70 +533,60 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
             {step === 3 && (
               <>
-                <h2 className="step-title">Step 3: When & Where</h2>
-
-                <FormField htmlFor="date" label="Start Date" required>
+                <FormField htmlFor="start-datetime" label="Event Start" required>
                   <input
-                    id="date"
+                    id="start-datetime"
                     className="form-input"
-                    type="date"
-                    value={date}
-                    min={minStartDate}
-                    max={maxStartDate}
-                    onChange={(e) => setDate(e.target.value)}
+                    type="datetime-local"
+                    value={startDateTime}
+                    min={minStartDateTime}
+                    max={maxStartDateTime}
+                    onChange={(e) => setStartDateTime(e.target.value)}
                     required
                   />
                 </FormField>
 
-                <FormField htmlFor="end-date" label="End Date" required>
+                <FormField htmlFor="end-datetime" label="Event End" required>
                   <input
-                    id="end-date"
+                    id="end-datetime"
                     className="form-input"
-                    type="date"
-                    value={endDate}
-                    min={date || minStartDate}
-                    max={maxStartDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                  />
-                </FormField>
-
-                <FormField htmlFor="start-time" label="Start Time" required>
-                  <input
-                    id="start-time"
-                    className="form-input"
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    required
-                  />
-                </FormField>
-
-                <FormField htmlFor="end-time" label="End Time" required>
-                  <input
-                    id="end-time"
-                    className="form-input"
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
+                    type="datetime-local"
+                    value={endDateTime}
+                    min={minEndDateTime}
+                    max={maxStartDateTime}
+                    onChange={(e) => setEndDateTime(e.target.value)}
                     required
                   />
                 </FormField>
 
                 <FormField
                   htmlFor="location"
-                  label="Location or Zoom Link"
-                  error={locationError}
+                  label="Physical Location"
                   required
                 >
                   <input
                     id="location"
                     className="form-input"
                     type="text"
-                    placeholder="E.g., Example Community Center, 206 E 3rd St or https://example.com/..."
+                    placeholder="E.g., Example Community Center, 206 E 3rd St"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     required
+                  />
+                </FormField>
+
+                <FormField
+                  htmlFor="volunteer-url"
+                  label="Volunteer URL (Optional)"
+                  error={volunteerUrlError}
+                >
+                  <input
+                    id="volunteer-url"
+                    className="form-input"
+                    type="url"
+                    placeholder="E.g., https://example.com/register"
+                    value={volunteerUrl}
+                    onChange={(e) => setVolunteerUrl(e.target.value)}
                   />
                 </FormField>
               </>
@@ -622,11 +594,9 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
             {step === 4 && (
               <>
-                <h2 className="step-title">Step 4: Event Flyer (Optional)</h2>
-
                 <div className="form-group">
                   <label className="form-label" htmlFor="flyer">
-                    Upload Flyer Image
+                    Upload Flyer Image (Optional)
                   </label>
                   <div
                     className="file-upload"
@@ -666,12 +636,10 @@ const PostEventForm = ({ onClose, onSuccess }) => {
                 className="postevent-button btn-primary"
                 disabled={!isStepValid() || isSubmitting}
               >
-                {isSubmitting
-                  ? "Submitting..."
-                  : step === 1
+                {step === 1
                   ? "Continue to Category & Tags"
                   : step === 2
-                  ? "Continue to Date & Location"
+                  ? "Continue to Date, Time & Location"
                   : step === 3
                   ? "Continue to Flyer Upload"
                   : "Submit for Review"}
