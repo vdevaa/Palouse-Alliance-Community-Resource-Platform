@@ -1,33 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-
 import uploadIcon from "../assets/upload-icon.png";
 import { supabase } from "../lib/supabase";
-import FormField from "../components/FormField";
+import FormField from "./FormField";
 import "../styles/PostEvent.css";
 
-const FALLBACK_CATEGORY_NAMES = [
-  "Community Events",
-  "Crisis Support",
-  "Disability Services",
-  "Education",
-  "Employment",
-  "Family Services",
-  "Financial Support",
-  "Food Assistance",
-  "Health & Wellness",
-  "Housing & Shelter",
-  "Legal Aid",
-  "Mental Health",
-  "Recreation",
-  "Seniors",
-  "Transportation",
-  "Veteran Services",
-  "Volunteer Opportunities",
-  "Youth Programs",
-];
-const TOAST_DURATION_MS = 4000;
 const MAX_VOLUNTEER_URL_LENGTH = 50;
+const MAX_TAG_SELECTIONS = 5;
 
 function formatDisplayDate(date) {
   if (!date) {
@@ -117,42 +95,22 @@ function isDateTimeBeyondMaxAdvance(date, time) {
   return dateTime > maxAdvanceEnd;
 }
 
-const PostEvent = () => {
-  const navigate = useNavigate();
+const PostEventForm = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
-
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [categories, setCategories] = useState(
-    FALLBACK_CATEGORY_NAMES.map((name) => ({ id: "", name }))
-  );
+  const [categories, setCategories] = useState([]);
   const [tagOptions, setTagOptions] = useState([]);
-  const [category, setCategory] = useState(FALLBACK_CATEGORY_NAMES[0]);
+  const [category, setCategory] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState([]);
-
   const [date, setDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
-
   const [flyer, setFlyer] = useState(null);
-  const [toast, setToast] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!toast) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setToast(null);
-    }, TOAST_DURATION_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [toast]);
 
   useEffect(() => {
     let isMounted = true;
@@ -167,10 +125,14 @@ const PostEvent = () => {
         return;
       }
 
-      if (error || !data?.length) {
-        if (error) {
-          console.error("Error fetching categories:", error);
-        }
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return;
+      }
+
+      if (!data?.length) {
+        setCategories([]);
+        setCategory("");
         return;
       }
 
@@ -230,6 +192,7 @@ const PostEvent = () => {
     [tagOptions, selectedTagIds]
   );
 
+  const canSelectMoreTags = selectedTagIds.length < MAX_TAG_SELECTIONS;
   const trimmedLocation = location.trim();
   const isOnlineLocation = isLikelyUrl(trimmedLocation);
   const isVolunteerUrlTooLong = isOnlineLocation && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH;
@@ -240,22 +203,22 @@ const PostEvent = () => {
   const locationError = isVolunteerUrlInvalid
     ? "Volunteer URL must be a valid http(s) address."
     : isVolunteerUrlTooLong
-      ? "Volunteer URL must be 50 characters or less."
-      : undefined;
+    ? "Volunteer URL must be 50 characters or less."
+    : undefined;
 
   const minStartDate = formatDateInputValue(getTodayDate());
   const maxStartDate = formatDateInputValue(getMaxAdvanceDate());
 
   const isStepValid = () => {
     if (step === 1) {
-      return (
-        title.trim() !== "" &&
-        description.trim() !== "" &&
-        category.trim() !== ""
-      );
+      return title.trim() !== "" && description.trim() !== "";
     }
 
     if (step === 2) {
+      return category.trim() !== "";
+    }
+
+    if (step === 3) {
       const trimmedLocation = location.trim();
       const isOnlineEvent = isLikelyUrl(trimmedLocation);
       const isVolunteerUrlInvalid =
@@ -288,7 +251,7 @@ const PostEvent = () => {
     setStep(1);
     setTitle("");
     setDescription("");
-    setCategory(categories[0]?.name || FALLBACK_CATEGORY_NAMES[0]);
+    setCategory(categories[0]?.name || "");
     setSelectedTagIds([]);
     setDate("");
     setEndDate("");
@@ -296,15 +259,17 @@ const PostEvent = () => {
     setEndTime("");
     setLocation("");
     setFlyer(null);
+    setErrorMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setToast(null);
+    setErrorMessage("");
 
     if (step === 1) {
       if (!isStepValid()) {
+        setErrorMessage("Please fix any errors before continuing.");
         return;
       }
       setStep(2);
@@ -313,53 +278,44 @@ const PostEvent = () => {
 
     if (step === 2) {
       if (!isStepValid()) {
-        setToast({
-          message: "Please fix any errors before continuing.",
-          type: "error",
-        });
+        setErrorMessage("Please fix any errors before continuing.");
         return;
       }
       setStep(3);
       return;
     }
 
+    if (step === 3) {
+      if (!isStepValid()) {
+        setErrorMessage("Please fix any errors before continuing.");
+        return;
+      }
+      setStep(4);
+      return;
+    }
+
     if (endDate < date) {
-      setToast({
-        message: "End date must be on or after the start date.",
-        type: "error",
-      });
+      setErrorMessage("End date must be on or after the start date.");
       return;
     }
 
     if (date === endDate && endTime <= startTime) {
-      setToast({
-        message: "End time must be after the start time for single-day events.",
-        type: "error",
-      });
+      setErrorMessage("End time must be after the start time for single-day events.");
       return;
     }
 
     if (isDateTimeInPast(date, startTime)) {
-      setToast({
-        message: "Event start cannot be in the past.",
-        type: "error",
-      });
+      setErrorMessage("Event start cannot be in the past.");
       return;
     }
 
     if (isDateTimeBeyondMaxAdvance(date, startTime)) {
-      setToast({
-        message: "Event start must be within 3 months of today.",
-        type: "error",
-      });
+      setErrorMessage("Event start must be within 3 months of today.");
       return;
     }
 
     if (isDateTimeBeyondMaxAdvance(endDate, endTime)) {
-      setToast({
-        message: "Event end must be within 3 months of today.",
-        type: "error",
-      });
+      setErrorMessage("Event end must be within 3 months of today.");
       return;
     }
 
@@ -367,10 +323,7 @@ const PostEvent = () => {
     const isOnlineEvent = isLikelyUrl(trimmedLocation);
 
     if (isOnlineEvent && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH) {
-      setToast({
-        message: `Volunteer URL cannot exceed ${MAX_VOLUNTEER_URL_LENGTH} characters.`,
-        type: "error",
-      });
+      setErrorMessage(`Volunteer URL cannot exceed ${MAX_VOLUNTEER_URL_LENGTH} characters.`);
       return;
     }
 
@@ -384,10 +337,7 @@ const PostEvent = () => {
 
       if (sessionError || !session?.user) {
         console.error("No logged in user", sessionError);
-        setToast({
-          message: "You must be logged in to post an event.",
-          type: "error",
-        });
+        setErrorMessage("You must be logged in to post an event.");
         return;
       }
 
@@ -400,18 +350,12 @@ const PostEvent = () => {
 
       if (userError) {
         console.error("Error fetching submitting user:", userError);
-        setToast({
-          message: "We couldn't verify your organization for this event.",
-          type: "error",
-        });
+        setErrorMessage("We couldn't verify your organization for this event.");
         return;
       }
 
       if (!userData?.organization_id) {
-        setToast({
-          message: "Your account must be linked to an organization before posting events.",
-          type: "error",
-        });
+        setErrorMessage("Your account must be linked to an organization before posting events.");
         return;
       }
 
@@ -426,19 +370,13 @@ const PostEvent = () => {
 
         if (categoryError) {
           console.error("Error fetching category:", categoryError);
-          setToast({
-            message: "Invalid category.",
-            type: "error",
-          });
+          setErrorMessage("Invalid category.");
           return;
         }
 
         if (!categoryData) {
           console.error("Category not found:", category);
-          setToast({
-            message: `Category "${category}" does not exist.`,
-            type: "error",
-          });
+          setErrorMessage(`Category "${category}" does not exist.`);
           return;
         }
 
@@ -470,10 +408,7 @@ const PostEvent = () => {
 
       if (eventError || !eventData?.id) {
         console.error("Insert error:", eventError);
-        setToast({
-          message: eventError?.message || "Failed to submit event.",
-          type: "error",
-        });
+        setErrorMessage(eventError?.message || "Failed to submit event.");
         return;
       }
 
@@ -488,61 +423,46 @@ const PostEvent = () => {
         if (eventTagsError) {
           console.error("Error saving event tags:", eventTagsError);
           await supabase.from("events").delete().eq("id", eventData.id);
-          setToast({
-            message: eventTagsError.message || "Failed to save event tags.",
-            type: "error",
-          });
+          setErrorMessage(eventTagsError.message || "Failed to save event tags.");
           return;
         }
       }
 
       resetForm();
-      navigate("/events", {
-        state: {
-          flashMessage: "Your event request was successfully sent and is now pending review.",
-          flashType: "success",
-        },
-      });
+      if (onSuccess) {
+        onSuccess();
+      }
+      if (onClose) {
+        onClose();
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="postevent-page">
-      {toast ? (
-        <div
-          className={`postevent-toast postevent-toast-${toast.type}`}
-          role={toast.type === "error" ? "alert" : "status"}
-          aria-live="polite"
-        >
-          <div className="postevent-toast-indicator" aria-hidden="true"></div>
-          <p className="postevent-toast-message">{toast.message}</p>
+    <div className="postevent-popup-body">
+      {errorMessage ? (
+        <div className="postevent-message postevent-message-error" role="alert">
+          {errorMessage}
         </div>
       ) : null}
 
       <main className="postevent-main">
-        <h1 className="postevent-title">Post a Community Event</h1>
-        <p className="postevent-subtitle">
-          Share your event with the Palouse community in just a few simple steps
-        </p>
-
         <div className="postevent-steps">
           <div className={`step ${step === 1 ? "current" : ""}`}>1</div>
           <div className="step-line"></div>
           <div className={`step ${step === 2 ? "current" : ""}`}>2</div>
           <div className="step-line"></div>
           <div className={`step ${step === 3 ? "current" : ""}`}>3</div>
+          <div className="step-line"></div>
+          <div className={`step ${step === 4 ? "current" : ""}`}>4</div>
         </div>
 
-        <div className={`postevent-card ${step === 3 ? "step-3" : ""}`}>
-          <form onSubmit={handleSubmit}>
+        <form className={`postevent-form ${step === 4 ? "step-4" : ""}`} onSubmit={handleSubmit}>
             {step === 1 && (
               <>
                 <h2 className="step-title">Step 1: Basic Information</h2>
-                <p className="step-description">
-                  Tell us about your event with a clear, descriptive title
-                </p>
 
                 <FormField htmlFor="event-title" label="Event Title" required>
                   <input
@@ -556,50 +476,6 @@ const PostEvent = () => {
                   />
                 </FormField>
 
-                <FormField htmlFor="category" label="Category" required>
-                  <select
-                    id="category"
-                    className="form-input"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                  >
-                    {categories.map((categoryOption) => (
-                      <option key={categoryOption.id || categoryOption.name} value={categoryOption.name}>
-                        {categoryOption.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-
-                <div className="form-group">
-                  <label className="form-label">Tags</label>
-                  <p className="postevent-help-text postevent-help-text-tight">
-                    Select one or more tags for your event. Tags are optional.
-                  </p>
-                  <div className="category-list postevent-tag-list">
-                    {tagOptions.length > 0 ? (
-                      tagOptions.map((tagOption) => (
-                        <button
-                          key={tagOption.id}
-                          type="button"
-                          className={`category-pill ${selectedTagIds.includes(tagOption.id) ? "active" : ""}`}
-                          onClick={() =>
-                            setSelectedTagIds((currentSelected) =>
-                              currentSelected.includes(tagOption.id)
-                                ? currentSelected.filter((tagId) => tagId !== tagOption.id)
-                                : [...currentSelected, tagOption.id]
-                            )
-                          }
-                        >
-                          {tagOption.name}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="postevent-empty-tags">No tags are available yet.</p>
-                    )}
-                  </div>
-                </div>
-
                 <FormField htmlFor="description" label="Event Description" required>
                   <textarea
                     id="description"
@@ -611,17 +487,71 @@ const PostEvent = () => {
                     required
                   />
                 </FormField>
-
-                <p className="postevent-help-text">
-                  Be clear and welcoming. Include accessibility information if relevant.
-                </p>
               </>
             )}
 
             {step === 2 && (
               <>
-                <h2 className="step-title">Step 2: When & Where</h2>
-                <p className="step-description">Help people find and attend your event</p>
+                <h2 className="step-title">Step 2: Category & Tags</h2>
+
+                <FormField htmlFor="category" label="Category" required>
+                  <select
+                    id="category"
+                    className="form-input"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    disabled={categories.length === 0}
+                  >
+                    {categories.length === 0 ? (
+                      <option value="">Loading categories...</option>
+                    ) : (
+                      categories.map((categoryOption) => (
+                        <option key={categoryOption.id || categoryOption.name} value={categoryOption.name}>
+                          {categoryOption.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </FormField>
+
+                <div className="form-group">
+                  <label className="form-label">Tags</label>
+                  <p className="postevent-help-text postevent-help-text-tight">
+                    Select up to {MAX_TAG_SELECTIONS} tags for your event. Tags are optional.
+                  </p>
+                  <div className="category-list postevent-tag-list">
+                    {tagOptions.length > 0 ? (
+                      tagOptions.map((tagOption) => {
+                        const isSelected = selectedTagIds.includes(tagOption.id);
+                        return (
+                          <button
+                            key={tagOption.id}
+                            type="button"
+                            className={`category-pill ${isSelected ? "active" : ""}`}
+                            disabled={!isSelected && !canSelectMoreTags}
+                            onClick={() =>
+                              setSelectedTagIds((currentSelected) =>
+                                currentSelected.includes(tagOption.id)
+                                  ? currentSelected.filter((tagId) => tagId !== tagOption.id)
+                                  : [...currentSelected, tagOption.id]
+                              )
+                            }
+                          >
+                            {tagOption.name}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <p className="postevent-empty-tags">No tags are available yet.</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {step === 3 && (
+              <>
+                <h2 className="step-title">Step 3: When & Where</h2>
 
                 <FormField htmlFor="date" label="Start Date" required>
                   <input
@@ -690,12 +620,9 @@ const PostEvent = () => {
               </>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <>
-                <h2 className="step-title">Step 3: Event Flyer (Optional)</h2>
-                <p className="step-description">
-                  Upload an eye-catching flyer to attract more attendees
-                </p>
+                <h2 className="step-title">Step 4: Event Flyer (Optional)</h2>
 
                 <div className="form-group">
                   <label className="form-label" htmlFor="flyer">
@@ -720,39 +647,6 @@ const PostEvent = () => {
                     {flyer && <p className="upload-file-name">{flyer.name}</p>}
                   </div>
                 </div>
-
-                <div className="summary-card">
-                  <h3 className="summary-title">Event Summary</h3>
-                  <p>
-                    <strong>Title:</strong> {title}
-                  </p>
-                  <p>
-                    <strong>Category:</strong> {category}
-                  </p>
-                  {selectedTags.length > 0 && (
-                    <p>
-                      <strong>Tags:</strong>{" "}
-                      {selectedTags.map((tagOption) => tagOption.name).join(", ")}
-                    </p>
-                  )}
-                  <p>
-                    <strong>Date:</strong>{" "}
-                    {date === endDate
-                      ? formatDisplayDate(date)
-                      : `${formatDisplayDate(date)} - ${formatDisplayDate(endDate)}`}
-                  </p>
-                  <p>
-                    <strong>Time:</strong> {formatDisplayTime(startTime)} - {formatDisplayTime(endTime)}
-                  </p>
-                  <p>
-                    <strong>Location:</strong> {isLikelyUrl(location.trim()) ? "Online" : location}
-                  </p>
-                  {isLikelyUrl(location.trim()) && (
-                    <p>
-                      <strong>Zoom Link:</strong> {location}
-                    </p>
-                  )}
-                </div>
               </>
             )}
 
@@ -760,7 +654,7 @@ const PostEvent = () => {
               {step > 1 && (
                 <button
                   type="button"
-                  className="postevent-button secondary"
+                  className="postevent-button btn-secondary"
                   onClick={() => setStep(step - 1)}
                 >
                   Back
@@ -769,29 +663,24 @@ const PostEvent = () => {
 
               <button
                 type="submit"
-                className={`postevent-button ${step === 3 ? "submit" : ""}`}
+                className="postevent-button btn-primary"
                 disabled={!isStepValid() || isSubmitting}
               >
                 {isSubmitting
                   ? "Submitting..."
+                  : step === 1
+                  ? "Continue to Category & Tags"
                   : step === 2
-                    ? "Continue to Flyer Upload"
-                    : step === 3
-                      ? "Submit for Review"
-                      : "Continue to Date & Location"}
+                  ? "Continue to Date & Location"
+                  : step === 3
+                  ? "Continue to Flyer Upload"
+                  : "Submit for Review"}
               </button>
             </div>
-
-            {step === 3 && (
-              <p className="review-text">
-                Your event will be reviewed by our team and published within 24 hours.
-              </p>
-            )}
           </form>
-        </div>
       </main>
     </div>
   );
 };
 
-export default PostEvent;
+export default PostEventForm;

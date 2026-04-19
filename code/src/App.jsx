@@ -8,7 +8,6 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Events from "./pages/Events";
 import Organizations from "./pages/Organizations";
-import PostEvent from "./pages/PostEvent";
 import Admin from "./pages/Admin";
 
 function ProtectedRoute({ children, session, loading }) {
@@ -142,14 +141,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/events" element={<Events session={session} />} />
             <Route path="/organizations" element={<Organizations />} />
-            <Route
-              path="/post-event"
-              element={
-                <ProtectedRoute loading={loading} session={session}>
-                  <PostEvent />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/admin"
               element={

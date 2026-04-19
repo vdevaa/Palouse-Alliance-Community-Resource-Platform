@@ -422,7 +422,7 @@ const Admin = () => {
               : "View all organizations and choose a name to edit or delete."
           }
           onClose={closeOrgPopup}
-          className="admin-popup"
+          className="regular-popup admin-popup"
         >
           {editingOrg ? (
             <form onSubmit={handleOrgUpdate}>
@@ -528,7 +528,7 @@ const Admin = () => {
           title="Register Organization"
           description="Add a new organization to the directory from this popup."
           onClose={closeRegisterOrgPopup}
-          className="admin-popup"
+          className="regular-popup admin-popup"
         >
           <form onSubmit={handleRegisterOrgSubmit}>
             <div className="form-grid admin-org-form-grid">
@@ -603,7 +603,7 @@ const Admin = () => {
           title="Register User"
           description="Create a new member or admin account from this popup."
           onClose={closeUserPopup}
-          className="admin-popup"
+          className="regular-popup admin-popup"
         >
           <form onSubmit={handleRegisterUser}>
             <div className="form-grid admin-org-form-grid">
@@ -677,7 +677,7 @@ const Admin = () => {
           title="Confirm Delete"
           description={`Are you sure you want to delete ${deleteTarget.name}? This action cannot be undone.`}
           onClose={() => setDeleteTarget(null)}
-          className="admin-popup"
+          className="dialog-popup admin-popup"
           actions={
             <>
               <button type="button" className="btn-secondary" onClick={() => setDeleteTarget(null)}>

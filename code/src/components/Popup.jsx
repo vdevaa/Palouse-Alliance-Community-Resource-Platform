@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "../styles/Popup.css";
 
 const Popup = ({
@@ -10,6 +10,15 @@ const Popup = ({
   className = "",
   ariaLabel,
 }) => {
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   return (
     <div
       className="popup-overlay"
@@ -17,6 +26,8 @@ const Popup = ({
       aria-modal="true"
       aria-label={ariaLabel || title || "Popup"}
       onClick={onClose}
+      onWheel={(event) => event.stopPropagation()}
+      onTouchMove={(event) => event.stopPropagation()}
     >
       <div className={`popup-content ${className}`} onClick={(event) => event.stopPropagation()}>
         <div className="popup-header">

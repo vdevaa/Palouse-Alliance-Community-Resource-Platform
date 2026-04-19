@@ -8,22 +8,34 @@
   padding: 24px;
   z-index: 1100;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .popup-content {
-  width: min(100%, 520px);
-  max-width: 520px;
+  width: min(100%, 940px);
+  max-width: 940px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   padding: 24px;
   box-sizing: border-box;
+  overscroll-behavior: contain;
+}
+
+.popup-content.dialog-popup {
+  width: min(100%, 520px);
+  max-width: 520px;
+}
+
+.popup-content.regular-popup {
+  width: min(100%, 940px);
+  max-width: 940px;
 }
 
 .popup-content.filter-popup {
-  width: min(100%, 460px);
-  max-width: 460px;
+  width: min(100%, 760px);
+  max-width: 760px;
 }
 
 .popup-header {

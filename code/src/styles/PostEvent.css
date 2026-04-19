@@ -6,70 +6,25 @@
   padding: 30px 10px;
 }
 
-.postevent-toast {
-  position: fixed;
-  top: 70px;
-  left: 50%;
-  transform: translate(-50%, -110%);
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: calc(100vw - 4rem);
-  max-width: none;
-  padding: 12px 18px;
-  border: 1px solid transparent;
-  border-radius: 0 0 14px 14px;
-  color: #1f2937;
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
-  backdrop-filter: blur(10px);
-  animation: postEventToast 2.6s ease forwards;
+.postevent-message {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-.postevent-toast-indicator {
-  flex: 0 0 9px;
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: currentColor;
-  box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 16%, transparent);
-}
-
-.postevent-toast-message {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.postevent-toast-success {
-  background: var(--color-success-bg);
-  border-color: var(--color-success-border);
-  color: var(--color-success);
-}
-
-.postevent-toast-error {
+.postevent-message-error {
   background: var(--color-danger-bg);
-  border-color: var(--color-danger-border);
   color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
 }
 
-@keyframes postEventToast {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -110%);
-  }
-
-  12%,
-  78% {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -110%);
-  }
+.postevent-message-success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
 }
 
 .postevent-main {
@@ -77,18 +32,17 @@
   max-width: 800px;
 }
 
-.postevent-card {
-  width: 80%;
-  margin: 0 auto;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-md);
-  padding: 36px 48px 36px 48px;
+.postevent-form {
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-.postevent-card.step-3 {
-  padding-bottom: 10px;
+.postevent-form.step-4 {
+  padding-bottom: 0;
 }
 
 .postevent-title {
@@ -142,17 +96,18 @@
 }
 
 .step-title {
-  font-size: 26px;
-  font-weight: 550;
+  font-size: 22px;
+  font-weight: 600;
   color: var(--color-text);
-  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
 }
 
 .step-description {
   color: var(--color-text-muted);
-  font-size: 16px;
-  font-weight: 450;
-  margin-bottom: 24px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 24px;
 }
 
 .postevent-help-text {
@@ -182,6 +137,13 @@
   margin: 0;
   font-size: 14px;
   color: var(--color-text-subtle);
+}
+
+.category-pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
 }
 
 .form-group {
@@ -267,37 +229,20 @@ textarea.form-input::placeholder {
 .postevent-button {
   width: 100%;
   min-height: 42px;
-  border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   padding: 0 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   margin-top: 8px;
 }
 
-.postevent-button:hover {
-  background: var(--btn-primary-bg-hover);
-}
-
 .postevent-button:focus {
   outline: none;
   box-shadow: var(--focus-ring);
-}
-
-.postevent-button.secondary {
-  background: var(--btn-secondary-bg-hover);
-  color: var(--btn-secondary-text);
-  border: 1px solid var(--btn-secondary-border);
-}
-
-.postevent-button.secondary:hover {
-  background: var(--color-primary-200);
 }
 
 .postevent-button:disabled {
@@ -309,11 +254,6 @@ textarea.form-input::placeholder {
 
 .postevent-button:disabled:hover {
   background: var(--btn-disabled-bg);
-}
-
-.postevent-button.submit {
-  background: var(--color-accent-500);
-  color: var(--color-text);
 }
 
 .postevent-button-row {
@@ -337,12 +277,51 @@ textarea.form-input::placeholder {
     padding: 11px 14px;
   }
 
-  .postevent-card {
+  .postevent-form {
     padding: 34px 22px 28px 22px;
     border-radius: 12px;
   }
 
   .postevent-title {
     font-size: 28px;
+  }
+}
+
+.popup-content.post-event-popup {
+  width: min(100%, 940px);
+  max-width: 940px;
+  padding: 24px;
+}
+
+.popup-content.post-event-popup .popup-body {
+  padding: 0;
+}
+
+.popup-content.post-event-popup .postevent-popup-body {
+  width: 100%;
+}
+
+.popup-content.post-event-popup .postevent-main {
+  width: 100%;
+  max-width: none;
+  padding: 24px 28px;
+}
+
+.popup-content.post-event-popup .postevent-form {
+  width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .popup-content.post-event-popup {
+    padding: 0;
+  }
+
+  .popup-content.post-event-popup .postevent-main {
+    padding: 16px 16px 20px;
+  }
+
+  .popup-content.post-event-popup .postevent-form {
+    padding: 0;
   }
 }

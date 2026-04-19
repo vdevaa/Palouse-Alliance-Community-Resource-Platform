@@ -151,6 +151,7 @@ const Login = () => {
               title="Password reset help"
               description="Contact Palouse Alliance to reset your password and regain access to your account."
               onClose={() => setIsForgotPasswordOpen(false)}
+              className="dialog-popup"
               actions={
                 <button
                   type="button"

@@ -253,4 +253,42 @@ describe('Events', () => {
     expect(await screen.findByDisplayValue('Org B')).toBeInTheDocument();
     expect(await screen.findByText('Food Drive')).toBeInTheDocument();
   });
+
+  it('opens the post event popup from the events page', async () => {
+    mockEventsOrder.mockResolvedValueOnce({
+      data: [],
+      error: null,
+    });
+
+    mockCategoriesOrder.mockResolvedValueOnce({
+      data: [{ name: 'Food' }],
+      error: null,
+    });
+
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [{ name: 'Community' }],
+      error: null,
+    });
+
+    mockCategoriesOrder.mockResolvedValueOnce({
+      data: [{ id: 'cat-1', name: 'Community Events' }],
+      error: null,
+    });
+
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [{ id: 'tag-1', name: 'Community' }],
+      error: null,
+    });
+
+    const user = userEvent.setup();
+    renderEvents({ user: { id: 'user-1' } });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Post Event' })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Post Event' }));
+
+    expect(await screen.findByRole('heading', { name: /Post a Community Event/i })).toBeInTheDocument();
+  });
 });

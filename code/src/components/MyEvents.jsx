@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
 function parseSupabaseDateTime(timestamp) {
@@ -73,7 +72,7 @@ function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
   };
 }
 
-const MyEvents = ({ session, formatTimeRange, onClose }) => {
+const MyEvents = ({ session, formatTimeRange, onClose, onPostEvent }) => {
   const [myEvents, setMyEvents] = useState([]);
   const [myEventsLoading, setMyEventsLoading] = useState(false);
   const [myEventsError, setMyEventsError] = useState("");
@@ -182,6 +181,15 @@ const MyEvents = ({ session, formatTimeRange, onClose }) => {
     };
   }, [session]);
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   const myEventCounts = useMemo(() => {
     return myEvents.reduce(
       (counts, event) => {
@@ -263,9 +271,13 @@ const MyEvents = ({ session, formatTimeRange, onClose }) => {
               When you submit an event for review, it will appear here with its
               approval status.
             </p>
-            <Link className="my-events-cta" to="/post-event">
+            <button
+              type="button"
+              className="my-events-cta"
+              onClick={onPostEvent || (() => {})}
+            >
               Post an Event
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="my-events-list">

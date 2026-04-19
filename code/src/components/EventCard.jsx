@@ -91,6 +91,7 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
           title="Leave site?"
           description={volunteerPopupDescription}
           onClose={() => setConfirmOpen(false)}
+          className="dialog-popup"
           actions={
             <>
               <button

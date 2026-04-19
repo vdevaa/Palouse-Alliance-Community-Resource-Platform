@@ -231,9 +231,10 @@
   z-index: 100;
   padding: 94px 24px 24px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-..modal-content {
+.modal-content {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -242,6 +243,8 @@
   overflow: auto;
   box-shadow: var(--shadow-xl);
   padding: 0;
+  overscroll-behavior: contain;
+  overscroll-behavior: contain;
 }
 
 .modal-content.filter-popup {
@@ -430,7 +433,8 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 24px;
-  width: min(100%, 980px);
+  width: min(100%, 940px);
+  max-width: 940px;
   max-height: calc(100vh - 96px);
   overflow: auto;
   box-shadow: var(--shadow-xl);

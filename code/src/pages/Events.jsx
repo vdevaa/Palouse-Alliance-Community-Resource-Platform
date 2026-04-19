@@ -4,6 +4,7 @@ import EventCalendar from "../components/EventCalendar";
 import EventCard from "../components/EventCard";
 import MyEvents from "../components/MyEvents";
 import Popup from "../components/Popup";
+import PostEventForm from "../components/PostEventForm";
 import { supabase } from "../lib/supabase";
 import "../styles/Events.css";
 
@@ -225,6 +226,8 @@ const Events = ({ session }) => {
   const [selectedDates, setSelectedDates] = useState([]);
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q")?.trim() || "");
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
+  const [isPostEventOpen, setIsPostEventOpen] = useState(false);
+  const [postEventSuccessOpen, setPostEventSuccessOpen] = useState(false);
   const [hasMyEvents, setHasMyEvents] = useState(false);
 
   useEffect(() => {
@@ -668,7 +671,7 @@ const Events = ({ session }) => {
                 description={`Filter events by ${filterMenuOpen === "categories" ? "category" : "tag"}.`}
                 onClose={() => setFilterMenuOpen(null)}
                 ariaLabel={filterMenuOpen === "categories" ? "Choose categories" : "Choose tags"}
-                className="filter-popup"
+                className="regular-popup filter-popup"
               >
                 <div className="category-list">
                   {filterMenuOpen === "categories"
@@ -708,7 +711,7 @@ const Events = ({ session }) => {
                 <button
                   type="button"
                   className="btn-primary"
-                  onClick={() => navigate("/post-event")}
+                  onClick={() => setIsPostEventOpen(true)}
                 >
                   Post Event
                 </button>
@@ -718,7 +721,7 @@ const Events = ({ session }) => {
                 <button
                   type="button"
                   className="btn-primary"
-                  onClick={() => navigate("/post-event")}
+                  onClick={() => setIsPostEventOpen(true)}
                 >
                   Post Event
                 </button>
@@ -804,6 +807,8 @@ const Events = ({ session }) => {
             aria-modal="true"
             aria-label="My Events"
             onClick={() => setIsMyEventsOpen(false)}
+            onWheel={(event) => event.stopPropagation()}
+            onTouchMove={(event) => event.stopPropagation()}
           >
             <div className="modal-content" onClick={(event) => event.stopPropagation()}>
               <MyEvents
@@ -811,9 +816,51 @@ const Events = ({ session }) => {
                 formatCompactDate={formatCompactDate}
                 formatTimeRange={formatTimeRange}
                 onClose={() => setIsMyEventsOpen(false)}
+                onPostEvent={() => {
+                  setIsPostEventOpen(true);
+                  setIsMyEventsOpen(false);
+                }}
               />
             </div>
           </div>
+        ) : null}
+
+        {session && isPostEventOpen ? (
+          <Popup
+            title="Post Event"
+            description="Share your community event with the Palouse area."
+            onClose={() => setIsPostEventOpen(false)}
+            ariaLabel="Post Event"
+            className="regular-popup post-event-popup"
+          >
+            <PostEventForm
+              onClose={() => setIsPostEventOpen(false)}
+              onSuccess={() => setPostEventSuccessOpen(true)}
+            />
+          </Popup>
+        ) : null}
+
+        {postEventSuccessOpen ? (
+          <Popup
+            title="Event Submitted"
+            description="Your event has been sent for review."
+            onClose={() => setPostEventSuccessOpen(false)}
+            ariaLabel="Event Submitted"
+            className="dialog-popup post-event-success-popup"
+            actions={
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => setPostEventSuccessOpen(false)}
+              >
+                Close
+              </button>
+            }
+          >
+            <p>
+              Thank you! Your event request is pending review and will be published after approval.
+            </p>
+          </Popup>
         ) : null}
       </main>
     </div>
