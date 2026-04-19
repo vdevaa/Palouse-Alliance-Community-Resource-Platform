@@ -24,6 +24,7 @@ import Organizations from './Organizations';
 describe('Organizations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it('renders organizations loaded from supabase', async () => {

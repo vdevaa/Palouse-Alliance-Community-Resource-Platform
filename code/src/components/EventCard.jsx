@@ -11,6 +11,15 @@ function isSameCalendarDay(firstDate, secondDate) {
 }
 
 function formatEventDateLabel(startDate, endDate, formatFullDate) {
+  if (
+    !(startDate instanceof Date) ||
+    Number.isNaN(startDate.getTime()) ||
+    !(endDate instanceof Date) ||
+    Number.isNaN(endDate.getTime())
+  ) {
+    return "Date unavailable";
+  }
+
   if (isSameCalendarDay(startDate, endDate)) {
     return formatFullDate(startDate);
   }
@@ -26,6 +35,11 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
   const volunteerPopupDescription = "You are about to leave the site to visit this event's volunteer page.";
   const volunteerContinueLabel = "Continue";
   const tags = Array.isArray(event.tags) ? event.tags : [];
+  const hasValidDates =
+    event.startDate instanceof Date &&
+    !Number.isNaN(event.startDate.getTime()) &&
+    event.endDate instanceof Date &&
+    !Number.isNaN(event.endDate.getTime());
 
   const handleViewDetails = () => {
     setConfirmOpen(true);
@@ -55,10 +69,12 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
         <div className="event-meta">
           <p>
             <strong>Date:</strong>{" "}
-            {formatEventDateLabel(event.startDate, event.endDate, formatFullDate)}
+            {hasValidDates
+              ? formatEventDateLabel(event.startDate, event.endDate, formatFullDate)
+              : "Date unavailable"}
           </p>
           <p>
-            <strong>Time:</strong> {formatTimeRange(event.startDate, event.endDate)}
+            <strong>Time:</strong> {hasValidDates ? formatTimeRange(event.startDate, event.endDate) : "Time unavailable"}
           </p>
           {hasLocation ? (
             <p>

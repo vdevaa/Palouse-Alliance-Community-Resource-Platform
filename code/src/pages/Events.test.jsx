@@ -62,6 +62,7 @@ function renderEvents(session = null) {
 describe('Events', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it('renders approved events and categories from supabase', async () => {

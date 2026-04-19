@@ -227,6 +227,8 @@ textarea[disabled] {
 .event-category,
 .event-tag,
 .org-location-chip {
+  width: fit-content;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -241,6 +243,7 @@ textarea[disabled] {
   padding: 0.55rem 0.9rem;
   box-shadow: var(--shadow-sm);
   line-height: 1.2;
+  box-sizing: border-box;
 }
 
 .category-pill.active {

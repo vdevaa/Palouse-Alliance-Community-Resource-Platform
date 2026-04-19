@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Events from "./pages/Events";
 import Organizations from "./pages/Organizations";
 import Admin from "./pages/Admin";
+import { ADMIN_UI_STATE_KEY, removeSessionCache } from "./lib/sessionCache";
 
 function ProtectedRoute({ children, session, loading }) {
   if (loading) {
@@ -59,14 +60,28 @@ function App() {
     let isMounted = true;
 
     const loadSession = async () => {
-      const {
-        data: { session: currentSession },
-      } = await supabase.auth.getSession();
+      try {
+        const {
+          data: { session: currentSession },
+        } = await supabase.auth.getSession();
 
-      if (isMounted) {
-        setSession(currentSession);
-        setLoading(false);
-        setSessionResolved(true);
+        if (isMounted) {
+          setSession(currentSession);
+          setLoading(false);
+          setSessionResolved(true);
+
+          if (!currentSession) {
+            removeSessionCache(ADMIN_UI_STATE_KEY);
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error("Failed to resolve auth session:", error);
+          setSession(null);
+          setLoading(false);
+          setSessionResolved(true);
+          removeSessionCache(ADMIN_UI_STATE_KEY);
+        }
       }
     };
 
@@ -76,6 +91,10 @@ function App() {
       setSession(nextSession);
       setLoading(false);
       setSessionResolved(true);
+
+      if (!nextSession) {
+        removeSessionCache(ADMIN_UI_STATE_KEY);
+      }
     });
 
     return () => {
@@ -149,7 +168,7 @@ function App() {
                   session={session}
                   isAdmin={isAdmin}
                 >
-                  <Admin />
+                  <Admin session={session} />
                 </AdminRoute>
               }
             />

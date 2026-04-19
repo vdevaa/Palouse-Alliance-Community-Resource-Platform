@@ -66,6 +66,7 @@ import App from './App';
 describe('App routing and auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
     window.__mockUserRole = 'member';
     mockGetUser.mockResolvedValue({
       data: { user: { email: 'member@palouse.org' } },

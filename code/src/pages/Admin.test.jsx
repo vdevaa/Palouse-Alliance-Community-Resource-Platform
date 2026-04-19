@@ -15,6 +15,7 @@ describe('Admin', () => {
       ok: true,
       json: async () => [],
     });
+    sessionStorage.clear();
   });
 
   afterEach(() => {

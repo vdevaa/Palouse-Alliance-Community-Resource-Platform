@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from "react";
 import Popup from "../components/Popup";
 import FormField from "../components/FormField";
+import { parseSupabaseDateTime } from "../lib/dateTime";
 import { supabase } from "../lib/supabase";
+import {
+  ADMIN_UI_STATE_KEY,
+  getSessionCacheValue,
+  isSessionCacheFresh,
+  readSessionCache,
+  removeSessionCache,
+  writeSessionCache,
+} from "../lib/sessionCache";
 import "../styles/Admin.css";
 import "../styles/Login.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+const ADMIN_CACHE_TTL_MS = 10 * 60 * 1000;
+const ADMIN_ORGS_CACHE_KEY = "palouse:admin-orgs-cache";
+const ADMIN_USERS_CACHE_KEY = "palouse:admin-users-cache";
+const ADMIN_MANAGE_EVENTS_CACHE_KEY = "palouse:admin-manage-events-cache";
 
 const emptyOrgForm = {
   name: "",
@@ -17,68 +30,157 @@ const emptyOrgForm = {
 
 const isValidEmail = (value) => !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-const Admin = () => {
-  const [orgPopupOpen, setOrgPopupOpen] = useState(false);
-  const [registerOrgPopupOpen, setRegisterOrgPopupOpen] = useState(false);
-  const [userPopupOpen, setUserPopupOpen] = useState(false);
-  const [orgs, setOrgs] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
+const Admin = ({ session }) => {
+  const sessionUserId = session?.user?.id || null;
+  const persistedAdminState = getSessionCacheValue(readSessionCache(ADMIN_UI_STATE_KEY));
+
+  const [orgPopupOpen, setOrgPopupOpen] = useState(() => persistedAdminState?.orgPopupOpen ?? false);
+  const [registerOrgPopupOpen, setRegisterOrgPopupOpen] = useState(() => persistedAdminState?.registerOrgPopupOpen ?? false);
+  const [userPopupOpen, setUserPopupOpen] = useState(() => persistedAdminState?.userPopupOpen ?? false);
+  const [orgs, setOrgs] = useState(() => persistedAdminState?.orgs ?? []);
+  const [currentUserId, setCurrentUserId] = useState(() => sessionUserId || persistedAdminState?.currentUserId || null);
   const [orgsLoading, setOrgsLoading] = useState(false);
   const [orgsError, setOrgsError] = useState("");
-  const [editingOrg, setEditingOrg] = useState(null);
-  const [orgForm, setOrgForm] = useState(emptyOrgForm);
-  const [orgFieldErrors, setOrgFieldErrors] = useState({});
+  const [editingOrg, setEditingOrg] = useState(() => persistedAdminState?.editingOrg ?? null);
+  const [orgForm, setOrgForm] = useState(() => persistedAdminState?.orgForm ?? emptyOrgForm);
+  const [orgFieldErrors, setOrgFieldErrors] = useState(() => persistedAdminState?.orgFieldErrors ?? {});
   const [orgFormLoading, setOrgFormLoading] = useState(false);
-  const [orgFormError, setOrgFormError] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [orgFormError, setOrgFormError] = useState(() => persistedAdminState?.orgFormError ?? "");
+  const [deleteTarget, setDeleteTarget] = useState(() => persistedAdminState?.deleteTarget ?? null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [deleteUserTarget, setDeleteUserTarget] = useState(null);
+  const [deleteUserTarget, setDeleteUserTarget] = useState(() => persistedAdminState?.deleteUserTarget ?? null);
   const [deleteUserLoading, setDeleteUserLoading] = useState(false);
 
-  const [userManagePopupOpen, setUserManagePopupOpen] = useState(false);
-  const [users, setUsers] = useState([]);
+  const [userManagePopupOpen, setUserManagePopupOpen] = useState(() => persistedAdminState?.userManagePopupOpen ?? false);
+  const [users, setUsers] = useState(() => persistedAdminState?.users ?? []);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState("");
-  const [editingUser, setEditingUser] = useState(null);
-  const [userEditForm, setUserEditForm] = useState({ role: "member", organization_id: "unaffiliated" });
+  const [editingUser, setEditingUser] = useState(() => persistedAdminState?.editingUser ?? null);
+  const [userEditForm, setUserEditForm] = useState(() => persistedAdminState?.userEditForm ?? { role: "member", organization_id: "unaffiliated" });
   const [userEditLoading, setUserEditLoading] = useState(false);
-  const [userEditError, setUserEditError] = useState("");
+  const [userEditError, setUserEditError] = useState(() => persistedAdminState?.userEditError ?? "");
 
-  const [manageEventsPopupOpen, setManageEventsPopupOpen] = useState(false);
-  const [manageEvents, setManageEvents] = useState([]);
+  const [manageEventsPopupOpen, setManageEventsPopupOpen] = useState(() => persistedAdminState?.manageEventsPopupOpen ?? false);
+  const [manageEvents, setManageEvents] = useState(() => persistedAdminState?.manageEvents ?? []);
   const [manageEventsLoading, setManageEventsLoading] = useState(false);
   const [manageEventsError, setManageEventsError] = useState("");
-  const [manageEventActionLoading, setManageEventActionLoading] = useState(null);
-  const [manageEventsSections, setManageEventsSections] = useState({
+  const [manageEventActionLoading, setManageEventActionLoading] = useState(() => persistedAdminState?.manageEventActionLoading ?? null);
+  const [manageEventsSections, setManageEventsSections] = useState(() => persistedAdminState?.manageEventsSections ?? {
     pending: true,
     rejected: false,
     approved: false,
   });
-  const [volunteerConfirmUrl, setVolunteerConfirmUrl] = useState("");
+  const [volunteerConfirmUrl, setVolunteerConfirmUrl] = useState(() => persistedAdminState?.volunteerConfirmUrl ?? "");
 
-  const [registerOrgForm, setRegisterOrgForm] = useState(emptyOrgForm);
-  const [registerOrgFieldErrors, setRegisterOrgFieldErrors] = useState({});
+  const [registerOrgForm, setRegisterOrgForm] = useState(() => persistedAdminState?.registerOrgForm ?? emptyOrgForm);
+  const [registerOrgFieldErrors, setRegisterOrgFieldErrors] = useState(() => persistedAdminState?.registerOrgFieldErrors ?? {});
   const [registerOrgLoading, setRegisterOrgLoading] = useState(false);
-  const [registerOrgError, setRegisterOrgError] = useState("");
+  const [registerOrgError, setRegisterOrgError] = useState(() => persistedAdminState?.registerOrgError ?? "");
 
-  const [userForm, setUserForm] = useState({
+  const [userForm, setUserForm] = useState(() => persistedAdminState?.userForm ?? {
     email: "",
     password: "",
     role: "member",
     organization_id: "unaffiliated",
   });
-  const [userFieldErrors, setUserFieldErrors] = useState({});
+  const [userFieldErrors, setUserFieldErrors] = useState(() => persistedAdminState?.userFieldErrors ?? {});
   const [userLoading, setUserLoading] = useState(false);
-  const [userError, setUserError] = useState("");
-  const [resetPassword, setResetPassword] = useState("");
+  const [userError, setUserError] = useState(() => persistedAdminState?.userError ?? "");
+  const [resetPassword, setResetPassword] = useState(() => persistedAdminState?.resetPassword ?? "");
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
-  const [resetPasswordError, setResetPasswordError] = useState("");
-  const [resetPasswordCopied, setResetPasswordCopied] = useState(false);
-  const [resetPasswordPopupOpen, setResetPasswordPopupOpen] = useState(false);
-  const [adminAlertPopupOpen, setAdminAlertPopupOpen] = useState(false);
-  const [adminAlertPopupTitle, setAdminAlertPopupTitle] = useState("");
-  const [adminAlertPopupDescription, setAdminAlertPopupDescription] = useState("");
-  const [adminAlertPopupMessage, setAdminAlertPopupMessage] = useState("");
+  const [resetPasswordError, setResetPasswordError] = useState(() => persistedAdminState?.resetPasswordError ?? "");
+  const [resetPasswordCopied, setResetPasswordCopied] = useState(() => persistedAdminState?.resetPasswordCopied ?? false);
+  const [resetPasswordPopupOpen, setResetPasswordPopupOpen] = useState(() => persistedAdminState?.resetPasswordPopupOpen ?? false);
+  const [adminAlertPopupOpen, setAdminAlertPopupOpen] = useState(() => persistedAdminState?.adminAlertPopupOpen ?? false);
+  const [adminAlertPopupTitle, setAdminAlertPopupTitle] = useState(() => persistedAdminState?.adminAlertPopupTitle ?? "");
+  const [adminAlertPopupDescription, setAdminAlertPopupDescription] = useState(() => persistedAdminState?.adminAlertPopupDescription ?? "");
+  const [adminAlertPopupMessage, setAdminAlertPopupMessage] = useState(() => persistedAdminState?.adminAlertPopupMessage ?? "");
+
+  useEffect(() => {
+    if (!sessionUserId) {
+      removeSessionCache(ADMIN_UI_STATE_KEY);
+    }
+  }, [sessionUserId]);
+
+  useEffect(() => {
+    setCurrentUserId(sessionUserId || null);
+  }, [sessionUserId]);
+
+  useEffect(() => {
+    writeSessionCache(ADMIN_UI_STATE_KEY, {
+      orgPopupOpen,
+      registerOrgPopupOpen,
+      userPopupOpen,
+      orgs,
+      currentUserId,
+      editingOrg,
+      orgForm,
+      orgFieldErrors,
+      orgFormError,
+      deleteTarget,
+      deleteUserTarget,
+      userManagePopupOpen,
+      users,
+      editingUser,
+      userEditForm,
+      userEditError,
+      manageEventsPopupOpen,
+      manageEvents,
+      manageEventActionLoading,
+      manageEventsSections,
+      volunteerConfirmUrl,
+      registerOrgForm,
+      registerOrgFieldErrors,
+      registerOrgError,
+      userForm,
+      userFieldErrors,
+      userError,
+      resetPassword,
+      resetPasswordError,
+      resetPasswordCopied,
+      resetPasswordPopupOpen,
+      adminAlertPopupOpen,
+      adminAlertPopupTitle,
+      adminAlertPopupDescription,
+      adminAlertPopupMessage,
+    });
+  }, [
+    orgPopupOpen,
+    registerOrgPopupOpen,
+    userPopupOpen,
+    orgs,
+    currentUserId,
+    editingOrg,
+    orgForm,
+    orgFieldErrors,
+    orgFormError,
+    deleteTarget,
+    deleteUserTarget,
+    userManagePopupOpen,
+    users,
+    editingUser,
+    userEditForm,
+    userEditError,
+    manageEventsPopupOpen,
+    manageEvents,
+    manageEventActionLoading,
+    manageEventsSections,
+    volunteerConfirmUrl,
+    registerOrgForm,
+    registerOrgFieldErrors,
+    registerOrgError,
+    userForm,
+    userFieldErrors,
+    userError,
+    resetPassword,
+    resetPasswordError,
+    resetPasswordCopied,
+    resetPasswordPopupOpen,
+    adminAlertPopupOpen,
+    adminAlertPopupTitle,
+    adminAlertPopupDescription,
+    adminAlertPopupMessage,
+  ]);
 
   const openOrgPopup = () => {
     setOrgPopupOpen(true);
@@ -95,6 +197,18 @@ const Admin = () => {
   };
 
   const loadOrgs = async () => {
+    const cachedOrgsEntry = readSessionCache(ADMIN_ORGS_CACHE_KEY);
+    const cachedOrgs = getSessionCacheValue(cachedOrgsEntry);
+
+    if (Array.isArray(cachedOrgs)) {
+      setOrgs(cachedOrgs);
+    }
+
+    if (Array.isArray(cachedOrgs) && isSessionCacheFresh(cachedOrgsEntry, ADMIN_CACHE_TTL_MS)) {
+      setOrgsLoading(false);
+      return;
+    }
+
     setOrgsLoading(true);
     setOrgsError("");
 
@@ -104,7 +218,9 @@ const Admin = () => {
       if (!response.ok) {
         throw new Error(body?.message || "Failed to load organizations.");
       }
-      setOrgs(Array.isArray(body) ? body : []);
+      const nextOrgs = Array.isArray(body) ? body : [];
+      setOrgs(nextOrgs);
+      writeSessionCache(ADMIN_ORGS_CACHE_KEY, nextOrgs);
     } catch (error) {
       setOrgsError(error.message || "Unable to load organizations.");
     } finally {
@@ -119,15 +235,6 @@ const Admin = () => {
   }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen, manageEventsPopupOpen]);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setCurrentUserId(data?.session?.user?.id || null);
-    };
-
-    fetchSession();
-  }, []);
-
-  useEffect(() => {
     if (userManagePopupOpen) {
       loadUsers();
     }
@@ -140,6 +247,18 @@ const Admin = () => {
   }, [manageEventsPopupOpen]);
 
   async function loadUsers() {
+    const cachedUsersEntry = readSessionCache(ADMIN_USERS_CACHE_KEY);
+    const cachedUsers = getSessionCacheValue(cachedUsersEntry);
+
+    if (Array.isArray(cachedUsers)) {
+      setUsers(cachedUsers);
+    }
+
+    if (Array.isArray(cachedUsers) && isSessionCacheFresh(cachedUsersEntry, ADMIN_CACHE_TTL_MS)) {
+      setUsersLoading(false);
+      return;
+    }
+
     setUsersLoading(true);
     setUsersError("");
 
@@ -149,7 +268,9 @@ const Admin = () => {
       if (!response.ok) {
         throw new Error(body?.message || "Failed to load users.");
       }
-      setUsers(Array.isArray(body) ? body : []);
+      const nextUsers = Array.isArray(body) ? body : [];
+      setUsers(nextUsers);
+      writeSessionCache(ADMIN_USERS_CACHE_KEY, nextUsers);
     } catch (error) {
       setUsersError(error.message || "Unable to load users.");
     } finally {
@@ -158,6 +279,18 @@ const Admin = () => {
   }
 
   async function loadManageEvents() {
+    const cachedEventsEntry = readSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY);
+    const cachedEvents = getSessionCacheValue(cachedEventsEntry);
+
+    if (Array.isArray(cachedEvents)) {
+      setManageEvents(cachedEvents);
+    }
+
+    if (Array.isArray(cachedEvents) && isSessionCacheFresh(cachedEventsEntry, ADMIN_CACHE_TTL_MS)) {
+      setManageEventsLoading(false);
+      return;
+    }
+
     setManageEventsLoading(true);
     setManageEventsError("");
 
@@ -222,6 +355,7 @@ const Admin = () => {
       });
 
       setManageEvents(events);
+      writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, events);
     } catch (error) {
       setManageEventsError(error.message || "Unable to load event submissions.");
     } finally {
@@ -275,9 +409,8 @@ const Admin = () => {
   };
 
   const formatEventTimestamp = (timestamp) => {
-    if (!timestamp) return "Unknown";
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) return "Unknown";
+    const date = parseSupabaseDateTime(timestamp);
+    if (!date) return "Unknown";
     return date.toLocaleString(undefined, {
       month: "short",
       day: "numeric",

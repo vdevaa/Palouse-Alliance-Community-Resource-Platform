@@ -1,30 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-
-function parseSupabaseDateTime(timestamp) {
-  if (!timestamp) {
-    return null;
-  }
-
-  const match = timestamp.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/
-  );
-
-  if (!match) {
-    return new Date(timestamp);
-  }
-
-  const [, year, month, day, hours, minutes, seconds = "0"] = match;
-
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hours),
-    Number(minutes),
-    Number(seconds)
-  );
-}
+import { parseSupabaseDateTime } from "../lib/dateTime";
 
 function normalizeTagName(tag) {
   return typeof tag === "string" ? tag.trim() : "";
@@ -96,82 +72,93 @@ const MyEvents = ({ session, formatTimeRange, onClose, onPostEvent }) => {
       setMyEventsLoading(true);
       setMyEventsError("");
 
-      const [{ data, error }, { data: tagRows, error: tagsError }] = await Promise.all([
-        supabase
-          .from("events")
-          .select(
-            `
-              id,
-              title,
-              start_datetime,
-              end_datetime,
-              status,
-              location,
-              created_by,
-              organizations ( name ),
-              event_tags ( tag_id )
-            `
-          )
-          .eq("created_by", session.user.id)
-          .order("start_datetime", { ascending: true }),
-        supabase.from("tags").select("id, name").order("name", { ascending: true }),
-      ]);
+      try {
+        const [{ data, error }, { data: tagRows, error: tagsError }] = await Promise.all([
+          supabase
+            .from("events")
+            .select(
+              `
+                id,
+                title,
+                start_datetime,
+                end_datetime,
+                status,
+                location,
+                created_by,
+                organizations ( name ),
+                event_tags ( tag_id )
+              `
+            )
+            .eq("created_by", session.user.id)
+            .order("start_datetime", { ascending: true }),
+          supabase.from("tags").select("id, name").order("name", { ascending: true }),
+        ]);
 
-      if (!isMounted) {
-        return;
-      }
+        if (!isMounted) {
+          return;
+        }
 
-      if (tagsError) {
-        console.warn("Tag lookup data loaded with a partial error:", tagsError);
-      }
+        if (tagsError) {
+          console.warn("Tag lookup data loaded with a partial error:", tagsError);
+        }
 
-      if (error) {
-        console.error("Error fetching user events:", error);
+        if (error) {
+          console.error("Error fetching user events:", error);
+          setMyEvents([]);
+          setMyEventsError("We couldn't load your submitted events right now.");
+          setMyEventsLoading(false);
+          return;
+        }
+
+        const tagLookup = (tagRows || []).reduce((lookup, tag) => {
+          if (typeof tag?.id === "string" && typeof tag.name === "string") {
+            lookup[tag.id] = tag.name;
+          }
+          return lookup;
+        }, {});
+
+        const eventIds = (data || []).map((event) => event.id).filter(Boolean);
+        let eventTagRows = [];
+
+        if (eventIds.length > 0) {
+          const { data: fetchedEventTagRows, error: eventTagsError } = await supabase
+            .from("event_tags")
+            .select("event_id, tag_id")
+            .in("event_id", eventIds);
+
+          if (eventTagsError) {
+            console.warn("My events tag lookup failed:", eventTagsError);
+          }
+
+          eventTagRows = fetchedEventTagRows || [];
+        }
+
+        const tagsByEventId = (eventTagRows || []).reduce((acc, row) => {
+          if (!row || !row.event_id) {
+            return acc;
+          }
+
+          const ids = acc[row.event_id] || [];
+          if (row.tag_id) {
+            acc[row.event_id] = [...ids, row.tag_id];
+          }
+          return acc;
+        }, {});
+
+        setMyEvents(
+          (data || []).map((event) => normalizeSupabaseEvent(event, tagLookup, tagsByEventId[event.id] || []))
+        );
+        setMyEventsLoading(false);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.warn("Unable to load My Events:", error);
         setMyEvents([]);
         setMyEventsError("We couldn't load your submitted events right now.");
         setMyEventsLoading(false);
-        return;
       }
-
-      const tagLookup = (tagRows || []).reduce((lookup, tag) => {
-        if (typeof tag?.id === "string" && typeof tag.name === "string") {
-          lookup[tag.id] = tag.name;
-        }
-        return lookup;
-      }, {});
-
-      const eventIds = (data || []).map((event) => event.id).filter(Boolean);
-      let eventTagRows = [];
-
-      if (eventIds.length > 0) {
-        const { data: fetchedEventTagRows, error: eventTagsError } = await supabase
-          .from("event_tags")
-          .select("event_id, tag_id")
-          .in("event_id", eventIds);
-
-        if (eventTagsError) {
-          console.warn("My events tag lookup failed:", eventTagsError);
-        }
-
-        eventTagRows = fetchedEventTagRows || [];
-      }
-
-      const tagsByEventId = (eventTagRows || []).reduce((acc, row) => {
-        if (!row || !row.event_id) {
-          return acc;
-        }
-
-        const ids = acc[row.event_id] || [];
-        if (row.tag_id) {
-          acc[row.event_id] = [...ids, row.tag_id];
-        }
-        return acc;
-      }, {});
-
-      setMyEvents(
-        (data || []).map((event) => normalizeSupabaseEvent(event, tagLookup, tagsByEventId[event.id] || []))
-      );
-      setMyEventsLoading(false);
     };
 
     fetchMyEvents();

@@ -289,10 +289,17 @@ const PostEventForm = ({ onClose, onSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+      let session;
+      let sessionError = null;
+
+      try {
+        ({
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession());
+      } catch (error) {
+        sessionError = error;
+      }
 
       if (sessionError || !session?.user) {
         console.error("No logged in user", sessionError);
@@ -301,11 +308,18 @@ const PostEventForm = ({ onClose, onSuccess }) => {
       }
 
       const userId = session.user.id;
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("organization_id")
-        .eq("id", userId)
-        .maybeSingle();
+      let userData;
+      let userError = null;
+
+      try {
+        ({ data: userData, error: userError } = await supabase
+          .from("users")
+          .select("organization_id")
+          .eq("id", userId)
+          .maybeSingle());
+      } catch (error) {
+        userError = error;
+      }
 
       if (userError) {
         console.error("Error fetching submitting user:", userError);
@@ -321,11 +335,18 @@ const PostEventForm = ({ onClose, onSuccess }) => {
       let categoryId = selectedCategory?.id || null;
 
       if (!categoryId) {
-        const { data: categoryData, error: categoryError } = await supabase
-          .from("categories")
-          .select("id")
-          .eq("name", category)
-          .maybeSingle();
+        let categoryData;
+        let categoryError = null;
+
+        try {
+          ({ data: categoryData, error: categoryError } = await supabase
+            .from("categories")
+            .select("id")
+            .eq("name", category)
+            .maybeSingle());
+        } catch (error) {
+          categoryError = error;
+        }
 
         if (categoryError) {
           console.error("Error fetching category:", categoryError);
@@ -359,11 +380,18 @@ const PostEventForm = ({ onClose, onSuccess }) => {
         status: "pending",
       };
 
-      const { data: eventData, error: eventError } = await supabase
-        .from("events")
-        .insert([payload])
-        .select("id")
-        .single();
+      let eventData;
+      let eventError = null;
+
+      try {
+        ({ data: eventData, error: eventError } = await supabase
+          .from("events")
+          .insert([payload])
+          .select("id")
+          .single());
+      } catch (error) {
+        eventError = error;
+      }
 
       if (eventError || !eventData?.id) {
         console.error("Insert error:", eventError);
@@ -372,12 +400,18 @@ const PostEventForm = ({ onClose, onSuccess }) => {
       }
 
       if (selectedTagRecords.length > 0) {
-        const { error: eventTagsError } = await supabase.from("event_tags").insert(
-          selectedTagRecords.map((tagRow) => ({
-            event_id: eventData.id,
-            tag_id: tagRow.tag_id,
-          }))
-        );
+        let eventTagsError = null;
+
+        try {
+          ({ error: eventTagsError } = await supabase.from("event_tags").insert(
+            selectedTagRecords.map((tagRow) => ({
+              event_id: eventData.id,
+              tag_id: tagRow.tag_id,
+            }))
+          ));
+        } catch (error) {
+          eventTagsError = error;
+        }
 
         if (eventTagsError) {
           console.error("Error saving event tags:", eventTagsError);

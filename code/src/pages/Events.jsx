@@ -5,12 +5,21 @@ import EventCard from "../components/EventCard";
 import MyEvents from "../components/MyEvents";
 import Popup from "../components/Popup";
 import PostEventForm from "../components/PostEventForm";
+import { parseSupabaseDateTime } from "../lib/dateTime";
 import { supabase } from "../lib/supabase";
+import {
+  getSessionCacheValue,
+  isSessionCacheFresh,
+  readSessionCache,
+  writeSessionCache,
+  EVENTS_PAGE_CACHE_KEY,
+} from "../lib/sessionCache";
 import "../styles/Events.css";
 
 const ALL_EVENTS_CATEGORY = "All Events";
 const ALL_EVENTS_TAG = "All Tags";
 const TOAST_DURATION_MS = 2600;
+const EVENTS_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function getStartOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -91,7 +100,15 @@ function isSameDay(date1, date2) {
   return getDateKey(date1) === getDateKey(date2);
 }
 
+function isValidDate(date) {
+  return date instanceof Date && !Number.isNaN(date.getTime());
+}
+
 function isDateWithinEvent(date, startDate, endDate) {
+  if (!isValidDate(startDate) || !isValidDate(endDate)) {
+    return false;
+  }
+
   const currentDay = getStartOfDay(date);
   const eventStartDay = getStartOfDay(startDate);
   const eventEndDay = getStartOfDay(endDate);
@@ -99,6 +116,10 @@ function isDateWithinEvent(date, startDate, endDate) {
 }
 
 function getEventDateKeys(startDate, endDate) {
+  if (!isValidDate(startDate) || !isValidDate(endDate)) {
+    return [];
+  }
+
   const keys = [];
   const rangeStart = getStartOfDay(startDate);
   const rangeEnd = getStartOfDay(endDate);
@@ -157,31 +178,6 @@ function getMonthMatrix(year, month) {
   });
 }
 
-function parseSupabaseDateTime(timestamp) {
-  if (!timestamp) {
-    return null;
-  }
-
-  const match = timestamp.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/
-  );
-
-  if (!match) {
-    return new Date(timestamp);
-  }
-
-  const [, year, month, day, hours, minutes, seconds = "0"] = match;
-
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hours),
-    Number(minutes),
-    Number(seconds)
-  );
-}
-
 function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
   const startDate = parseSupabaseDateTime(event.start_datetime);
   const endDate = parseSupabaseDateTime(event.end_datetime);
@@ -204,16 +200,18 @@ const Events = ({ session }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [events, setEvents] = useState([]);
-  const [categories, setCategories] = useState([ALL_EVENTS_CATEGORY]);
-  const [tags, setTags] = useState([{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
+  const cachedEventsEntry = readSessionCache(EVENTS_PAGE_CACHE_KEY);
+  const cachedEventsPage = getSessionCacheValue(cachedEventsEntry);
+  const [events, setEvents] = useState(() => cachedEventsPage?.events ?? []);
+  const [categories, setCategories] = useState(() => cachedEventsPage?.categories ?? [ALL_EVENTS_CATEGORY]);
+  const [tags, setTags] = useState(() => cachedEventsPage?.tags ?? [{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
   const [selectedCategories, setSelectedCategories] = useState([
     ALL_EVENTS_CATEGORY,
   ]);
   const [selectedTags, setSelectedTags] = useState([ALL_EVENTS_TAG]);
   const [filterMenuOpen, setFilterMenuOpen] = useState(null);
   const filterMenuRef = useRef(null);
-  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsLoading, setEventsLoading] = useState(() => !cachedEventsPage);
   const [eventsError, setEventsError] = useState("");
   const [toast, setToast] = useState(() =>
     location.state?.flashMessage
@@ -306,16 +304,25 @@ const Events = ({ session }) => {
         return;
       }
 
-      const { count, error } = await supabase
-        .from("events")
-        .select("id", { count: "exact", head: true })
-        .eq("created_by", session.user.id);
+      try {
+        const { count, error } = await supabase
+          .from("events")
+          .select("id", { count: "exact", head: true })
+          .eq("created_by", session.user.id);
 
-      if (!isMounted) {
-        return;
+        if (!isMounted) {
+          return;
+        }
+
+        setHasMyEvents(!error && typeof count === "number" && count > 0);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.warn("Unable to determine whether the user has submitted events:", error);
+        setHasMyEvents(false);
       }
-
-      setHasMyEvents(!error && typeof count === "number" && count > 0);
     };
 
     fetchMyEventsCount();
@@ -329,130 +336,174 @@ const Events = ({ session }) => {
     let isMounted = true;
 
     const fetchCalendarData = async () => {
-      setEventsLoading(true);
-      setEventsError("");
+      const cachedEntry = readSessionCache(EVENTS_PAGE_CACHE_KEY);
+      const cachedPage = getSessionCacheValue(cachedEntry);
 
-      const [
-        { data: eventRows, error: eventsQueryError },
-        { data: categoryRows, error: categoriesQueryError },
-        { data: tagRows, error: tagsQueryError },
-      ] =
-        await Promise.all([
-          supabase
-            .from("events")
-            .select(
-              `
-                id,
-                title,
-                description,
-                start_datetime,
-                end_datetime,
-                location,
-                volunteer_url,
-                created_by,
-                status,
-                organization_id,
-                category_id,
-                organizations ( name ),
-                categories ( name ),
-                event_tags ( tag_id )
-              `
-            )
-            .eq("status", "approved")
-            .order("start_datetime", { ascending: true }),
-          supabase.from("categories").select("name").order("name", { ascending: true }),
-          supabase.from("tags").select("id, name").order("name", { ascending: true }),
-        ]);
-
-      if (!isMounted) {
-        return;
+      if (cachedPage && Array.isArray(cachedPage.events)) {
+        setEvents(cachedPage.events);
+        setCategories(cachedPage.categories || [ALL_EVENTS_CATEGORY]);
+        setTags(cachedPage.tags || [{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
       }
 
-      if (eventsQueryError || categoriesQueryError) {
-        console.error("Error fetching home page calendar data:", {
-          eventsQueryError,
-          categoriesQueryError,
-          tagsQueryError,
-        });
-        setEvents([]);
-        setCategories([ALL_EVENTS_CATEGORY]);
-        setEventsError("Unable to load events right now.");
+      if (cachedPage && isSessionCacheFresh(cachedEntry, EVENTS_CACHE_TTL_MS)) {
         setEventsLoading(false);
         return;
       }
 
-      if (tagsQueryError) {
-        console.warn("Tag data loaded with a partial error:", {
-          tagsQueryError,
-        });
-      }
+      setEventsLoading(true);
+      setEventsError("");
 
-      const tagLookup = (tagRows || []).reduce((lookup, tag) => {
-        if (typeof tag?.id === "string" && typeof tag.name === "string") {
-          lookup[tag.id] = tag.name;
+      try {
+        const [
+          { data: eventRows, error: eventsQueryError },
+          { data: categoryRows, error: categoriesQueryError },
+          { data: tagRows, error: tagsQueryError },
+        ] =
+          await Promise.all([
+            supabase
+              .from("events")
+              .select(
+                `
+                  id,
+                  title,
+                  description,
+                  start_datetime,
+                  end_datetime,
+                  location,
+                  volunteer_url,
+                  created_by,
+                  status,
+                  organization_id,
+                  category_id,
+                  organizations ( name ),
+                  categories ( name ),
+                  event_tags ( tag_id )
+                `
+              )
+              .eq("status", "approved")
+              .order("start_datetime", { ascending: true }),
+            supabase.from("categories").select("name").order("name", { ascending: true }),
+            supabase.from("tags").select("id, name").order("name", { ascending: true }),
+          ]);
+
+        if (!isMounted) {
+          return;
         }
-        return lookup;
-      }, {});
 
-      const eventIds = (eventRows || []).map((event) => event.id).filter(Boolean);
-      let eventTagRows = [];
-
-      if (eventIds.length > 0) {
-        const { data: fetchedEventTagRows, error: eventTagsQueryError } = await supabase
-          .from("event_tags")
-          .select("event_id, tag_id")
-          .in("event_id", eventIds);
-
-        if (eventTagsQueryError) {
-          console.warn("Event tags could not be loaded via event_tags table:", eventTagsQueryError);
+        if (eventsQueryError || categoriesQueryError) {
+          console.error("Error fetching home page calendar data:", {
+            eventsQueryError,
+            categoriesQueryError,
+            tagsQueryError,
+          });
+          setEvents([]);
+          setCategories([ALL_EVENTS_CATEGORY]);
+          setEventsError("Unable to load events right now.");
+          setEventsLoading(false);
+          return;
         }
 
-        eventTagRows = fetchedEventTagRows || [];
-      }
-
-      const tagsByEventId = (eventTagRows || []).reduce((acc, row) => {
-        if (!row || !row.event_id) {
-          return acc;
+        if (tagsQueryError) {
+          console.warn("Tag data loaded with a partial error:", {
+            tagsQueryError,
+          });
         }
-        const eventTagIds = acc[row.event_id] || [];
-        if (row.tag_id) {
-          acc[row.event_id] = [...eventTagIds, row.tag_id];
-        }
-        return acc;
-      }, {});
 
-      const normalizedEvents = (eventRows || [])
-        .map((event) => normalizeSupabaseEvent(event, tagLookup, tagsByEventId[event.id] || []))
-        .sort((first, second) => first.startDate - second.startDate);
+        const tagLookup = (tagRows || []).reduce((lookup, tag) => {
+          if (typeof tag?.id === "string" && typeof tag.name === "string") {
+            lookup[tag.id] = tag.name;
+          }
+          return lookup;
+        }, {});
 
-      const fetchedCategoryNames = (categoryRows || []).map((category) => category.name);
+        const eventIds = (eventRows || []).map((event) => event.id).filter(Boolean);
+        let eventTagRows = [];
 
-      setEvents(normalizedEvents);
-      setCategories([ALL_EVENTS_CATEGORY, ...fetchedCategoryNames]);
-      setTags([{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }, ...(tagRows || [])]);
+        if (eventIds.length > 0) {
+          const { data: fetchedEventTagRows, error: eventTagsQueryError } = await supabase
+            .from("event_tags")
+            .select("event_id, tag_id")
+            .in("event_id", eventIds);
 
-      if (normalizedEvents.length > 0) {
-        const firstEventDate = normalizedEvents[0].startDate;
-        setVisibleMonth((currentVisibleMonth) => {
-          const isCurrentMonthEmpty = normalizedEvents.every(
-            (event) =>
-              event.startDate.getMonth() !== currentVisibleMonth.getMonth() ||
-              event.startDate.getFullYear() !== currentVisibleMonth.getFullYear()
-          );
-
-          if (!isCurrentMonthEmpty) {
-            return currentVisibleMonth;
+          if (eventTagsQueryError) {
+            console.warn("Event tags could not be loaded via event_tags table:", eventTagsQueryError);
           }
 
-          return clampMonth(
-            new Date(firstEventDate.getFullYear(), firstEventDate.getMonth(), 1),
-            minVisibleMonth,
-            maxVisibleMonth
-          );
-        });
-      }
+          eventTagRows = fetchedEventTagRows || [];
+        }
 
-      setEventsLoading(false);
+        const tagsByEventId = (eventTagRows || []).reduce((acc, row) => {
+          if (!row || !row.event_id) {
+            return acc;
+          }
+          const eventTagIds = acc[row.event_id] || [];
+          if (row.tag_id) {
+            acc[row.event_id] = [...eventTagIds, row.tag_id];
+          }
+          return acc;
+        }, {});
+
+        const normalizedEvents = (eventRows || [])
+          .map((event) => normalizeSupabaseEvent(event, tagLookup, tagsByEventId[event.id] || []))
+          .filter((event) => isValidDate(event.startDate) && isValidDate(event.endDate))
+          .sort((first, second) => first.startDate - second.startDate);
+
+        const invalidEventCount = (eventRows || []).length - normalizedEvents.length;
+        if (invalidEventCount > 0) {
+          console.warn(`Dropped ${invalidEventCount} event(s) with invalid dates from the public Events page.`);
+        }
+
+        const fetchedCategoryNames = (categoryRows || []).map((category) => category.name);
+        const nextCategories = [ALL_EVENTS_CATEGORY, ...fetchedCategoryNames];
+        const nextTags = [{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }, ...(tagRows || [])];
+
+        setEvents(normalizedEvents);
+        setCategories(nextCategories);
+        setTags(nextTags);
+        writeSessionCache(EVENTS_PAGE_CACHE_KEY, {
+          events: normalizedEvents,
+          categories: nextCategories,
+          tags: nextTags,
+        });
+
+        if (normalizedEvents.length > 0) {
+          const firstEventDate = normalizedEvents[0].startDate;
+          setVisibleMonth((currentVisibleMonth) => {
+            const isCurrentMonthEmpty = normalizedEvents.every(
+              (event) =>
+                event.startDate.getMonth() !== currentVisibleMonth.getMonth() ||
+                event.startDate.getFullYear() !== currentVisibleMonth.getFullYear()
+            );
+
+            if (!isCurrentMonthEmpty) {
+              return currentVisibleMonth;
+            }
+
+            return clampMonth(
+              new Date(firstEventDate.getFullYear(), firstEventDate.getMonth(), 1),
+              minVisibleMonth,
+              maxVisibleMonth
+            );
+          });
+        }
+
+        setEventsLoading(false);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.error("Unexpected error fetching calendar data:", error);
+
+        if (!cachedPage) {
+          setEvents([]);
+          setCategories([ALL_EVENTS_CATEGORY]);
+          setTags([{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
+        }
+
+        setEventsError("Unable to load events right now.");
+        setEventsLoading(false);
+      }
     };
 
     fetchCalendarData();

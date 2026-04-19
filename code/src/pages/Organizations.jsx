@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import {
+  getSessionCacheValue,
+  isSessionCacheFresh,
+  readSessionCache,
+  writeSessionCache,
+  ORGANIZATIONS_PAGE_CACHE_KEY,
+} from "../lib/sessionCache";
 import "../styles/Organizations.css";
+
+const ORGANIZATIONS_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const Organizations = () => {
   const navigate = useNavigate();
-  const [orgs, setOrgs] = useState([]);
-  const [filteredOrgs, setFilteredOrgs] = useState([]);
+  const cachedOrganizationsEntry = readSessionCache(ORGANIZATIONS_PAGE_CACHE_KEY);
+  const cachedOrganizations = getSessionCacheValue(cachedOrganizationsEntry);
+  const initialOrganizations = Array.isArray(cachedOrganizations) ? cachedOrganizations : [];
+
+  const [orgs, setOrgs] = useState(initialOrganizations);
+  const [filteredOrgs, setFilteredOrgs] = useState(initialOrganizations);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!Array.isArray(cachedOrganizations));
 
   const isVisibleOrg = (org) => {
     const name = org.name?.trim()?.toLowerCase();
@@ -18,6 +31,19 @@ const Organizations = () => {
   const isValid = (val) => val && val !== "NULL" && val.trim() !== "";
 
   useEffect(() => {
+    const cachedEntry = readSessionCache(ORGANIZATIONS_PAGE_CACHE_KEY);
+    const cachedOrgs = getSessionCacheValue(cachedEntry);
+
+    if (Array.isArray(cachedOrgs)) {
+      setOrgs(cachedOrgs);
+      setFilteredOrgs(cachedOrgs);
+    }
+
+    if (Array.isArray(cachedOrgs) && isSessionCacheFresh(cachedEntry, ORGANIZATIONS_CACHE_TTL_MS)) {
+      setLoading(false);
+      return;
+    }
+
     const fetchOrgs = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -43,6 +69,7 @@ const Organizations = () => {
         }));
         setOrgs(formattedData);
         setFilteredOrgs(formattedData);
+        writeSessionCache(ORGANIZATIONS_PAGE_CACHE_KEY, formattedData);
       }
       setLoading(false);
     };
