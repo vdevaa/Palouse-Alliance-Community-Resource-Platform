@@ -45,7 +45,7 @@ const Admin = () => {
           </div>
 
           <div className="admin-card">
-            <h2>Admin Tools</h2>
+            <h2>Manager Event Status</h2>
             <p>
               Review approved, pending, and rejected events.
             </p>
