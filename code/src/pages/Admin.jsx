@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Popup from "../components/Popup";
 import FormField from "../components/FormField";
+import { supabase } from "../lib/supabase";
 import "../styles/Admin.css";
 import "../styles/Login.css";
 
@@ -21,6 +22,7 @@ const Admin = () => {
   const [registerOrgPopupOpen, setRegisterOrgPopupOpen] = useState(false);
   const [userPopupOpen, setUserPopupOpen] = useState(false);
   const [orgs, setOrgs] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [orgsLoading, setOrgsLoading] = useState(false);
   const [orgsError, setOrgsError] = useState("");
   const [editingOrg, setEditingOrg] = useState(null);
@@ -103,6 +105,15 @@ const Admin = () => {
       loadOrgs();
     }
   }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen]);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setCurrentUserId(data?.session?.user?.id || null);
+    };
+
+    fetchSession();
+  }, []);
 
   useEffect(() => {
     if (userManagePopupOpen) {
@@ -583,7 +594,8 @@ const Admin = () => {
   };
 
   const handleDeleteUser = async () => {
-    if (!deleteUserTarget) {
+    if (!deleteUserTarget || deleteUserTarget.id === currentUserId) {
+      setDeleteUserTarget(null);
       return;
     }
 
@@ -977,6 +989,7 @@ const Admin = () => {
                     value={userEditForm.role}
                     onChange={handleUserEditChange}
                     required
+                    disabled={editingUser?.id === currentUserId}
                   >
                     <option value="member">Member</option>
                     <option value="admin">Admin</option>
@@ -1039,7 +1052,13 @@ const Admin = () => {
                         <button type="button" className="btn-secondary" onClick={() => handleEditUserClick(user)}>
                           Edit
                         </button>
-                        <button type="button" className="btn-danger" onClick={() => setDeleteUserTarget(user)}>
+                        <button
+                          type="button"
+                          className="btn-danger"
+                          onClick={() => setDeleteUserTarget(user)}
+                          disabled={user.id === currentUserId}
+                          title={user.id === currentUserId ? "You cannot delete your own account." : undefined}
+                        >
                           Delete
                         </button>
                       </div>

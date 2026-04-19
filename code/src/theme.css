@@ -158,6 +158,26 @@ button[type="submit"]:hover,
   background: rgba(185, 74, 72, 0.2);
 }
 
+button:disabled,
+button[disabled],
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled,
+button:disabled:hover,
+button[disabled]:hover,
+.btn-primary:disabled:hover,
+.btn-secondary:disabled:hover,
+.btn-danger:disabled:hover,
+input:disabled,
+input[disabled],
+select:disabled,
+select[disabled],
+textarea:disabled,
+textarea[disabled] {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
 .filter-trigger {
   border: 1px solid var(--btn-secondary-border);
   background: var(--btn-secondary-bg);
