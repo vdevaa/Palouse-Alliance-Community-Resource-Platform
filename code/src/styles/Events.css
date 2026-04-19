@@ -9,7 +9,7 @@
   flex: 1;
   max-width: 1680px;
   margin: 0 auto;
-  padding: 40px 32px 60px;
+  padding: var(--page-content-padding);
   box-sizing: border-box;
   width: 100%;
 }

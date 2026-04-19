@@ -613,8 +613,7 @@ const Events = ({ session }) => {
         <section className="home-hero">
           <h1>Discover Community Events</h1>
           <p>
-            Connect with local organizations and find meaningful events across
-            the Palouse region.
+            Connect with local organizations and find events across the Palouse region.
           </p>
         </section>
 

@@ -81,12 +81,12 @@ describe('App routing and auth', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Welcome')).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Browse Events' })).toBeInTheDocument();
+      expect(screen.getByText('Welcome to Palouse Alliance')).toBeInTheDocument();
+      expect(screen.getByText(/landing page is being redesigned/i)).toBeInTheDocument();
     });
   });
 
-  it('shows logged-in welcome message on landing page', async () => {
+  it('shows the same landing page for logged-in users', async () => {
     window.history.pushState({}, '', '/');
     mockGetSession.mockResolvedValueOnce({
       data: { session: { user: { id: '123', email: 'member@palouse.org' } } },
@@ -95,7 +95,7 @@ describe('App routing and auth', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Welcome, member@palouse.org')).toBeInTheDocument();
+      expect(screen.getByText('Welcome to Palouse Alliance')).toBeInTheDocument();
     });
   });
 

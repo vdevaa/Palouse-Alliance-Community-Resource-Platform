@@ -7,16 +7,16 @@ const Admin = () => {
 
   return (
     <div className="admin-page page-root">
-      <div className="admin-shell">
-        <div className="admin-header">
-          <h1 className="admin-title">Admin Dashboard</h1>
-          <p className="admin-subtitle">
+      <main className="page-shell admin-shell">
+        <section className="page-hero admin-header">
+          <h1 className="page-title">Admin Dashboard</h1>
+          <p className="page-description">
             Manage member and admin accounts, register organizations, and handle other administrative tasks from one central place.
           </p>
-        </div>
+        </section>
 
-        <div className="admin-grid">
-          <div className="admin-card">
+        <div className="admin-grid page-card-grid">
+          <div className="page-card admin-card">
             <h2>Register Members & Admins</h2>
             <p>
               Create new member or administrator accounts and assign roles to support platform management.
@@ -26,11 +26,11 @@ const Admin = () => {
               className="navbar-link navbar-link-primary btn-primary admin-action-button"
               onClick={() => navigate("/register")}
             >
-              Register Users
+              Register users
             </button>
           </div>
 
-          <div className="admin-card">
+          <div className="page-card admin-card">
             <h2>Register Organizations</h2>
             <p>
               Add new organizations to the Palouse Alliance directory and manage their presence in the community.
@@ -40,14 +40,14 @@ const Admin = () => {
               className="navbar-link navbar-link-primary btn-primary admin-action-button"
               disabled
             >
-              Register Organization
+              Register organization
             </button>
           </div>
 
-          <div className="admin-card">
-            <h2>Manager Event Status</h2>
+          <div className="page-card admin-card">
+            <h2>Manage Event Status</h2>
             <p>
-              Review approved, pending, and rejected events.
+              Review and manage approved, pending, and rejected events.
             </p>
             <button
               type="button"
@@ -58,7 +58,7 @@ const Admin = () => {
             </button>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

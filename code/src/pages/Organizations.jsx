@@ -61,14 +61,14 @@ const Organizations = () => {
 
   return (
     <div className="organizations-page page-root">
-      <div className="organizations-shell">
-        <div className="organizations-header">
-          <h1 className="organizations-title">Community Organizations</h1>
-          <p className="organizations-subtitle">
-            Discover local organizations making a difference in the Palouse
+      <main className="page-shell organizations-shell">
+        <section className="page-hero organizations-header">
+          <h1 className="page-title">Community Organizations</h1>
+          <p className="page-description">
+            Discover local organizations making a difference in the Palouse.
             region
           </p>
-        </div>
+        </section>
 
         <div className="search-wrapper">
           <input
@@ -180,7 +180,7 @@ const Organizations = () => {
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 };
