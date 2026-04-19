@@ -221,7 +221,7 @@ const Events = ({ session }) => {
         }
       : null
   );
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDates, setSelectedDates] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
   const [hasMyEvents, setHasMyEvents] = useState(false);
@@ -473,8 +473,8 @@ const Events = ({ session }) => {
       selectedTags.length > 0 && !selectedTags.includes(ALL_EVENTS_TAG);
 
     return events.filter((event) => {
-      const matchesSelectedDate = selectedDate
-        ? isDateWithinEvent(selectedDate, event.startDate, event.endDate)
+      const matchesSelectedDate = selectedDates.length > 0
+        ? selectedDates.some((date) => isDateWithinEvent(date, event.startDate, event.endDate))
         : true;
       const matchesCategory =
         !categoryFilterActive ||
@@ -496,7 +496,7 @@ const Events = ({ session }) => {
         matchesSearch
       );
     });
-  }, [events, searchQuery, selectedCategories, selectedTags, selectedDate]);
+  }, [events, searchQuery, selectedCategories, selectedTags, selectedDates]);
 
   const monthLabel = visibleMonth.toLocaleDateString("en-US", {
     month: "long",
@@ -511,7 +511,13 @@ const Events = ({ session }) => {
   }
 
   function handleSelectDay(day) {
-    setSelectedDate(day);
+    setSelectedDates((currentDates) => {
+      const isAlreadySelected = currentDates.some((selectedDate) => isSameDay(selectedDate, day));
+      if (isAlreadySelected) {
+        return currentDates.filter((selectedDate) => !isSameDay(selectedDate, day));
+      }
+      return [...currentDates, day];
+    });
     setVisibleMonth(() => {
       const nextMonth = new Date(day.getFullYear(), day.getMonth(), 1);
       return clampMonth(nextMonth, minVisibleMonth, maxVisibleMonth);
@@ -519,7 +525,7 @@ const Events = ({ session }) => {
   }
 
   function resetDateFilter() {
-    setSelectedDate(null);
+    setSelectedDates([]);
   }
 
   function toggleFilterMenu(menuName) {
@@ -733,7 +739,7 @@ const Events = ({ session }) => {
                 isSameDay={isSameDay}
                 monthLabel={monthLabel}
                 resetDateFilter={resetDateFilter}
-                selectedDate={selectedDate}
+                selectedDates={selectedDates}
                 visibleMonth={visibleMonth}
                 canNavigatePrevious={visibleMonth > minVisibleMonth}
                 canNavigateNext={visibleMonth < maxVisibleMonth}
