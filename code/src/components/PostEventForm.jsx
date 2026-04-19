@@ -7,32 +7,6 @@ import "../styles/PostEvent.css";
 const MAX_VOLUNTEER_URL_LENGTH = 50;
 const MAX_TAG_SELECTIONS = 5;
 
-function formatDisplayDate(date) {
-  if (!date) {
-    return "";
-  }
-
-  return new Date(`${date}T00:00`).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function formatDisplayTime(time) {
-  if (!time) {
-    return "";
-  }
-
-  const [hours, minutes] = time.split(":").map(Number);
-  const displayDate = new Date(2000, 0, 1, hours, minutes);
-
-  return displayDate.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 function isLikelyUrl(value) {
   if (!value) {
     return false;
@@ -95,7 +69,7 @@ function isDateTimeBeyondMaxAdvance(date, time) {
   return dateTime > maxAdvanceEnd;
 }
 
-const PostEventForm = ({ onClose, onSuccess, isPopup = false }) => {
+const PostEventForm = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

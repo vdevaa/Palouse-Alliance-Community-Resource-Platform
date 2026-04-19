@@ -109,7 +109,7 @@ describe('App routing and auth', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Admin Dashboard' })).toBeInTheDocument();
     });
   });
 

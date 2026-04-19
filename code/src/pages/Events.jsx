@@ -827,10 +827,10 @@ const Events = ({ session }) => {
 
         {session && isPostEventOpen ? (
           <Popup
-            title="Post Event"
+            title="Post a Community Event"
             description="Share your community event with the Palouse area."
             onClose={() => setIsPostEventOpen(false)}
-            ariaLabel="Post Event"
+            ariaLabel="Post a Community Event"
             className="regular-popup post-event-popup"
           >
             <PostEventForm
