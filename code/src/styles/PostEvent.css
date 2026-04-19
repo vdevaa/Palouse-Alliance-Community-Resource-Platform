@@ -194,9 +194,13 @@ textarea.form-input::placeholder {
 }
 
 .upload-icon {
-  width: 60px;
-  height: 60px;
+  font-size: 60px;
+  width: auto;
+  height: auto;
   opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .upload-text {

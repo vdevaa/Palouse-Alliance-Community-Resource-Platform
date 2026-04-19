@@ -1,5 +1,5 @@
 .site-footer {
-  background: linear-gradient(180deg, rgba(47, 56, 43, 0.96), var(--color-primary-900));
+  background: linear-gradient(0deg, rgba(47, 56, 43, 0.96), var(--color-primary-900));
   color: var(--color-text-inverse);
   padding: 4rem 0 2.5rem;
   width: 100%;

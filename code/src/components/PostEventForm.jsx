@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import uploadIcon from "../assets/upload-icon.png";
 import { supabase } from "../lib/supabase";
 import FormField from "./FormField";
 import "../styles/PostEvent.css";
@@ -576,7 +575,9 @@ const PostEventForm = ({ onClose, onSuccess }) => {
                     className="file-upload"
                     onClick={() => document.getElementById("flyer").click()}
                   >
-                    <img src={uploadIcon} alt="Upload" className="upload-icon" />
+                    <span className="material-symbols-outlined upload-icon" aria-hidden="true">
+                      cloud_upload
+                    </span>
                     <input
                       id="flyer"
                       type="file"
