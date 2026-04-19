@@ -224,6 +224,7 @@ const Events = ({ session }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
+  const [hasMyEvents, setHasMyEvents] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
@@ -279,6 +280,34 @@ const Events = ({ session }) => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [filterMenuOpen]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchMyEventsCount = async () => {
+      if (!session?.user?.id) {
+        setHasMyEvents(false);
+        return;
+      }
+
+      const { count, error } = await supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .eq("created_by", session.user.id);
+
+      if (!isMounted) {
+        return;
+      }
+
+      setHasMyEvents(!error && typeof count === "number" && count > 0);
+    };
+
+    fetchMyEventsCount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session]);
 
   useEffect(() => {
     let isMounted = true;
@@ -652,7 +681,7 @@ const Events = ({ session }) => {
               </Popup>
             ) : null}
 
-            {session ? (
+            {session && hasMyEvents ? (
               <div className="home-actions">
                 <button
                   type="button"
@@ -661,6 +690,16 @@ const Events = ({ session }) => {
                 >
                   My Events
                 </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => navigate("/post-event")}
+                >
+                  Post Event
+                </button>
+              </div>
+            ) : session ? (
+              <div className="home-actions">
                 <button
                   type="button"
                   className="btn-primary"
