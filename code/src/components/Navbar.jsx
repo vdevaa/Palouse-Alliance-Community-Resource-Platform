@@ -167,6 +167,7 @@ const Navbar = ({ session }) => {
                 </div>
 
                 <div className="navbar-mobile-links">
+                    <Link to="/" className="navbar-mobile-link">Home</Link>
                     <a
                         href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                         target="_blank"
@@ -175,8 +176,6 @@ const Navbar = ({ session }) => {
                     >
                         GivePulse
                     </a>
-
-                    <Link to="/" className="navbar-mobile-link">Home</Link>
                     <Link to="/events" className="navbar-mobile-link">Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>
                     {session ? (
