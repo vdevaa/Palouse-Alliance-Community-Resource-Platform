@@ -242,4 +242,31 @@ describe("PostEvent", () => {
     expect(screen.getByText("Volunteer URL must be 50 characters or less.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continue to Flyer Upload" })).toBeDisabled();
   });
+
+  it("blocks submission when the volunteer URL is not a valid http(s) URL", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <PostEvent />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: "Community Events" })).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByLabelText("Event Title"), "Community Potluck");
+    await user.type(screen.getByLabelText("Event Description"), "Bring a dish to share.");
+    await user.click(screen.getByRole("button", { name: "Continue to Date & Location" }));
+
+    await user.type(screen.getByLabelText("Start Date"), "2026-04-12");
+    await user.type(screen.getByLabelText("End Date"), "2026-04-12");
+    await user.type(screen.getByLabelText("Start Time"), "16:00");
+    await user.type(screen.getByLabelText("End Time"), "18:00");
+    await user.type(screen.getByLabelText("Location or Zoom Link"), "http:/invalid-url");
+
+    expect(screen.getByText("Volunteer URL must be a valid http(s) address.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continue to Flyer Upload" })).toBeDisabled();
+  });
 });

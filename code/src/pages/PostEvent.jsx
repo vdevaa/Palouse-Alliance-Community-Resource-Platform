@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import uploadIcon from "../assets/upload-icon.png";
 import { supabase } from "../lib/supabase";
+import FormField from "../components/FormField";
 import "../styles/PostEvent.css";
 
 const FALLBACK_CATEGORY_NAMES = [
@@ -183,6 +184,15 @@ const PostEvent = () => {
   const trimmedLocation = location.trim();
   const isOnlineLocation = isLikelyUrl(trimmedLocation);
   const isVolunteerUrlTooLong = isOnlineLocation && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH;
+  const isVolunteerUrlInvalid =
+    trimmedLocation !== "" &&
+    trimmedLocation.includes("://") &&
+    !isOnlineLocation;
+  const locationError = isVolunteerUrlInvalid
+    ? "Volunteer URL must be a valid http(s) address."
+    : isVolunteerUrlTooLong
+      ? "Volunteer URL must be 50 characters or less."
+      : undefined;
 
   const isStepValid = () => {
     if (step === 1) {
@@ -196,6 +206,10 @@ const PostEvent = () => {
     if (step === 2) {
       const trimmedLocation = location.trim();
       const isOnlineEvent = isLikelyUrl(trimmedLocation);
+      const isVolunteerUrlInvalid =
+        trimmedLocation !== "" &&
+        trimmedLocation.includes("://") &&
+        !isOnlineEvent;
 
       return (
         date !== "" &&
@@ -204,7 +218,8 @@ const PostEvent = () => {
         startTime !== "" &&
         endTime !== "" &&
         trimmedLocation !== "" &&
-        !(isOnlineEvent && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH)
+        !(isOnlineEvent && trimmedLocation.length > MAX_VOLUNTEER_URL_LENGTH) &&
+        !isVolunteerUrlInvalid
       );
     }
 
@@ -231,11 +246,21 @@ const PostEvent = () => {
     setToast(null);
 
     if (step === 1) {
+      if (!isStepValid()) {
+        return;
+      }
       setStep(2);
       return;
     }
 
     if (step === 2) {
+      if (!isStepValid()) {
+        setToast({
+          message: "Please fix any errors before continuing.",
+          type: "error",
+        });
+        return;
+      }
       setStep(3);
       return;
     }
@@ -437,10 +462,7 @@ const PostEvent = () => {
                   Tell us about your event with a clear, descriptive title
                 </p>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="event-title">
-                    Event Title
-                  </label>
+                <FormField htmlFor="event-title" label="Event Title" required>
                   <input
                     id="event-title"
                     className="form-input"
@@ -450,12 +472,9 @@ const PostEvent = () => {
                     onChange={(e) => setTitle(e.target.value)}
                     required
                   />
-                </div>
+                </FormField>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="category">
-                    Category
-                  </label>
+                <FormField htmlFor="category" label="Category" required>
                   <select
                     id="category"
                     className="form-input"
@@ -468,7 +487,7 @@ const PostEvent = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </FormField>
 
                 <div className="form-group">
                   <label className="form-label">Tags</label>
@@ -499,10 +518,7 @@ const PostEvent = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="description">
-                    Event Description
-                  </label>
+                <FormField htmlFor="description" label="Event Description" required>
                   <textarea
                     id="description"
                     className="form-input"
@@ -512,7 +528,7 @@ const PostEvent = () => {
                     onChange={(e) => setDescription(e.target.value)}
                     required
                   />
-                </div>
+                </FormField>
 
                 <p className="postevent-help-text">
                   Be clear and welcoming. Include accessibility information if relevant.
@@ -525,10 +541,7 @@ const PostEvent = () => {
                 <h2 className="step-title">Step 2: When & Where</h2>
                 <p className="step-description">Help people find and attend your event</p>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="date">
-                    Start Date
-                  </label>
+                <FormField htmlFor="date" label="Start Date" required>
                   <input
                     id="date"
                     className="form-input"
@@ -537,12 +550,9 @@ const PostEvent = () => {
                     onChange={(e) => setDate(e.target.value)}
                     required
                   />
-                </div>
+                </FormField>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="end-date">
-                    End Date
-                  </label>
+                <FormField htmlFor="end-date" label="End Date" required>
                   <input
                     id="end-date"
                     className="form-input"
@@ -552,12 +562,9 @@ const PostEvent = () => {
                     onChange={(e) => setEndDate(e.target.value)}
                     required
                   />
-                </div>
+                </FormField>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="start-time">
-                    Start Time
-                  </label>
+                <FormField htmlFor="start-time" label="Start Time" required>
                   <input
                     id="start-time"
                     className="form-input"
@@ -566,12 +573,9 @@ const PostEvent = () => {
                     onChange={(e) => setStartTime(e.target.value)}
                     required
                   />
-                </div>
+                </FormField>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="end-time">
-                    End Time
-                  </label>
+                <FormField htmlFor="end-time" label="End Time" required>
                   <input
                     id="end-time"
                     className="form-input"
@@ -580,27 +584,24 @@ const PostEvent = () => {
                     onChange={(e) => setEndTime(e.target.value)}
                     required
                   />
-                </div>
+                </FormField>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="location">
-                    Location or Zoom Link
-                  </label>
+                <FormField
+                  htmlFor="location"
+                  label="Location or Zoom Link"
+                  error={locationError}
+                  required
+                >
                   <input
                     id="location"
                     className="form-input"
                     type="text"
-                    placeholder="E.g., Moscow Community Center, 206 E 3rd St or https://zoom.us/j/..."
+                    placeholder="E.g., Example Community Center, 206 E 3rd St or https://example.com/..."
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     required
                   />
-                  {isVolunteerUrlTooLong && (
-                    <p className="postevent-help-text" style={{ color: "#b42318" }}>
-                      Volunteer URL must be 50 characters or less.
-                    </p>
-                  )}
-                </div>
+                </FormField>
               </>
             )}
 

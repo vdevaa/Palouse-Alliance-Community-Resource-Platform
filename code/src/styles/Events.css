@@ -76,15 +76,15 @@
 }
 
 .home-toast-success {
-  background: rgba(232, 245, 230, 0.97);
-  border-color: #b7dbb0;
-  color: #2f6a2b;
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success);
 }
 
 .home-toast-error {
-  background: rgba(253, 232, 232, 0.97);
-  border-color: #efb1b1;
-  color: #b42318;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger);
 }
 
 @keyframes navbarToast {

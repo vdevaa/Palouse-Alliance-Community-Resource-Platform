@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Popup from "../components/Popup";
+import FormField from "../components/FormField";
 import loginLogo from "../assets/PalouseSquareLogo.png";
 import "../styles/Login.css";
 
@@ -10,11 +11,43 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  const clearFieldError = (name) => {
+    setFieldErrors((current) => {
+      const { [name]: removed, ...rest } = current;
+      return rest;
+    });
+  };
+
+  const validateLogin = () => {
+    const errors = {};
+
+    if (!email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!isValidEmail(email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    if (!password) {
+      errors.password = "Password is required.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
+    setFieldErrors({});
+
+    if (!validateLogin()) {
+      return;
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -43,27 +76,35 @@ const Login = () => {
           </p>
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="email">
-                Email Address
-              </label>
+            <FormField
+              htmlFor="email"
+              label="Email Address"
+              error={fieldErrors.email}
+              required
+            >
               <input
                 className="form-input"
                 id="email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) {
+                    clearFieldError("email");
+                  }
+                }}
                 required
                 autoComplete="email"
               />
-            </div>
+            </FormField>
 
-            <div className="form-group">
-              <div className="form-label-row">
-                <label className="form-label" htmlFor="password">
-                  Password
-                </label>
+            <FormField
+              htmlFor="password"
+              label="Password"
+              error={fieldErrors.password}
+              required
+              labelAction={
                 <button
                   type="button"
                   className="forgot-link"
@@ -71,21 +112,30 @@ const Login = () => {
                 >
                   Forgot password?
                 </button>
-              </div>
-
+              }
+            >
               <input
                 className="form-input"
                 id="password"
                 type="password"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) {
+                    clearFieldError("password");
+                  }
+                }}
                 required
                 autoComplete="current-password"
               />
-            </div>
+            </FormField>
 
-            <button className="login-button" type="submit">
+            <button
+              className="login-button"
+              type="submit"
+              disabled={!email.trim() || !isValidEmail(email.trim()) || !password || fieldErrors.email || fieldErrors.password}
+            >
               Sign In
             </button>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import FormField from "../components/FormField";
 import logo from "../assets/PalouseTextLogo.png";
 import "../styles/Login.css";
 
@@ -8,6 +9,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [organizations, setOrganizations] = useState([]);
 
   const [form, setForm] = useState({
@@ -16,6 +18,31 @@ const Register = () => {
     role: "member",
     organization_id: "",
   });
+
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  const validateRegister = () => {
+    const errors = {};
+
+    if (!form.email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!isValidEmail(form.email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    if (!form.password) {
+      errors.password = "Password is required.";
+    } else if (form.password.length < 8) {
+      errors.password = "Password must be at least 8 characters.";
+    }
+
+    if (!form.organization_id) {
+      errors.organization_id = "Please select an organization.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const [checkingAuth, setCheckingAuth] = useState(true);
 
@@ -74,14 +101,32 @@ const Register = () => {
     fetchOrgs();
   }, []);
 
+  const clearFieldError = (name) => {
+    setFieldErrors((current) => {
+      const { [name]: removed, ...rest } = current;
+      return rest;
+    });
+  };
+
   const onChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((current) => ({ ...current, [name]: value }));
+
+    if (fieldErrors[name]) {
+      clearFieldError(name);
+    }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMessage("");
+    setFieldErrors({});
+
+    if (!validateRegister()) {
+      return;
+    }
+
+    setLoading(true);
 
     try {
       // Send registration request to backend which uses the Supabase service role key
@@ -129,8 +174,12 @@ const Register = () => {
           <form onSubmit={handleRegister}>
             <div className="form-grid">
               
-              <div className="form-group">
-                <label htmlFor="email" className="form-label">Email Address</label>
+                  <FormField
+                htmlFor="email"
+                label="Email Address"
+                error={fieldErrors.email}
+                required
+              >
                 <input
                   id="email"
                   name="email"
@@ -140,10 +189,14 @@ const Register = () => {
                   onChange={onChange}
                   required
                 />
-              </div>
+              </FormField>
 
-              <div className="form-group">
-                <label htmlFor="password" className="form-label">Password</label>
+              <FormField
+                htmlFor="password"
+                label="Password"
+                error={fieldErrors.password}
+                required
+              >
                 <input
                   id="password"
                   name="password"
@@ -153,10 +206,9 @@ const Register = () => {
                   onChange={onChange}
                   required
                 />
-              </div>
+              </FormField>
 
-              <div className="form-group">
-                <label htmlFor="role" className="form-label">Role</label>
+              <FormField htmlFor="role" label="Role" required>
                 <select
                   id="role"
                   name="role"
@@ -168,10 +220,14 @@ const Register = () => {
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
                 </select>
-              </div>
+              </FormField>
 
-              <div className="form-group">
-                <label htmlFor="organization_id" className="form-label">Organization</label>
+              <FormField
+                htmlFor="organization_id"
+                label="Organization"
+                error={fieldErrors.organization_id}
+                required
+              >
                 <select
                   id="organization_id"
                   name="organization_id"
@@ -187,14 +243,21 @@ const Register = () => {
                     </option>
                   ))}
                 </select>
-              </div>
+              </FormField>
 
             </div>
 
             <button
               className="login-button"
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                !form.email.trim() ||
+                !isValidEmail(form.email.trim()) ||
+                !form.password ||
+                form.password.length < 8 ||
+                !form.organization_id
+              }
             >
               {loading ? "Registering..." : "Create Account"}
             </button>

@@ -41,6 +41,12 @@
   --color-warning: #E0B12D; /* aligned to accent */
   --color-danger: #B94A48;
   --color-info: #3B6E8C;
+  --color-success-bg: rgba(86, 104, 79, 0.15);
+  --color-success-border: #b7dbb0;
+  --color-warning-bg: rgba(224, 177, 45, 0.18);
+  --color-warning-border: #edd38b;
+  --color-danger-bg: rgba(185, 74, 72, 0.15);
+  --color-danger-border: #efb1b1;
 
   /* Links */
   --color-link: #3F4C3A;
