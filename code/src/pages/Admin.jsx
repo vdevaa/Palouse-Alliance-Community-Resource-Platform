@@ -61,6 +61,10 @@ const Admin = () => {
   const [resetPasswordError, setResetPasswordError] = useState("");
   const [resetPasswordCopied, setResetPasswordCopied] = useState(false);
   const [resetPasswordPopupOpen, setResetPasswordPopupOpen] = useState(false);
+  const [adminAlertPopupOpen, setAdminAlertPopupOpen] = useState(false);
+  const [adminAlertPopupTitle, setAdminAlertPopupTitle] = useState("");
+  const [adminAlertPopupDescription, setAdminAlertPopupDescription] = useState("");
+  const [adminAlertPopupMessage, setAdminAlertPopupMessage] = useState("");
 
   const openOrgPopup = () => {
     setOrgPopupOpen(true);
@@ -287,11 +291,21 @@ const Admin = () => {
       await loadOrgs();
       setEditingOrg(null);
       setOrgForm(emptyOrgForm);
+      openAdminAlert({
+        title: 'Organization updated',
+        description: 'Organization details were saved successfully.',
+        message: `${editingOrg.name || 'Organization'} updated successfully.`,
+      });
     } catch (error) {
       if (error?.message?.includes('name_taken') || error?.message?.includes('already exists')) {
         setOrgFieldErrors({ name: 'An organization with that name already exists.' });
       } else {
         setOrgFormError(error.message || "Unable to update organization.");
+        openAdminAlert({
+          title: 'Organization update failed',
+          description: 'Unable to save the organization.',
+          message: error.message || "Unable to update organization.",
+        });
       }
     } finally {
       setOrgFormLoading(false);
@@ -342,6 +356,17 @@ const Admin = () => {
     setDeleteUserTarget(null);
   };
 
+  const openAdminAlert = ({ title, description, message }) => {
+    setAdminAlertPopupTitle(title);
+    setAdminAlertPopupDescription(description);
+    setAdminAlertPopupMessage(message || "");
+    setAdminAlertPopupOpen(true);
+  };
+
+  const closeAdminAlert = () => {
+    setAdminAlertPopupOpen(false);
+  };
+
   const handleRegisterOrgSubmit = async (event) => {
     event.preventDefault();
     setRegisterOrgError("");
@@ -353,11 +378,12 @@ const Admin = () => {
     setRegisterOrgLoading(true);
 
     try {
+      const organizationName = registerOrgForm.name.trim();
       const response = await fetch(`${API_BASE}/api/organizations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: registerOrgForm.name.trim(),
+          name: organizationName,
           description: registerOrgForm.description.trim() || null,
           phone_number: registerOrgForm.phone_number.trim() || null,
           email: registerOrgForm.email.trim() || null,
@@ -374,8 +400,18 @@ const Admin = () => {
       }
       closeRegisterOrgPopup();
       await loadOrgs();
+      openAdminAlert({
+        title: 'Organization registered',
+        description: 'The new organization was added successfully.',
+        message: `${organizationName} has been created.`,
+      });
     } catch (error) {
       setRegisterOrgError(error.message || "Organization registration failed.");
+      openAdminAlert({
+        title: 'Organization registration failed',
+        description: 'Unable to register the organization.',
+        message: error.message || "Organization registration failed.",
+      });
     } finally {
       setRegisterOrgLoading(false);
     }
@@ -392,11 +428,12 @@ const Admin = () => {
     setUserLoading(true);
 
     try {
+      const newUserEmail = userForm.email.trim();
       const response = await fetch(`${API_BASE}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: userForm.email.trim(),
+          email: newUserEmail,
           password: userForm.password,
           role: userForm.role.toLowerCase(),
           organization_id: userForm.organization_id === "unaffiliated" ? null : userForm.organization_id,
@@ -408,8 +445,18 @@ const Admin = () => {
         throw new Error(message);
       }
       closeUserPopup();
+      openAdminAlert({
+        title: 'User registered',
+        description: 'The account was created successfully.',
+        message: `${newUserEmail} has been registered.`,
+      });
     } catch (error) {
       setUserError(error.message || "Registration failed. Please try again.");
+      openAdminAlert({
+        title: 'User registration failed',
+        description: 'Unable to create the user account.',
+        message: error.message || "Registration failed. Please try again.",
+      });
     } finally {
       setUserLoading(false);
     }
@@ -443,8 +490,18 @@ const Admin = () => {
       }
       await loadUsers();
       setEditingUser(null);
+      openAdminAlert({
+        title: 'User updated',
+        description: 'The user profile was saved successfully.',
+        message: `${editingUser.email || 'User'} updated successfully.`,
+      });
     } catch (error) {
       setUserEditError(error.message || "Unable to update user.");
+      openAdminAlert({
+        title: 'User update failed',
+        description: 'Unable to save the user changes.',
+        message: error.message || "Unable to update user.",
+      });
     } finally {
       setUserEditLoading(false);
     }
@@ -497,6 +554,7 @@ const Admin = () => {
     setDeleteLoading(true);
 
     try {
+      const deletedOrganizationName = deleteTarget?.name || 'Organization';
       const response = await fetch(`${API_BASE}/api/organizations/${deleteTarget.id}`, {
         method: "DELETE",
       });
@@ -506,9 +564,19 @@ const Admin = () => {
       }
       await loadOrgs();
       setDeleteTarget(null);
+      openAdminAlert({
+        title: 'Organization deleted',
+        description: 'The organization was removed successfully.',
+        message: `${deletedOrganizationName} has been deleted.`,
+      });
     } catch (error) {
       setDeleteTarget(null);
       setOrgsError(error.message || "Unable to delete organization.");
+      openAdminAlert({
+        title: 'Organization delete failed',
+        description: 'Unable to delete the organization.',
+        message: error.message || "Unable to delete organization.",
+      });
     } finally {
       setDeleteLoading(false);
     }
@@ -522,6 +590,7 @@ const Admin = () => {
     setDeleteUserLoading(true);
 
     try {
+      const deletedUserEmail = deleteUserTarget?.email || 'User';
       const response = await fetch(`${API_BASE}/api/users/${deleteUserTarget.id}`, {
         method: "DELETE",
       });
@@ -531,9 +600,19 @@ const Admin = () => {
       }
       await loadUsers();
       setDeleteUserTarget(null);
+      openAdminAlert({
+        title: 'User deleted',
+        description: 'The user account was removed successfully.',
+        message: `${deletedUserEmail} has been deleted.`,
+      });
     } catch (error) {
       setDeleteUserTarget(null);
       setUsersError(error.message || "Unable to delete user.");
+      openAdminAlert({
+        title: 'User delete failed',
+        description: 'Unable to delete the user account.',
+        message: error.message || "Unable to delete user.",
+      });
     } finally {
       setDeleteUserLoading(false);
     }
@@ -1015,6 +1094,21 @@ const Admin = () => {
             </FormField>
           </div>
           {resetPasswordCopied && <p className="popup-description">Password copied to clipboard.</p>}
+        </Popup>
+      )}
+      {adminAlertPopupOpen && (
+        <Popup
+          title={adminAlertPopupTitle}
+          description={adminAlertPopupDescription}
+          onClose={closeAdminAlert}
+          className="dialog-popup admin-popup"
+          actions={
+            <button type="button" className="btn-primary" onClick={closeAdminAlert}>
+              Close
+            </button>
+          }
+        >
+          <p>{adminAlertPopupMessage}</p>
         </Popup>
       )}
       {deleteTarget && (
