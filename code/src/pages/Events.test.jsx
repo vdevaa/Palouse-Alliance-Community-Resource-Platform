@@ -212,4 +212,45 @@ describe('Events', () => {
       await screen.findByText('Your event request was successfully sent and is now pending review.')
     ).toBeInTheDocument();
   });
+
+  it('initializes search bar from the query string when navigating from organizations', async () => {
+    mockEventsOrder.mockResolvedValueOnce({
+      data: [
+        {
+          id: 1,
+          title: 'Food Drive',
+          description: 'Collect canned foods',
+          start_datetime: '2026-04-01T10:00:00',
+          end_datetime: '2026-04-01T11:00:00',
+          location: 'Downtown',
+          status: 'approved',
+          organizations: { name: 'Org B' },
+          categories: { name: 'Food' },
+          event_tags: [{ tags: { name: 'Community' } }],
+        },
+      ],
+      error: null,
+    });
+
+    mockCategoriesOrder.mockResolvedValueOnce({
+      data: [{ name: 'Food' }],
+      error: null,
+    });
+
+    mockTagsOrder.mockResolvedValueOnce({
+      data: [{ name: 'Community' }],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/events?q=Org%20B"]}>
+        <Routes>
+          <Route path="/events" element={<Events session={null} />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByDisplayValue('Org B')).toBeInTheDocument();
+    expect(await screen.findByText('Food Drive')).toBeInTheDocument();
+  });
 });

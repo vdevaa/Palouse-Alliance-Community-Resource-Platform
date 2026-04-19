@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import EventCalendar from "../components/EventCalendar";
 import EventCard from "../components/EventCard";
 import MyEvents from "../components/MyEvents";
@@ -202,6 +202,7 @@ function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
 const Events = ({ session }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([ALL_EVENTS_CATEGORY]);
   const [tags, setTags] = useState([{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
@@ -222,9 +223,13 @@ const Events = ({ session }) => {
       : null
   );
   const [selectedDates, setSelectedDates] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q")?.trim() || "");
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
   const [hasMyEvents, setHasMyEvents] = useState(false);
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q")?.trim() || "");
+  }, [searchParams]);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);

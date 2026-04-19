@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import "../styles/Organizations.css";
 
 const Organizations = () => {
+  const navigate = useNavigate();
   const [orgs, setOrgs] = useState([]);
   const [filteredOrgs, setFilteredOrgs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -160,7 +162,11 @@ const Organizations = () => {
 
                     {org.eventCount > 0 && (
                       <div className="org-card-footer">
-                        <button className="btn-primary org-cta-btn" type="button">
+                        <button
+                          className="btn-primary org-cta-btn"
+                          type="button"
+                          onClick={() => navigate(`/events?q=${encodeURIComponent(org.name)}`)}
+                        >
                           View Events
                         </button>
                       </div>
