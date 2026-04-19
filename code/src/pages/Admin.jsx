@@ -349,8 +349,8 @@ const Admin = ({ session }) => {
           organizationName: event.organizations?.name || null,
           tags: eventTags,
           tagIds,
-          startDate: event.start_datetime ? new Date(event.start_datetime) : null,
-          endDate: event.end_datetime ? new Date(event.end_datetime) : null,
+          startDate: parseSupabaseDateTime(event.start_datetime),
+          endDate: parseSupabaseDateTime(event.end_datetime),
         };
       });
 
