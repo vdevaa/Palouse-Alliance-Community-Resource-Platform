@@ -72,7 +72,7 @@ const Navbar = ({ session, isAdmin }) => {
                             GivePulse
                         </a>
 
-                        <Link to="/events" className="navbar-link navbar-link-text">Events</Link>
+                        <Link to="/events" className="navbar-link navbar-link-text">Member Events</Link>
                         <Link to="/organizations" className="navbar-link navbar-link-text">Organizations</Link>
                     </div>
 
