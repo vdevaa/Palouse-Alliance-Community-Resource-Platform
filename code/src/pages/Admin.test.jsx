@@ -41,4 +41,12 @@ describe('Admin', () => {
 
     expect(await screen.findByRole('heading', { name: /register organization/i })).toBeInTheDocument();
   });
+
+  it('opens manage users popup when the button is clicked', async () => {
+    render(<Admin />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /manage users/i }));
+
+    expect(await screen.findByRole('heading', { name: /manage users/i })).toBeInTheDocument();
+  });
 });

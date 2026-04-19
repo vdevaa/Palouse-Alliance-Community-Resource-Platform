@@ -52,11 +52,6 @@ app.post('/api/register', async (req, res) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: {
-        role: role || 'member',
-        organization_id: organization_id || null,
-        wants_notifications: true
-      }
     });
 
     if (createError) {
@@ -172,6 +167,50 @@ app.get('/api/organizations', async (_req, res) => {
   }
 });
 
+app.get('/api/users', async (_req, res) => {
+  try {
+    const [authResponse, profileResponse] = await Promise.all([
+      supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+      supabaseAdmin.from('users').select('id, role, organization_id'),
+    ]);
+
+    if (authResponse.error) {
+      return res.status(400).json({ error: 'users_auth_fetch_failed', message: authResponse.error.message, details: authResponse.error });
+    }
+
+    if (profileResponse.error) {
+      return res.status(400).json({ error: 'users_profile_fetch_failed', message: profileResponse.error.message, details: profileResponse.error });
+    }
+
+    const profilesById = new Map((profileResponse.data || []).map((profile) => [profile.id, profile]));
+    const users = (authResponse.data?.users || []).map((authUser) => {
+      const profile = profilesById.get(authUser.id);
+      return {
+        id: authUser.id,
+        email: authUser.email || null,
+        role: profile?.role || null,
+        organization_id: profile?.organization_id || null,
+      };
+    });
+
+    (profileResponse.data || []).forEach((profile) => {
+      if (!users.some((user) => user.id === profile.id)) {
+        users.push({
+          id: profile.id,
+          email: null,
+          role: profile.role || null,
+          organization_id: profile.organization_id || null,
+        });
+      }
+    });
+
+    return res.status(200).json(users);
+  } catch (err) {
+    console.error('Unexpected /api/users GET error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
 app.patch('/api/organizations/:id', async (req, res) => {
   const { id } = req.params;
   const { name, description, phone_number, email, location } = req.body || {};
@@ -246,6 +285,74 @@ app.delete('/api/organizations/:id', async (req, res) => {
     return res.status(200).json({ id: data.id });
   } catch (err) {
     console.error('Unexpected /api/organizations DELETE error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
+app.patch('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { role, organization_id } = req.body || {};
+
+  if (!validateUuid(id)) {
+    return res.status(400).json({ error: 'invalid_id', message: 'User id must be a valid UUID.' });
+  }
+
+  if (role != null && !isValidRole(role)) {
+    return res.status(400).json({ error: 'invalid_role', message: 'role must be "admin" or "member".' });
+  }
+
+  if (organization_id != null && organization_id !== '' && !validateUuid(organization_id)) {
+    return res.status(400).json({ error: 'invalid_organization_id', message: 'organization_id must be a UUID.' });
+  }
+
+  const updatePayload = {};
+  if (role != null) updatePayload.role = role;
+  updatePayload.organization_id = organization_id === '' ? null : organization_id || null;
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .update(updatePayload)
+      .eq('id', id)
+      .select('id')
+      .maybeSingle();
+
+    if (error) {
+      return res.status(400).json({ error: 'user_update_failed', message: error.message, details: error });
+    }
+
+    if (!data) {
+      return res.status(404).json({ error: 'not_found', message: 'User not found.' });
+    }
+
+    return res.status(200).json({ id: data.id });
+  } catch (err) {
+    console.error('Unexpected /api/users PATCH error:', err);
+    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateUuid(id)) {
+    return res.status(400).json({ error: 'invalid_id', message: 'User id must be a valid UUID.' });
+  }
+
+  try {
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id);
+    if (authError) {
+      return res.status(400).json({ error: 'user_delete_failed', message: authError.message, details: authError });
+    }
+
+    const { error: rowError } = await supabaseAdmin.from('users').delete().eq('id', id);
+    if (rowError) {
+      console.error('Unexpected /api/users DELETE row error:', rowError);
+    }
+
+    return res.status(200).json({ id });
+  } catch (err) {
+    console.error('Unexpected /api/users DELETE error:', err);
     return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
   }
 });

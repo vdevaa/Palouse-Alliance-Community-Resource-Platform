@@ -30,6 +30,17 @@ const Admin = () => {
   const [orgFormError, setOrgFormError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteUserTarget, setDeleteUserTarget] = useState(null);
+  const [deleteUserLoading, setDeleteUserLoading] = useState(false);
+
+  const [userManagePopupOpen, setUserManagePopupOpen] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState("");
+  const [editingUser, setEditingUser] = useState(null);
+  const [userEditForm, setUserEditForm] = useState({ role: "member", organization_id: "unaffiliated" });
+  const [userEditLoading, setUserEditLoading] = useState(false);
+  const [userEditError, setUserEditError] = useState("");
 
   const [registerOrgForm, setRegisterOrgForm] = useState(emptyOrgForm);
   const [registerOrgFieldErrors, setRegisterOrgFieldErrors] = useState({});
@@ -40,7 +51,7 @@ const Admin = () => {
     email: "",
     password: "",
     role: "member",
-    organization_id: "",
+    organization_id: "unaffiliated",
   });
   const [userFieldErrors, setUserFieldErrors] = useState({});
   const [userLoading, setUserLoading] = useState(false);
@@ -79,10 +90,34 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen) {
+    if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen || userManagePopupOpen) {
       loadOrgs();
     }
-  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen]);
+  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen]);
+
+  useEffect(() => {
+    if (userManagePopupOpen) {
+      loadUsers();
+    }
+  }, [userManagePopupOpen]);
+
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    setUsersError("");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/users`);
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(body?.message || "Failed to load users.");
+      }
+      setUsers(Array.isArray(body) ? body : []);
+    } catch (error) {
+      setUsersError(error.message || "Unable to load users.");
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   const clearOrgFieldError = (name) => {
     setOrgFieldErrors((current) => {
@@ -129,6 +164,32 @@ const Admin = () => {
     }
   };
 
+  const handleUserEditChange = (e) => {
+    const { name, value } = e.target;
+    setUserEditForm((current) => ({ ...current, [name]: value }));
+    if (userEditError) {
+      setUserEditError("");
+    }
+  };
+
+  const validateUserEdit = () => {
+    const errors = {};
+    if (!userEditForm.role || !['member', 'admin'].includes(userEditForm.role)) {
+      errors.role = 'Please select a valid role.';
+    }
+    setUserEditError(errors.role || "");
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleEditUserClick = (user) => {
+    setEditingUser(user);
+    setUserEditForm({
+      role: user.role || 'member',
+      organization_id: user.organization_id || 'unaffiliated',
+    });
+    setUserEditError("");
+  };
+
   const validateOrgForm = () => {
     const errors = {};
     if (!orgForm.name.trim()) {
@@ -165,7 +226,7 @@ const Admin = () => {
     } else if (userForm.password.length < 8) {
       errors.password = "Password must be at least 8 characters.";
     }
-    if (!userForm.organization_id) {
+    if (userForm.organization_id !== "unaffiliated" && !userForm.organization_id) {
       errors.organization_id = "Please select an organization.";
     }
     setUserFieldErrors(errors);
@@ -243,16 +304,29 @@ const Admin = () => {
     setUserPopupOpen(true);
   };
 
+  const openUserManagePopup = () => {
+    setUserManagePopupOpen(true);
+  };
+
   const closeUserPopup = () => {
     setUserPopupOpen(false);
     setUserForm({
       email: "",
       password: "",
       role: "member",
-      organization_id: "",
+      organization_id: "unaffiliated",
     });
     setUserFieldErrors({});
     setUserError("");
+  };
+
+  const closeUserManagePopup = () => {
+    setUserManagePopupOpen(false);
+    setEditingUser(null);
+    setUserEditForm({ role: "member", organization_id: "unaffiliated" });
+    setUserEditError("");
+    setUsersError("");
+    setDeleteUserTarget(null);
   };
 
   const handleRegisterOrgSubmit = async (event) => {
@@ -312,7 +386,7 @@ const Admin = () => {
           email: userForm.email.trim(),
           password: userForm.password,
           role: userForm.role.toLowerCase(),
-          organization_id: userForm.organization_id,
+          organization_id: userForm.organization_id === "unaffiliated" ? null : userForm.organization_id,
         }),
       });
       const body = await response.json().catch(() => null);
@@ -325,6 +399,41 @@ const Admin = () => {
       setUserError(error.message || "Registration failed. Please try again.");
     } finally {
       setUserLoading(false);
+    }
+  };
+
+  const handleUserUpdate = async (event) => {
+    event.preventDefault();
+    if (!editingUser) {
+      return;
+    }
+
+    if (!validateUserEdit()) {
+      return;
+    }
+
+    setUserEditLoading(true);
+    setUserEditError("");
+
+    try {
+      const response = await fetch(`${API_BASE}/api/users/${editingUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: userEditForm.role,
+          organization_id: userEditForm.organization_id === 'unaffiliated' ? null : userEditForm.organization_id,
+        }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(body?.message || "Unable to update user.");
+      }
+      await loadUsers();
+      setEditingUser(null);
+    } catch (error) {
+      setUserEditError(error.message || "Unable to update user.");
+    } finally {
+      setUserEditLoading(false);
     }
   };
 
@@ -353,6 +462,31 @@ const Admin = () => {
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!deleteUserTarget) {
+      return;
+    }
+
+    setDeleteUserLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/users/${deleteUserTarget.id}`, {
+        method: "DELETE",
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(body?.message || "Unable to delete user.");
+      }
+      await loadUsers();
+      setDeleteUserTarget(null);
+    } catch (error) {
+      setDeleteUserTarget(null);
+      setUsersError(error.message || "Unable to delete user.");
+    } finally {
+      setDeleteUserLoading(false);
+    }
+  };
+
   return (
     <div className="admin-page page-root">
       <main className="page-shell admin-shell">
@@ -368,13 +502,22 @@ const Admin = () => {
             <p>
               Create new member or administrator accounts and assign roles to support platform management.
             </p>
-            <button
-              type="button"
-              className="navbar-link navbar-link-primary btn-primary admin-action-button"
-              onClick={openUserPopup}
-            >
-              Register User
-            </button>
+            <div className="admin-card-actions-row">
+              <button
+                type="button"
+                className="navbar-link navbar-link-primary btn-primary admin-action-button"
+                onClick={openUserPopup}
+              >
+                Register User
+              </button>
+              <button
+                type="button"
+                className="navbar-link navbar-link-secondary admin-action-button"
+                onClick={openUserManagePopup}
+              >
+                Manage Users
+              </button>
+            </div>
           </div>
           <div className="page-card admin-card">
             <h2>Manage Organizations</h2>
@@ -642,16 +785,15 @@ const Admin = () => {
                   <option value="admin">Admin</option>
                 </select>
               </FormField>
-              <FormField htmlFor="register_organization_id" label="Organization" error={userFieldErrors.organization_id} required>
+              <FormField htmlFor="register_organization_id" label="Organization" error={userFieldErrors.organization_id}>
                 <select
                   id="register_organization_id"
                   name="organization_id"
                   className="form-input"
                   value={userForm.organization_id}
                   onChange={handleUserChange}
-                  required
                 >
-                  <option value="" disabled>Select Organization</option>
+                  <option value="unaffiliated">Unaffiliated</option>
                   {orgs.map((org) => (
                     <option key={org.id} value={org.id}>
                       {org.name}
@@ -672,6 +814,108 @@ const Admin = () => {
           </form>
         </Popup>
       )}
+      {userManagePopupOpen && (
+        <Popup
+          title={editingUser ? "Edit User" : "Manage Users"}
+          description={
+            editingUser
+              ? "Change user role and organization assignment here. Email cannot be changed through this admin panel."
+              : "View all registered users and edit their role or delete the account."
+          }
+          onClose={closeUserManagePopup}
+          className="regular-popup admin-popup"
+        >
+          {editingUser ? (
+            <form onSubmit={handleUserUpdate}>
+              <div className="form-grid admin-org-form-grid">
+                <FormField htmlFor="edit_user_email" label="Email Address">
+                  <input
+                    id="edit_user_email"
+                    name="email"
+                    className="form-input"
+                    type="email"
+                    value={editingUser.email}
+                    readOnly
+                  />
+                </FormField>
+                <FormField htmlFor="edit_user_role" label="Role" error={userEditError} required>
+                  <select
+                    id="edit_user_role"
+                    name="role"
+                    className="form-input"
+                    value={userEditForm.role}
+                    onChange={handleUserEditChange}
+                    required
+                  >
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </FormField>
+                <FormField htmlFor="edit_user_organization_id" label="Organization">
+                  <select
+                    id="edit_user_organization_id"
+                    name="organization_id"
+                    className="form-input"
+                    value={userEditForm.organization_id}
+                    onChange={handleUserEditChange}
+                  >
+                    <option value="unaffiliated">Unaffiliated</option>
+                    {orgs.map((org) => (
+                      <option key={org.id} value={org.id}>
+                        {org.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+              {userEditError && <p className="form-error-message">{userEditError}</p>}
+              <div className="popup-actions">
+                <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>
+                  Back to list
+                </button>
+                <button type="submit" className="btn-primary" disabled={userEditLoading}>
+                  {userEditLoading ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="admin-org-list">
+              {usersLoading ? (
+                <div className="admin-org-empty">Loading users...</div>
+              ) : usersError ? (
+                <div className="admin-org-empty admin-org-error">{usersError}</div>
+              ) : users.length === 0 ? (
+                <div className="admin-org-empty">No users available.</div>
+              ) : (
+                users.map((user) => {
+                  const organizationName = orgs.find((org) => org.id === user.organization_id)?.name || "No organization";
+                  return (
+                    <div key={user.id} className="admin-org-row">
+                      <div>
+                        <span className="admin-org-row-name">{user.email}</span>
+                        <div className="admin-user-meta">{user.role} · {organizationName}</div>
+                      </div>
+                      <div className="admin-org-actions">
+                        <button type="button" className="btn-secondary" onClick={() => handleEditUserClick(user)}>
+                          Edit
+                        </button>
+                        <button type="button" className="btn-danger" onClick={() => setDeleteUserTarget(user)}>
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div className="popup-actions">
+                <button type="button" className="btn-secondary" onClick={closeUserManagePopup}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </Popup>
+      )}
       {deleteTarget && (
         <Popup
           title="Confirm Delete"
@@ -685,6 +929,24 @@ const Admin = () => {
               </button>
               <button type="button" className="btn-danger" onClick={handleDeleteOrg} disabled={deleteLoading}>
                 {deleteLoading ? "Deleting..." : "Delete"}
+              </button>
+            </>
+          }
+        />
+      )}
+      {deleteUserTarget && (
+        <Popup
+          title="Confirm Delete"
+          description={`Are you sure you want to delete ${deleteUserTarget.email}? This action cannot be undone.`}
+          onClose={() => setDeleteUserTarget(null)}
+          className="dialog-popup admin-popup"
+          actions={
+            <>
+              <button type="button" className="btn-secondary" onClick={() => setDeleteUserTarget(null)}>
+                Cancel
+              </button>
+              <button type="button" className="btn-danger" onClick={handleDeleteUser} disabled={deleteUserLoading}>
+                {deleteUserLoading ? "Deleting..." : "Delete"}
               </button>
             </>
           }

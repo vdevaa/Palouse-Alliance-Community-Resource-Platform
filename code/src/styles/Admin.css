@@ -101,6 +101,12 @@
   overflow-wrap: anywhere;
 }
 
+.admin-user-meta {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--color-text-subtle);
+}
+
 .admin-org-actions {
   display: flex;
   gap: 10px;
