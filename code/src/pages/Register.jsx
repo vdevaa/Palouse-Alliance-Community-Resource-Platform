@@ -103,7 +103,7 @@ const Register = () => {
 
   const clearFieldError = (name) => {
     setFieldErrors((current) => {
-      const { [name]: removed, ...rest } = current;
+      const { [name]: _, ...rest } = current;
       return rest;
     });
   };

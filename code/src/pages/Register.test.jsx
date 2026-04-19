@@ -88,12 +88,12 @@ describe('Register', () => {
     );
 
     // wait for orgs to load and form to render
-    await waitFor(() => expect(screen.getByLabelText('Email Address')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByLabelText(/email address/i)).toBeInTheDocument());
 
     const user = userEvent.setup();
-    await user.type(screen.getByLabelText('Email Address'), 'test@example.com');
-    await user.type(screen.getByLabelText('Password'), 'secret');
-    await user.selectOptions(screen.getByLabelText('Organization'), 'org-1');
+    await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.selectOptions(screen.getByLabelText(/organization/i), 'org-1');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {

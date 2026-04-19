@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 
 const { mockOrder, mockFrom } = vi.hoisted(() => {
   const order = vi.fn();
@@ -41,7 +42,11 @@ describe('Organizations', () => {
       error: null,
     });
 
-    render(<Organizations />);
+    render(
+      <MemoryRouter>
+        <Organizations />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Food Bank Partners')).toBeInTheDocument();
@@ -76,7 +81,11 @@ describe('Organizations', () => {
 
     const user = userEvent.setup();
 
-    render(<Organizations />);
+    render(
+      <MemoryRouter>
+        <Organizations />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('Food Bank Partners')).toBeInTheDocument();

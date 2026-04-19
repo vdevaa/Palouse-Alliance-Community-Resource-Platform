@@ -270,6 +270,14 @@ const Events = ({ session }) => {
   }, [toast]);
 
   useEffect(() => {
+    if (location.pathname !== "/events") {
+      return;
+    }
+
+    window.scrollTo(0, 0);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
     if (!filterMenuOpen) {
       return undefined;
     }

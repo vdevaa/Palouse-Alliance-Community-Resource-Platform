@@ -157,20 +157,20 @@ describe("PostEvent", () => {
       expect(screen.getByRole("button", { name: "Family Friendly" })).toBeInTheDocument();
     });
 
-    await user.type(screen.getByLabelText("Event Title"), "Community Potluck");
-    await user.selectOptions(screen.getByLabelText("Category"), "Volunteer Opportunities");
+    await user.type(screen.getByLabelText(/event title/i), "Community Potluck");
+    await user.selectOptions(screen.getByLabelText(/category/i), "Volunteer Opportunities");
     await user.click(screen.getByRole("button", { name: "Community" }));
     await user.click(screen.getByRole("button", { name: "Outdoor" }));
-    await user.type(screen.getByLabelText("Event Description"), "Bring a dish to share.");
+    await user.type(screen.getByLabelText(/event description/i), "Bring a dish to share.");
     await user.click(screen.getByRole("button", { name: "Continue to Date & Location" }));
 
     expect(screen.getByText("Step 2: When & Where")).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText("Start Date"), "2026-04-12");
-    await user.type(screen.getByLabelText("End Date"), "2026-04-13");
-    await user.type(screen.getByLabelText("Start Time"), "16:00");
-    await user.type(screen.getByLabelText("End Time"), "18:00");
-    await user.type(screen.getByLabelText("Location or Zoom Link"), "https://zoom.us/j/123456789");
+    await user.type(screen.getByLabelText(/start date/i), "2026-04-12");
+    await user.type(screen.getByLabelText(/end date/i), "2026-04-13");
+    await user.type(screen.getByLabelText(/start time/i), "16:00");
+    await user.type(screen.getByLabelText(/end time/i), "18:00");
+    await user.type(screen.getByLabelText(/location or zoom link/i), "https://zoom.us/j/123456789");
     await user.click(screen.getByRole("button", { name: "Continue to Flyer Upload" }));
 
     expect(screen.getByText("Step 3: Event Flyer (Optional)")).toBeInTheDocument();
@@ -226,16 +226,16 @@ describe("PostEvent", () => {
       expect(screen.getByRole("option", { name: "Community Events" })).toBeInTheDocument();
     });
 
-    await user.type(screen.getByLabelText("Event Title"), "Community Potluck");
-    await user.type(screen.getByLabelText("Event Description"), "Bring a dish to share.");
+    await user.type(screen.getByLabelText(/event title/i), "Community Potluck");
+    await user.type(screen.getByLabelText(/event description/i), "Bring a dish to share.");
     await user.click(screen.getByRole("button", { name: "Continue to Date & Location" }));
 
-    await user.type(screen.getByLabelText("Start Date"), "2026-04-12");
-    await user.type(screen.getByLabelText("End Date"), "2026-04-12");
-    await user.type(screen.getByLabelText("Start Time"), "16:00");
-    await user.type(screen.getByLabelText("End Time"), "18:00");
+    await user.type(screen.getByLabelText(/start date/i), "2026-04-12");
+    await user.type(screen.getByLabelText(/end date/i), "2026-04-12");
+    await user.type(screen.getByLabelText(/start time/i), "16:00");
+    await user.type(screen.getByLabelText(/end time/i), "18:00");
     await user.type(
-      screen.getByLabelText("Location or Zoom Link"),
+      screen.getByLabelText(/location or zoom link/i),
       "https://example.com/abcdefghijklmnopqrstuvwxyz1234567890"
     );
 
@@ -256,15 +256,15 @@ describe("PostEvent", () => {
       expect(screen.getByRole("option", { name: "Community Events" })).toBeInTheDocument();
     });
 
-    await user.type(screen.getByLabelText("Event Title"), "Community Potluck");
-    await user.type(screen.getByLabelText("Event Description"), "Bring a dish to share.");
+    await user.type(screen.getByLabelText(/event title/i), "Community Potluck");
+    await user.type(screen.getByLabelText(/event description/i), "Bring a dish to share.");
     await user.click(screen.getByRole("button", { name: "Continue to Date & Location" }));
 
-    await user.type(screen.getByLabelText("Start Date"), "2026-04-12");
-    await user.type(screen.getByLabelText("End Date"), "2026-04-12");
-    await user.type(screen.getByLabelText("Start Time"), "16:00");
-    await user.type(screen.getByLabelText("End Time"), "18:00");
-    await user.type(screen.getByLabelText("Location or Zoom Link"), "http:/invalid-url");
+    await user.type(screen.getByLabelText(/start date/i), "2026-04-12");
+    await user.type(screen.getByLabelText(/end date/i), "2026-04-12");
+    await user.type(screen.getByLabelText(/start time/i), "16:00");
+    await user.type(screen.getByLabelText(/end time/i), "18:00");
+    await user.type(screen.getByLabelText(/location or zoom link/i), "ftp://example.com/bad");
 
     expect(screen.getByText("Volunteer URL must be a valid http(s) address.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continue to Flyer Upload" })).toBeDisabled();

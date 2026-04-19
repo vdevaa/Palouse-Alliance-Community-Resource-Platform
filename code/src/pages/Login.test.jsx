@@ -43,8 +43,8 @@ describe('Login', () => {
       </MemoryRouter>
     );
 
-    await user.type(screen.getByLabelText('Email Address'), 'a@example.com');
-    await user.type(screen.getByLabelText('Password'), 'bad-password');
+    await user.type(screen.getByLabelText(/email address/i), 'a@example.com');
+    await user.type(screen.getByLabelText(/password/i), 'bad-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
     await waitFor(() => {
@@ -65,8 +65,8 @@ describe('Login', () => {
       </MemoryRouter>
     );
 
-    await user.type(screen.getByLabelText('Email Address'), 'a@example.com');
-    await user.type(screen.getByLabelText('Password'), 'good-password');
+    await user.type(screen.getByLabelText(/email address/i), 'a@example.com');
+    await user.type(screen.getByLabelText(/password/i), 'good-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
     await waitFor(() => {

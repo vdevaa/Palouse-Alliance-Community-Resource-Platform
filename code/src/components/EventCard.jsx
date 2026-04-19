@@ -22,6 +22,9 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const hasLocation = Boolean(event.location?.trim());
   const volunteerUrl = event.volunteer_url?.trim();
+  const volunteerActionLabel = volunteerUrl ? "Event Link" : "";
+  const volunteerPopupDescription = "You are about to leave the site to visit this event's volunteer page.";
+  const volunteerContinueLabel = "Continue";
   const tags = Array.isArray(event.tags) ? event.tags : [];
 
   const handleViewDetails = () => {
@@ -77,7 +80,7 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
         <div className="event-actions">
           {volunteerUrl ? (
             <button className="primary-btn" type="button" onClick={handleViewDetails}>
-              View Details
+              {volunteerActionLabel}
             </button>
           ) : null}
         </div>
@@ -86,7 +89,7 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
       {confirmOpen ? (
         <Popup
           title="Leave site?"
-          description="You are about to leave the site to visit this event's volunteer page."
+          description={volunteerPopupDescription}
           onClose={() => setConfirmOpen(false)}
           actions={
             <>
@@ -98,7 +101,7 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
                 Cancel
               </button>
               <button type="button" className="primary-btn" onClick={handleLeaveSite}>
-                Continue
+                {volunteerContinueLabel}
               </button>
             </>
           }

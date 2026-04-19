@@ -30,7 +30,7 @@ describe('EventCard', () => {
     expect(screen.getByText('Community Service')).toBeInTheDocument();
     expect(screen.getByText('Outdoor')).toBeInTheDocument();
     expect(screen.getByText('Volunteer')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'View Details' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Event Link' })).toBeInTheDocument();
   });
 
   it('shows date ranges for multi-day events', () => {
