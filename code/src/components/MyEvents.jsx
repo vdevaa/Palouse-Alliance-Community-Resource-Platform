@@ -255,7 +255,7 @@ const MyEvents = ({ session, formatTimeRange, onClose, onPostEvent }) => {
             onClick={onClose}
             aria-label="Close My Events"
           >
-            ×
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
 
@@ -304,8 +304,10 @@ const MyEvents = ({ session, formatTimeRange, onClose, onPostEvent }) => {
               >
                 <span className="my-events-group-title">Pending Events</span>
                 <span className="my-events-group-meta">
-                  <span className="my-events-group-chevron">
-                    {myEventsSections.pending ? "−" : "+"}
+                  <span className="my-events-group-chevron" aria-hidden="true">
+                    <span className="material-symbols-outlined">
+                      {myEventsSections.pending ? "expand_less" : "expand_more"}
+                    </span>
                   </span>
                 </span>
               </button>
@@ -341,8 +343,10 @@ const MyEvents = ({ session, formatTimeRange, onClose, onPostEvent }) => {
               >
                 <span className="my-events-group-title">Approved Events</span>
                 <span className="my-events-group-meta">
-                  <span className="my-events-group-chevron">
-                    {myEventsSections.approved ? "−" : "+"}
+                  <span className="my-events-group-chevron" aria-hidden="true">
+                    <span className="material-symbols-outlined">
+                      {myEventsSections.approved ? "expand_less" : "expand_more"}
+                    </span>
                   </span>
                 </span>
               </button>
@@ -378,8 +382,10 @@ const MyEvents = ({ session, formatTimeRange, onClose, onPostEvent }) => {
               >
                 <span className="my-events-group-title">Rejected Events</span>
                 <span className="my-events-group-meta">
-                  <span className="my-events-group-chevron">
-                    {myEventsSections.rejected ? "−" : "+"}
+                  <span className="my-events-group-chevron" aria-hidden="true">
+                    <span className="material-symbols-outlined">
+                      {myEventsSections.rejected ? "expand_less" : "expand_more"}
+                    </span>
                   </span>
                 </span>
               </button>

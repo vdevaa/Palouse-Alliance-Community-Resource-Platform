@@ -569,8 +569,11 @@
   align-items: center;
   justify-content: center;
   color: var(--color-primary-700);
-  font-size: 16px;
   line-height: 1;
+}
+
+.my-events-group-chevron .material-symbols-outlined {
+  font-size: 18px;
 }
 
 .my-events-group-list {
