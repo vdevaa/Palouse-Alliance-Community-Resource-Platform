@@ -3,14 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import {
   getSessionCacheValue,
-  isSessionCacheFresh,
   readSessionCache,
   writeSessionCache,
   ORGANIZATIONS_PAGE_CACHE_KEY,
 } from "../lib/sessionCache";
 import "../styles/Organizations.css";
-
-const ORGANIZATIONS_CACHE_TTL_MS = 10 * 60 * 1000;
 
 const Organizations = () => {
   const navigate = useNavigate();
@@ -22,6 +19,7 @@ const Organizations = () => {
   const [filteredOrgs, setFilteredOrgs] = useState(initialOrganizations);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(!Array.isArray(cachedOrganizations));
+  const [revalidationKey, setRevalidationKey] = useState(0);
 
   const isVisibleOrg = (org) => {
     const name = org.name?.trim()?.toLowerCase();
@@ -29,6 +27,26 @@ const Organizations = () => {
   };
 
   const isValid = (val) => val && val !== "NULL" && val.trim() !== "";
+
+  useEffect(() => {
+    const triggerRevalidation = () => {
+      if (document.visibilityState === "hidden") {
+        return;
+      }
+
+      setRevalidationKey((currentKey) => currentKey + 1);
+    };
+
+    window.addEventListener("focus", triggerRevalidation);
+    window.addEventListener("pageshow", triggerRevalidation);
+    document.addEventListener("visibilitychange", triggerRevalidation);
+
+    return () => {
+      window.removeEventListener("focus", triggerRevalidation);
+      window.removeEventListener("pageshow", triggerRevalidation);
+      document.removeEventListener("visibilitychange", triggerRevalidation);
+    };
+  }, []);
 
   useEffect(() => {
     const cachedEntry = readSessionCache(ORGANIZATIONS_PAGE_CACHE_KEY);
@@ -39,13 +57,8 @@ const Organizations = () => {
       setFilteredOrgs(cachedOrgs);
     }
 
-    if (Array.isArray(cachedOrgs) && isSessionCacheFresh(cachedEntry, ORGANIZATIONS_CACHE_TTL_MS)) {
-      setLoading(false);
-      return;
-    }
-
     const fetchOrgs = async () => {
-      setLoading(true);
+      setLoading(!(Array.isArray(cachedOrgs) && cachedOrgs.length > 0));
       const { data, error } = await supabase
         .from("organizations")
         .select(`
@@ -74,7 +87,7 @@ const Organizations = () => {
       setLoading(false);
     };
     fetchOrgs();
-  }, []);
+  }, [revalidationKey]);
 
   useEffect(() => {
     const results = orgs.filter(

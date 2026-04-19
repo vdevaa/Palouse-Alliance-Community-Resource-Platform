@@ -176,6 +176,42 @@ describe('Events', () => {
     expect(screen.getByText('Tech Workshop')).toBeInTheDocument();
   });
 
+  it('rehydrates cached event dates from session storage', async () => {
+    sessionStorage.setItem(
+      'palouse:events-page-cache',
+      JSON.stringify({
+        storedAt: Date.now(),
+        value: {
+          events: [
+            {
+              id: 1,
+              title: 'Food Drive',
+              description: 'Collect canned foods',
+              startDate: '2026-04-01T10:00:00.000Z',
+              endDate: '2026-04-01T11:00:00.000Z',
+              location: 'Downtown',
+              categoryName: 'Food',
+              organizationName: 'Org A',
+              tags: ['Community'],
+              tagIds: ['tag-1'],
+            },
+          ],
+          categories: ['All Events', 'Food'],
+          tags: [
+            { id: 'All Tags', name: 'All Tags' },
+            { id: 'tag-1', name: 'Community' },
+          ],
+        },
+      })
+    );
+
+    renderEvents();
+
+    expect(await screen.findByText('Food Drive')).toBeInTheDocument();
+    expect(screen.queryByText('Date unavailable')).not.toBeInTheDocument();
+    expect(screen.queryByText('Time unavailable')).not.toBeInTheDocument();
+  });
+
   it('shows a success flash message passed through router state', async () => {
     mockEventsOrder.mockResolvedValueOnce({
       data: [],
@@ -365,5 +401,47 @@ describe('Events', () => {
 
     expect(screen.queryByRole('button', { name: 'My Events' })).not.toBeInTheDocument();
     expect(screen.getByText('Food Drive')).toBeInTheDocument();
+  });
+
+  it('refetches events when the browser tab regains focus', async () => {
+    mockEventsOrder.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          title: 'Food Drive',
+          description: 'Collect canned foods',
+          start_datetime: '2026-04-01T10:00:00',
+          end_datetime: '2026-04-01T11:00:00',
+          location: 'Downtown',
+          status: 'approved',
+          organizations: { name: 'Org A' },
+          categories: { name: 'Food' },
+          event_tags: [{ tags: { name: 'Community' } }],
+        },
+      ],
+      error: null,
+    });
+
+    mockCategoriesOrder.mockResolvedValue({
+      data: [{ name: 'Food' }],
+      error: null,
+    });
+
+    mockTagsOrder.mockResolvedValue({
+      data: [{ id: 'tag-1', name: 'Community' }],
+      error: null,
+    });
+
+    renderEvents();
+
+    await waitFor(() => {
+      expect(screen.getByText('Food Drive')).toBeInTheDocument();
+    });
+
+    window.dispatchEvent(new Event('focus'));
+
+    await waitFor(() => {
+      expect(mockEventsOrder).toHaveBeenCalledTimes(2);
+    });
   });
 });

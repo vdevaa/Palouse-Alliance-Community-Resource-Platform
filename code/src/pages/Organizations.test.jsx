@@ -98,4 +98,37 @@ describe('Organizations', () => {
     expect(screen.queryByText('Food Bank Partners')).not.toBeInTheDocument();
     expect(screen.getByText('Health Outreach')).toBeInTheDocument();
   });
+
+  it('refetches organizations when the browser tab regains focus', async () => {
+    mockOrder.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          name: 'Food Bank Partners',
+          description: 'Food support and distribution',
+          phone_number: '',
+          email: '',
+          location: 'Moscow',
+          events: [],
+        },
+      ],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <Organizations />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Food Bank Partners')).toBeInTheDocument();
+    });
+
+    window.dispatchEvent(new Event('focus'));
+
+    await waitFor(() => {
+      expect(mockOrder).toHaveBeenCalledTimes(2);
+    });
+  });
 });

@@ -9,7 +9,6 @@ import { parseSupabaseDateTime } from "../lib/dateTime";
 import { supabase } from "../lib/supabase";
 import {
   getSessionCacheValue,
-  isSessionCacheFresh,
   readSessionCache,
   writeSessionCache,
   EVENTS_PAGE_CACHE_KEY,
@@ -19,7 +18,6 @@ import "../styles/Events.css";
 const ALL_EVENTS_CATEGORY = "All Events";
 const ALL_EVENTS_TAG = "All Tags";
 const TOAST_DURATION_MS = 2600;
-const EVENTS_CACHE_TTL_MS = 10 * 60 * 1000;
 
 function getStartOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -196,13 +194,32 @@ function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
   };
 }
 
+function hydrateCachedEvents(cachedEvents) {
+  if (!Array.isArray(cachedEvents)) {
+    return [];
+  }
+
+  return cachedEvents
+    .map((event) => {
+      const startDate = parseSupabaseDateTime(event.startDate || event.start_datetime);
+      const endDate = parseSupabaseDateTime(event.endDate || event.end_datetime);
+
+      return {
+        ...event,
+        startDate,
+        endDate,
+      };
+    })
+    .filter((event) => isValidDate(event.startDate) && isValidDate(event.endDate));
+}
+
 const Events = ({ session }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const cachedEventsEntry = readSessionCache(EVENTS_PAGE_CACHE_KEY);
   const cachedEventsPage = getSessionCacheValue(cachedEventsEntry);
-  const [events, setEvents] = useState(() => cachedEventsPage?.events ?? []);
+  const [events, setEvents] = useState(() => hydrateCachedEvents(cachedEventsPage?.events));
   const [categories, setCategories] = useState(() => cachedEventsPage?.categories ?? [ALL_EVENTS_CATEGORY]);
   const [tags, setTags] = useState(() => cachedEventsPage?.tags ?? [{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
   const [selectedCategories, setSelectedCategories] = useState([
@@ -227,6 +244,7 @@ const Events = ({ session }) => {
   const [isPostEventOpen, setIsPostEventOpen] = useState(false);
   const [postEventSuccessOpen, setPostEventSuccessOpen] = useState(false);
   const [hasMyEvents, setHasMyEvents] = useState(false);
+  const [revalidationKey, setRevalidationKey] = useState(0);
   const previousSessionUserIdRef = useRef(session?.user?.id || null);
 
   useEffect(() => {
@@ -317,6 +335,26 @@ const Events = ({ session }) => {
   }, [filterMenuOpen]);
 
   useEffect(() => {
+    const triggerRevalidation = () => {
+      if (document.visibilityState === "hidden") {
+        return;
+      }
+
+      setRevalidationKey((currentKey) => currentKey + 1);
+    };
+
+    window.addEventListener("focus", triggerRevalidation);
+    window.addEventListener("pageshow", triggerRevalidation);
+    document.addEventListener("visibilitychange", triggerRevalidation);
+
+    return () => {
+      window.removeEventListener("focus", triggerRevalidation);
+      window.removeEventListener("pageshow", triggerRevalidation);
+      document.removeEventListener("visibilitychange", triggerRevalidation);
+    };
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
 
     const fetchMyEventsCount = async () => {
@@ -361,17 +399,12 @@ const Events = ({ session }) => {
       const cachedPage = getSessionCacheValue(cachedEntry);
 
       if (cachedPage && Array.isArray(cachedPage.events)) {
-        setEvents(cachedPage.events);
+        setEvents(hydrateCachedEvents(cachedPage.events));
         setCategories(cachedPage.categories || [ALL_EVENTS_CATEGORY]);
         setTags(cachedPage.tags || [{ id: ALL_EVENTS_TAG, name: ALL_EVENTS_TAG }]);
       }
 
-      if (cachedPage && isSessionCacheFresh(cachedEntry, EVENTS_CACHE_TTL_MS)) {
-        setEventsLoading(false);
-        return;
-      }
-
-      setEventsLoading(true);
+      setEventsLoading(!(cachedPage && Array.isArray(cachedPage.events) && cachedPage.events.length > 0));
       setEventsError("");
 
       try {
@@ -532,7 +565,7 @@ const Events = ({ session }) => {
     return () => {
       isMounted = false;
     };
-  }, [minVisibleMonth, maxVisibleMonth]);
+  }, [minVisibleMonth, maxVisibleMonth, revalidationKey]);
 
   const calendarDays = useMemo(
     () => getMonthMatrix(visibleMonth.getFullYear(), visibleMonth.getMonth()),
