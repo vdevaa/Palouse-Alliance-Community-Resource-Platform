@@ -114,13 +114,22 @@
   justify-content: flex-end;
 }
 
-.admin-org-empty {
-  padding: 24px 0;
-  text-align: center;
-  color: var(--color-text-subtle);
-}
+  .icon-button {
+    min-width: 42px;
+    min-height: 42px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+  }
 
-.admin-org-error {
+  .icon-button .material-symbols-outlined {
+    font-size: 20px;
+  }
+
   color: var(--color-danger);
 }
 

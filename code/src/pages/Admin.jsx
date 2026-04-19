@@ -789,11 +789,23 @@ const Admin = () => {
                   <div key={org.id} className="admin-org-row">
                     <span className="admin-org-row-name">{org.name}</span>
                     <div className="admin-org-actions">
-                      <button type="button" className="btn-secondary" onClick={() => handleEditClick(org)}>
-                        Edit
+                      <button
+                        type="button"
+                        className="btn-secondary icon-button"
+                        onClick={() => handleEditClick(org)}
+                        aria-label={`Edit ${org.name}`}
+                        title={`Edit ${org.name}`}
+                      >
+                        <span className="material-symbols-outlined" aria-hidden="true">edit</span>
                       </button>
-                      <button type="button" className="btn-danger" onClick={() => setDeleteTarget(org)}>
-                        Delete
+                      <button
+                        type="button"
+                        className="btn-danger icon-button"
+                        onClick={() => setDeleteTarget(org)}
+                        aria-label={`Delete ${org.name}`}
+                        title={`Delete ${org.name}`}
+                      >
+                        <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                       </button>
                     </div>
                   </div>
@@ -1049,17 +1061,24 @@ const Admin = () => {
                         <div className="admin-user-meta">{user.role} · {organizationName}</div>
                       </div>
                       <div className="admin-org-actions">
-                        <button type="button" className="btn-secondary" onClick={() => handleEditUserClick(user)}>
-                          Edit
+                        <button
+                          type="button"
+                          className="btn-secondary icon-button"
+                          onClick={() => handleEditUserClick(user)}
+                          aria-label={`Edit ${user.email}`}
+                          title={`Edit ${user.email}`}
+                        >
+                          <span className="material-symbols-outlined" aria-hidden="true">edit</span>
                         </button>
                         <button
                           type="button"
-                          className="btn-danger"
+                          className="btn-danger icon-button"
                           onClick={() => setDeleteUserTarget(user)}
                           disabled={user.id === currentUserId}
-                          title={user.id === currentUserId ? "You cannot delete your own account." : undefined}
+                          aria-label={user.id === currentUserId ? "You cannot delete your own account." : `Delete ${user.email}`}
+                          title={user.id === currentUserId ? "You cannot delete your own account." : `Delete ${user.email}`}
                         >
-                          Delete
+                          <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                         </button>
                       </div>
                     </div>

@@ -41,7 +41,7 @@ const Popup = ({
             onClick={onClose}
             aria-label="Close popup"
           >
-            ×
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
         <div className="popup-body">{children}</div>
