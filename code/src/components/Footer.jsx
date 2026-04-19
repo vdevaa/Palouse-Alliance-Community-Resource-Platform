@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from "react-router-dom";
-import logo from "../assets/PalouseLogo.avif";
+import logo from "../assets/PalouseTextLogo.png";
 import "../styles/Footer.css";
 
 const Footer = () => {
@@ -14,7 +14,6 @@ const Footer = () => {
                             alt="Palouse Alliance logo"
                             className="footer-logo"
                         />
-                        <span className="footer-brand-name">Palouse Alliance</span>
                     </div>
                     <p className="footer-copy">
                         Connecting individuals, families, and communities through accessible community resources and events.

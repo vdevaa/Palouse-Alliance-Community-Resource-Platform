@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Popup from "../components/Popup";
-
-import PalouseLogo from "../assets/PalouseLogo.avif";
+import loginLogo from "../assets/PalouseSquareLogo.png";
 import "../styles/Login.css";
 
 const Login = () => {
@@ -35,9 +34,8 @@ const Login = () => {
       <main className="login-main">
         <div className="login-card">
           <div className="login-logo">
-            <img src={PalouseLogo} alt="Palouse Alliance Logo" />
+            <img src={loginLogo} alt="Palouse Alliance Logo" />
           </div>
-
           <h1 className="login-title">Welcome Back</h1>
           <p className="login-subtitle">
             Sign in to your organization account to manage events <br />

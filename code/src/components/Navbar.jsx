@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "../assets/PalouseAlliance.avif";
+import logo from "../assets/PalouseTextLogo.png";
 import { supabase } from "../lib/supabase";
 import "../styles/Navbar.css";
 

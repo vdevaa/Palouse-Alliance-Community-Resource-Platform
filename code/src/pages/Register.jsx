@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import logo from "../assets/PalouseAlliance.avif";
+import logo from "../assets/PalouseTextLogo.png";
 import "../styles/Login.css";
 
 const Register = () => {
