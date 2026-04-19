@@ -79,6 +79,8 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .navbar-link-primary {
@@ -90,6 +92,7 @@
 
 .navbar-link-primary:hover {
   background: var(--btn-primary-bg-hover);
+  color: var(--btn-primary-text);
 }
 
 .navbar-link-outline {
@@ -110,6 +113,7 @@
 
 .navbar-link-accent:hover {
   filter: brightness(0.95);
+  color: var(--color-text);
 }
 
 /* Secondary / less prominent button (outline with primary text) */
@@ -122,6 +126,7 @@
 
 .navbar-link-secondary:hover {
   background: var(--btn-secondary-bg-hover); /* subtle primary tint */
+  color: var(--btn-secondary-text);
 }
 
 .navbar-button,
