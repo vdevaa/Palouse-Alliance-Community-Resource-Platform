@@ -410,9 +410,6 @@ const Events = ({ session }) => {
         .sort((first, second) => first.startDate - second.startDate);
 
       const fetchedCategoryNames = (categoryRows || []).map((category) => category.name);
-      const fetchedTagNames = Array.from(
-        new Set([...(tagRows || []).map((tag) => tag.name).filter(Boolean)])
-      ).sort();
 
       setEvents(normalizedEvents);
       setCategories([ALL_EVENTS_CATEGORY, ...fetchedCategoryNames]);

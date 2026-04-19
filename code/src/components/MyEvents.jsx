@@ -73,15 +73,7 @@ function normalizeSupabaseEvent(event, tagLookup = {}, eventTagIds = []) {
   };
 }
 
-function getStatusLabel(status) {
-  if (!status) {
-    return "In Review";
-  }
-
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-const MyEvents = ({ session, formatCompactDate, formatTimeRange, onClose }) => {
+const MyEvents = ({ session, formatTimeRange, onClose }) => {
   const [myEvents, setMyEvents] = useState([]);
   const [myEventsLoading, setMyEventsLoading] = useState(false);
   const [myEventsError, setMyEventsError] = useState("");
