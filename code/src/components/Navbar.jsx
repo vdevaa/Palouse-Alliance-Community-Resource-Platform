@@ -64,6 +64,14 @@ const Navbar = ({ session, isAdmin }) => {
                     <div className="navbar-link-group">
                         <Link to="/" className="navbar-link navbar-link-text">Home</Link>
                         <a
+                            href="https://palouseresources.org/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="navbar-link navbar-link-text"
+                        >
+                            Palouse Resource Guide
+                        </a>
+                        <a
                             href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -139,6 +147,14 @@ const Navbar = ({ session, isAdmin }) => {
 
                 <div className="navbar-mobile-links">
                     <Link to="/" className="navbar-mobile-link">Home</Link>
+                    <a
+                        href="https://palouseresources.org/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="navbar-mobile-link"
+                    >
+                        Palouse Resource Guide
+                    </a>
                     <a
                         href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                         target="_blank"
