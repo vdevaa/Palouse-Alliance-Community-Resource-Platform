@@ -68,16 +68,22 @@ const Navbar = ({ session, isAdmin }) => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="navbar-link navbar-link-text"
+                            aria-label="Palouse Resource Guide — opens in a new tab"
+                            title="Opens in a new tab"
                         >
                             Palouse Resource Guide
+                            <span className="navbar-external-icon material-symbols-outlined" aria-hidden="true">open_in_new</span>
                         </a>
                         <a
                             href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="navbar-link navbar-link-text"
+                            aria-label="GivePulse — opens in a new tab"
+                            title="Opens in a new tab"
                         >
                             GivePulse
+                            <span className="navbar-external-icon material-symbols-outlined" aria-hidden="true">open_in_new</span>
                         </a>
 
                         <Link to="/events" className="navbar-link navbar-link-text">Member Events</Link>
@@ -152,16 +158,22 @@ const Navbar = ({ session, isAdmin }) => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="navbar-mobile-link"
+                        aria-label="Palouse Resource Guide — opens in a new tab"
+                        title="Opens in a new tab"
                     >
                         Palouse Resource Guide
+                        <span className="navbar-external-icon material-symbols-outlined" aria-hidden="true">open_in_new</span>
                     </a>
                     <a
                         href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="navbar-mobile-link"
+                        aria-label="GivePulse — opens in a new tab"
+                        title="Opens in a new tab"
                     >
                         GivePulse
+                        <span className="navbar-external-icon material-symbols-outlined" aria-hidden="true">open_in_new</span>
                     </a>
                     <Link to="/events" className="navbar-mobile-link">Member Events</Link>
                     <Link to="/organizations" className="navbar-mobile-link">Organizations</Link>

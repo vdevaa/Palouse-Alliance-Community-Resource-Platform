@@ -69,6 +69,15 @@
   color: var(--color-primary-800);
 }
 
+.navbar-external-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.3rem;
+  font-size: 1rem;
+  vertical-align: text-top;
+}
+
 .navbar-link-primary,
 .navbar-link-secondary,
 .navbar-link-accent {
