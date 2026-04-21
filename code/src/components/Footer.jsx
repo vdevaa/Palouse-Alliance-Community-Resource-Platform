@@ -55,7 +55,7 @@ const Footer = () => {
                 </div>
 
                 <div className="footer-col">
-                    <h4>Help & Support</h4>
+                    <h4>Contact Us</h4>
                     <div className="footer-contact-list">
                         <div className="footer-contact-item">
                             <span className="material-symbols-outlined footer-icon" aria-hidden="true">alternate_email</span>
