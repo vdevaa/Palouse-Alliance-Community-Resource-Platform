@@ -4,6 +4,8 @@ import logo from "../assets/PalouseSquareLogo.png";
 import "../styles/Footer.css";
 
 const Footer = () => {
+    const currentYear = new Date().getFullYear();
+
     return (
         <footer className="site-footer">
             <div className="footer-inner">
@@ -19,10 +21,10 @@ const Footer = () => {
                     <p className="footer-copy">
                         Connecting individuals, families, and communities through accessible community resources and events.
                     </p>
-                    <div className="footer-org-details">
-                        <p>Palouse Alliance is a 501(c)(3) organization.</p>
-                        <p>Tax ID: 91-2065784</p>
-                    </div>
+                    <p className="footer-copy">
+                        Palouse Alliance is a 501(c)(3) organization.
+                        <br />Tax ID: 91-2065784
+                    </p>
                 </div>
 
                 <div className="footer-col">
@@ -77,7 +79,7 @@ const Footer = () => {
             </div>
 
             <div className="footer-bottom">
-                © 2026 Palouse Alliance. All rights reserved. Serving individuals, families, and communities.
+                <p>Copyright © {currentYear} Palouse Alliance. All rights reserved.</p>
             </div>
         </footer>
     );
