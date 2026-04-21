@@ -44,6 +44,7 @@
   margin: 0 0 12px 0;
   font-size: 42px;
   line-height: normal;
+  letter-spacing: -0.01em;
   color: var(--color-text);
 }
 
@@ -91,4 +92,20 @@
 .organizations-page {
   min-height: 100vh;
   background: var(--color-bg);
+}
+
+@media (max-width: 640px) {
+  .page-title,
+  .home-hero h1,
+  .login-title,
+  .postevent-title {
+    font-size: 32px;
+  }
+
+  .page-description,
+  .home-hero p,
+  .login-subtitle,
+  .postevent-subtitle {
+    font-size: 16px;
+  }
 }
