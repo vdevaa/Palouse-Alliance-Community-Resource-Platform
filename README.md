@@ -43,7 +43,7 @@ A community-focused React application that organizes Palouse area events, organi
 
 ## Installation
 ### Prerequisites
-- Node.js 18 or newer
+- Node.js 20 or newer
 - npm or yarn
 - Git
 
@@ -53,9 +53,9 @@ A community-focused React application that organizes Palouse area events, organi
    git clone <your-repo-url>
    cd <your-repo-directory>
    ```
-2. Change into the frontend application folder:
+2. Change into the application folder:
    ```bash
-   cd code/frontend
+   cd code
    ```
 3. Install dependencies:
    ```bash
@@ -64,11 +64,18 @@ A community-focused React application that organizes Palouse area events, organi
    yarn install
    ```
 4. Create environment variables:
-   - The frontend uses Vite env variables:
-     - `VITE_SUPABASE_URL`
-     - `VITE_SUPABASE_ANON_KEY`
-   - Create a `.env` file inside `code/frontend/` with those values.
-   - If you do not have Supabase credentials, the UI will still run, but Supabase-backed data such as events and organizations may not load.
+    - Copy the example file and fill in your values:
+       ```bash
+       cp .env.example .env
+       ```
+    - Required frontend variables:
+       - `VITE_SUPABASE_URL`
+       - `VITE_SUPABASE_ANON_KEY`
+    - Required backend variables (used by admin API endpoints):
+       - `SUPABASE_URL`
+       - `SUPABASE_SERVICE_ROLE_KEY`
+    - Optional frontend API override:
+       - `VITE_API_BASE` (leave blank for same-origin API calls)
 
 5. Run the development server:
    ```bash
@@ -79,14 +86,14 @@ A community-focused React application that organizes Palouse area events, organi
    The app will be available at `http://localhost:5173` by default.
 
 ### Build and Preview
-From `code/frontend/`:
+From `code/`:
 ```bash
 npm run build
 npm run preview
 ```
 
 ## Available Scripts
-From `code/frontend/`:
+From `code/`:
 - `npm run dev` - start Vite development server
 - `npm run build` - build production assets
 - `npm run preview` - preview built app locally
@@ -96,12 +103,25 @@ From `code/frontend/`:
 - `npm run test:coverage` - generate test coverage report
 
 ## Supabase Configuration
-The project currently uses Supabase through `code/frontend/src/lib/supabase.js`.
+The project currently uses Supabase through `code/src/lib/supabase.js`.
 The client reads configuration from:
 - `import.meta.env.VITE_SUPABASE_URL`
 - `import.meta.env.VITE_SUPABASE_ANON_KEY`
 
-If you want to connect to your own Supabase instance, update those variables in `code/frontend/.env`.
+If you want to connect to your own Supabase instance, update those variables in `code/.env`.
+
+## Vercel Deployment
+1. Import the repository into Vercel and set the project root to `code/`.
+2. Build command: `npm run build`
+3. Output directory: `dist`
+4. Add these environment variables in Vercel Project Settings:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - Optional: `VITE_API_BASE` (defaults to same-origin)
+
+The included `code/vercel.json` routes `/api/*` to the serverless backend and all other routes to the SPA entrypoint.
 
 ## Application Behavior
 - The home page loads approved events from the `events` table and displays them in a calendar, with search and category filters.
@@ -112,9 +132,8 @@ If you want to connect to your own Supabase instance, update those variables in 
 - The dashboard and admin routes are available but currently serve as placeholders for expanded functionality.
 
 ## Notes
-- There is no `.env.example` file in the repository.
-- The active application is in `code/frontend/`; the root repo does not contain a separate frontend build.
-- The backend folder is currently a placeholder.
+- The active application is in `code/`.
+- Keep `.env` out of source control and commit only `.env.example`.
 
 ## Additional Documentation
 - [Sprint Documents](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/Sprints)

@@ -2,13 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { validate as validateUuid } from 'uuid';
 
 dotenv.config();
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PORT = Number(process.env.PORT || 3001);
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
@@ -395,6 +396,12 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
-});
+const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isDirectRun) {
+  app.listen(PORT, () => {
+    console.log(`Backend listening on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

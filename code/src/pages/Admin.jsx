@@ -14,7 +14,7 @@ import {
 import "../styles/Admin.css";
 import "../styles/Login.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_BASE || "";
 const ADMIN_CACHE_TTL_MS = 10 * 60 * 1000;
 const ADMIN_ORGS_CACHE_KEY = "palouse:admin-orgs-cache";
 const ADMIN_USERS_CACHE_KEY = "palouse:admin-users-cache";
