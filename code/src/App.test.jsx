@@ -82,8 +82,8 @@ describe('App routing and auth', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Welcome to Palouse Alliance')).toBeInTheDocument();
-      expect(screen.getByText(/landing page is being redesigned/i)).toBeInTheDocument();
+      expect(screen.getByText(/Building a Healthier/i)).toBeInTheDocument();
+      expect(screen.getByText(/Your central interagency consortium/i)).toBeInTheDocument();
     });
   });
 
@@ -96,7 +96,7 @@ describe('App routing and auth', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Welcome to Palouse Alliance')).toBeInTheDocument();
+      expect(screen.getByText(/Building a Healthier/i)).toBeInTheDocument();
     });
   });
 
