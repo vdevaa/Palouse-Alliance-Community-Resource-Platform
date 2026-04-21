@@ -18,6 +18,11 @@ const Footer = () => {
                     <p className="footer-copy">
                         Connecting individuals, families, and communities through accessible community resources and events.
                     </p>
+                    {/* New Organization details added here */}
+                    <div className="footer-org-details">
+                        <p>Palouse Alliance is a 501(c)(3) organization</p>
+                        <p>Tax ID: 91-2065784</p>
+                    </div>
                 </div>
 
                 <div className="footer-col">
@@ -28,7 +33,7 @@ const Footer = () => {
                         <li><Link to="/organizations">Organizations</Link></li>
                         <li>
                             <a
-                                href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
+                                href="https://wsu.givepulse.com/group/244255"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
@@ -43,15 +48,18 @@ const Footer = () => {
                     <div className="footer-contact-list">
                         <div className="footer-contact-item">
                             <span className="material-symbols-outlined footer-icon" aria-hidden="true">alternate_email</span>
-                            <span>info@palousealliance.org</span>
-                        </div>
-                        <div className="footer-contact-item">
-                            <span className="material-symbols-outlined footer-icon" aria-hidden="true">phone</span>
-                            <span>(555) 123-4567</span>
+                            <span>palousealliance@gmail.com</span>
                         </div>
                         <div className="footer-contact-item">
                             <span className="material-symbols-outlined footer-icon" aria-hidden="true">place</span>
-                            <span>Palouse Region, Idaho & Washington</span>
+                            <div className="footer-address-stack">
+                                <span>PO Box 874</span>
+                                <span>Pullman, WA 99163</span>
+                            </div>
+                        </div>
+                        <div className="footer-contact-item">
+                            <span className="material-symbols-outlined footer-icon" aria-hidden="true">public</span>
+                            <span>Palouse Region, ID & WA</span>
                         </div>
                     </div>
                 </div>

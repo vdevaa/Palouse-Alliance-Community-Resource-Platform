@@ -116,3 +116,28 @@
     grid-template-columns: 1fr;
   }
 }
+
+.footer-org-details {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.footer-org-details p {
+  margin: 0;
+}
+
+.footer-address-stack {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+}
+
+.footer-contact-item {
+  align-items: flex-start;
+}
+
+.footer-icon {
+  margin-top: 4px;
+}
