@@ -67,7 +67,7 @@ const Login = () => {
       <main className="login-main">
         <div className="login-card">
           <div className="login-logo">
-            <img src={loginLogo} alt="Palouse Alliance Logo" />
+            <img src={loginLogo} alt="Palouse Alliance Logo" draggable="false" />
           </div>
           <h1 className="login-title">Welcome Back</h1>
           <p className="login-subtitle">

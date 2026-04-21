@@ -57,6 +57,7 @@ const Navbar = ({ session, isAdmin }) => {
                         src={logo}
                         alt="Palouse Alliance Logo"
                         className="navbar-logo"
+                        draggable="false"
                     />
                 </Link>
 
@@ -138,6 +139,7 @@ const Navbar = ({ session, isAdmin }) => {
                         src={logo}
                         alt="Palouse Alliance Logo"
                         className="navbar-mobile-logo"
+                        draggable="false"
                     />
                     <button
                         type="button"

@@ -12,7 +12,7 @@ const Landing = () => {
         
         <section className="page-hero landing-hero-main">
           <div className="org-location-chip legacy-chip">Since 1984</div>
-          <img src={logo} alt="Palouse Alliance" className="hero-logo-img" />
+          <img src={logo} alt="Palouse Alliance" className="hero-logo-img" draggable="false" />
           <h1 className="page-title">
             Building a Healthier <br/>
             <span className="accent-text">Palouse Community</span>
@@ -32,7 +32,7 @@ const Landing = () => {
               className="btn-outline landing-btn" 
               onClick={() => navigate('/organizations')}
             >
-              Resource Directory
+              Organizations
             </button>
           </div>
         </section>
@@ -40,7 +40,7 @@ const Landing = () => {
         <div className="masonry-container landing-pillars">
           <div className="masonry-item">
             <div className="org-card static-pillar-card">
-              <span className="material-symbols-outlined pillar-icon">handshake</span>
+              <span className="material-symbols-outlined pillar-icon" aria-hidden="true">handshake</span>
               <h3 className="org-title">Coordinate</h3>
               <p className="org-description">
                 Bridging gaps between regional providers to ensure seamless community support systems.
@@ -50,7 +50,7 @@ const Landing = () => {
 
           <div className="masonry-item">
             <div className="org-card static-pillar-card">
-              <span className="material-symbols-outlined pillar-icon">menu_book</span>
+              <span className="material-symbols-outlined pillar-icon" aria-hidden="true">menu_book</span>
               <h3 className="org-title">Resource</h3>
               <p className="org-description">
                 Maintaining a reliable guide of essential services for individuals and families.
@@ -60,10 +60,10 @@ const Landing = () => {
 
           <div className="masonry-item">
             <div className="org-card static-pillar-card">
-              <span className="material-symbols-outlined pillar-icon">groups</span>
+              <span className="material-symbols-outlined pillar-icon" aria-hidden="true">groups</span>
               <h3 className="org-title">Advocate</h3>
               <p className="org-description">
-                A collective voice for human service professionals in our unique bi-state region.
+                A collective voice for human service professionals in our region.
               </p>
             </div>
           </div>

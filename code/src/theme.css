@@ -26,10 +26,6 @@ p {
   line-height: 1.6;
 }
 
-.material-symbols-outlined {
-  font-variation-settings: "FILL" 1, "wght" 450, "GRAD" 0, "opsz" 24;
-}
-
 .home-search-wrapper,
 .search-wrapper {
   position: relative;

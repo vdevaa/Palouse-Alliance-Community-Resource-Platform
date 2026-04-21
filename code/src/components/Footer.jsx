@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from "react-router-dom";
-import logo from "../assets/PalouseTextLogo.png";
+import logo from "../assets/PalouseSquareLogo.png";
 import "../styles/Footer.css";
 
 const Footer = () => {
@@ -13,14 +13,14 @@ const Footer = () => {
                             src={logo}
                             alt="Palouse Alliance logo"
                             className="footer-logo"
+                            draggable="false"
                         />
                     </div>
                     <p className="footer-copy">
                         Connecting individuals, families, and communities through accessible community resources and events.
                     </p>
-                    {/* New Organization details added here */}
                     <div className="footer-org-details">
-                        <p>Palouse Alliance is a 501(c)(3) organization</p>
+                        <p>Palouse Alliance is a 501(c)(3) organization.</p>
                         <p>Tax ID: 91-2065784</p>
                     </div>
                 </div>
@@ -29,17 +29,28 @@ const Footer = () => {
                     <h4>Quick Links</h4>
                     <ul className="footer-links">
                         <li><Link to="/">Home</Link></li>
-                        <li><Link to="/events">Member Events</Link></li>
-                        <li><Link to="/organizations">Organizations</Link></li>
                         <li>
                             <a
-                                href="https://wsu.givepulse.com/group/244255"
+                                href="https://palouseresources.org/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Palouse Resource Guide
+                                <span className="material-symbols-outlined footer-external-icon" aria-hidden="true">open_in_new</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a
+                                href="https://wsu.givepulse.com/group/244255-palouse-alliance-for-healthy-individuals-families-communities"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
                                 GivePulse
+                                <span className="material-symbols-outlined footer-external-icon" aria-hidden="true">open_in_new</span>
                             </a>
                         </li>
+                        <li><Link to="/events">Member Events</Link></li>
+                        <li><Link to="/organizations">Organizations</Link></li>
                     </ul>
                 </div>
 
@@ -48,7 +59,7 @@ const Footer = () => {
                     <div className="footer-contact-list">
                         <div className="footer-contact-item">
                             <span className="material-symbols-outlined footer-icon" aria-hidden="true">alternate_email</span>
-                            <span>palousealliance@gmail.com</span>
+                            <a className="footer-email-link" href="mailto:palousealliance@gmail.com">palousealliance@gmail.com</a>
                         </div>
                         <div className="footer-contact-item">
                             <span className="material-symbols-outlined footer-icon" aria-hidden="true">place</span>

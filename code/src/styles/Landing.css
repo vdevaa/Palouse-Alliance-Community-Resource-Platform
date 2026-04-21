@@ -47,31 +47,34 @@
 }
 
 .landing-pillars {
-  margin-top: 1rem;
-  margin-bottom: 5rem;
+  margin-bottom: 4rem;
+}
+
+.landing-pillars.masonry-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.landing-pillars .masonry-item {
+  display: block;
+  width: 100%;
 }
 
 .static-pillar-card {
   align-items: center;
   text-align: center;
   min-height: 240px;
-  cursor: default !important;
-  pointer-events: none;
-  transition: none !important;
-  transform: none !important;
-  will-change: auto !important;
-}
-
-.static-pillar-card:hover {
-  transform: none !important;
-  box-shadow: none !important;
-  margin: 0 !important;
-  outline: none !important;
 }
 
 .pillar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 2.5rem;
   color: var(--color-primary-600);
+  line-height: 1;
   margin-bottom: 1rem;
 }
 
