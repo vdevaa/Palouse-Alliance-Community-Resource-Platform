@@ -88,6 +88,10 @@
   padding-top: 18px;
 }
 
+.event-footer-actions {
+  margin-top: 14px;
+}
+
 .event-modal-overlay {
   position: fixed;
   inset: 0;

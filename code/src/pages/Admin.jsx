@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import EventCard from "../components/EventCard";
 import Popup from "../components/Popup";
 import FormField from "../components/FormField";
 import { parseSupabaseDateTime } from "../lib/dateTime";
@@ -12,6 +13,7 @@ import {
   writeSessionCache,
 } from "../lib/sessionCache";
 import "../styles/Admin.css";
+import "../styles/EventCard.css";
 import "../styles/Login.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
@@ -60,8 +62,20 @@ const Admin = ({ session }) => {
   const [userEditLoading, setUserEditLoading] = useState(false);
   const [userEditError, setUserEditError] = useState(() => persistedAdminState?.userEditError ?? "");
 
+  const hydrateManageEvents = (events) => {
+    if (!Array.isArray(events)) {
+      return [];
+    }
+
+    return events.map((event) => ({
+      ...event,
+      startDate: parseSupabaseDateTime(event.startDate || event.start_datetime),
+      endDate: parseSupabaseDateTime(event.endDate || event.end_datetime),
+    }));
+  };
+
   const [manageEventsPopupOpen, setManageEventsPopupOpen] = useState(() => persistedAdminState?.manageEventsPopupOpen ?? false);
-  const [manageEvents, setManageEvents] = useState(() => persistedAdminState?.manageEvents ?? []);
+  const [manageEvents, setManageEvents] = useState(() => hydrateManageEvents(persistedAdminState?.manageEvents ?? []));
   const [manageEventsLoading, setManageEventsLoading] = useState(false);
   const [manageEventsError, setManageEventsError] = useState("");
   const [manageEventActionLoading, setManageEventActionLoading] = useState(() => persistedAdminState?.manageEventActionLoading ?? null);
@@ -283,7 +297,7 @@ const Admin = ({ session }) => {
     const cachedEvents = getSessionCacheValue(cachedEventsEntry);
 
     if (Array.isArray(cachedEvents)) {
-      setManageEvents(cachedEvents);
+      setManageEvents(hydrateManageEvents(cachedEvents));
     }
 
     if (Array.isArray(cachedEvents) && isSessionCacheFresh(cachedEventsEntry, ADMIN_CACHE_TTL_MS)) {
@@ -410,7 +424,7 @@ const Admin = ({ session }) => {
 
   const formatEventTimestamp = (timestamp) => {
     const date = parseSupabaseDateTime(timestamp);
-    if (!date) return "Unknown";
+    if (!date) return "";
     return date.toLocaleString(undefined, {
       month: "short",
       day: "numeric",
@@ -420,8 +434,27 @@ const Admin = ({ session }) => {
     });
   };
 
+  const formatEventWindow = (startTimestamp, endTimestamp) => {
+    const startText = formatEventTimestamp(startTimestamp);
+    const endText = formatEventTimestamp(endTimestamp);
+
+    if (startText && endText) {
+      return `${startText} - ${endText}`;
+    }
+
+    return startText || endText || "";
+  };
+
   const updateEventStatus = async (eventId, status) => {
     setManageEventActionLoading(eventId);
+
+    const previousEvents = manageEvents;
+    const nextEvents = previousEvents.map((event) => (
+      event.id === eventId ? { ...event, status } : event
+    ));
+
+    setManageEvents(nextEvents);
+    writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, nextEvents);
 
     try {
       const { error } = await supabase
@@ -433,18 +466,15 @@ const Admin = ({ session }) => {
         throw error;
       }
 
-      setManageEvents((current) =>
-        current.map((event) =>
-          event.id === eventId ? { ...event, status } : event
-        )
-      );
-
       openAdminAlert({
         title: status === "approved" ? "Event Approved" : "Event Rejected",
         description: `The event has been ${status === "approved" ? "approved" : "rejected"}.`,
         message: `Event status updated successfully! Updates are visible to the public.`,
       });
     } catch (error) {
+      setManageEvents(previousEvents);
+      writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, previousEvents);
+
       openAdminAlert({
         title: "Event status update failed",
         description: "Unable to update event status.",
@@ -1445,7 +1475,7 @@ const Admin = ({ session }) => {
                     className="admin-events-group-toggle"
                     onClick={() => toggleManageEventsSection(key)}
                   >
-                    <span>{title}</span>
+                    <span>{title} ({items.length})</span>
                     <span className="admin-events-group-chevron">
                       <span className="material-symbols-outlined" aria-hidden="true">
                         {manageEventsSections[key] ? "expand_less" : "expand_more"}
@@ -1458,94 +1488,43 @@ const Admin = ({ session }) => {
                         <p className="admin-events-group-empty">No {title.toLowerCase()}.</p>
                       ) : (
                         <div className="admin-events-group-list">
-                      {items.map((event) => (
-                        <div key={event.id} className="admin-event-card">
-                          <div className="admin-event-card-header">
-                            <div>
-                              <h4>{event.title}</h4>
-                              {(event.organizationName || event.categoryName) ? (
-                                <p className="admin-event-meta">
-                                  {[event.organizationName, event.categoryName].filter(Boolean).join(" · ")}
-                                </p>
-                              ) : null}
-                            </div>
-                            <div className="admin-event-status">{event.status || "Pending"}</div>
-                          </div>
-                          <div className="admin-event-detail-grid">
-                            <div>
-                              <strong>When</strong>
-                              <p>{formatEventTimestamp(event.start_datetime)} — {formatEventTimestamp(event.end_datetime)}</p>
-                            </div>
-                            {event.location ? (
-                              <div>
-                                <strong>Location</strong>
-                                <p>{event.location}</p>
-                              </div>
-                            ) : null}
-                            {event.created_by ? (
-                              <div>
-                                <strong>Created By</strong>
-                                <p>{event.created_by}</p>
-                              </div>
-                            ) : null}
-                            {event.created_at ? (
-                              <div>
-                                <strong>Submitted</strong>
-                                <p>{new Date(event.created_at).toLocaleString()}</p>
-                              </div>
-                            ) : null}
-                            {event.volunteer_url ? (
-                              <div>
-                                <strong>Volunteer Link</strong>
-                                <p>
-                                  <button
-                                    type="button"
-                                    className="primary-btn"
-                                    onClick={() => openVolunteerConfirm(event.volunteer_url)}
-                                  >
-                                    View Link
-                                  </button>
-                                </p>
-                              </div>
-                            ) : null}
-                            {event.tags?.length > 0 ? (
-                              <div className="admin-event-tags-row">
-                                <strong>Tags</strong>
-                                <p>{event.tags.join(", ")}</p>
-                              </div>
-                            ) : null}
-                          </div>
-                          {event.description ? (
-                            <div className="admin-event-description">
-                              <strong>Description</strong>
-                              <p>{event.description}</p>
-                            </div>
-                          ) : null}
-                          <div className="popup-actions admin-event-actions">
-                            {event.status?.toLowerCase() !== "approved" && (
-                              <button
-                                type="button"
-                                className="btn-primary"
-                                disabled={manageEventActionLoading === event.id}
-                                onClick={() => updateEventStatus(event.id, "approved")}
-                              >
-                                {manageEventActionLoading === event.id ? "Updating..." : "Approve"}
-                              </button>
-                            )}
-                            {event.status?.toLowerCase() !== "rejected" && (
-                              <button
-                                type="button"
-                                className="btn-danger"
-                                disabled={manageEventActionLoading === event.id}
-                                onClick={() => updateEventStatus(event.id, "rejected")}
-                              >
-                                {manageEventActionLoading === event.id ? "Updating..." : event.status?.toLowerCase() === "approved" ? "Reject" : "Reject"}
-                              </button>
-                            )}
-                          </div>
+                          {items.map((event) => (
+                            <EventCard
+                              key={event.id}
+                              event={event}
+                              formatFullDate={(date) => date.toLocaleDateString(undefined, {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                              formatTimeRange={(startDate, endDate) => `${startDate.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} - ${endDate.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`}
+                              footerActions={(
+                                <div className="event-footer-actions admin-event-actions">
+                                  {event.status?.toLowerCase() !== "approved" && (
+                                    <button
+                                      type="button"
+                                      className="btn-primary"
+                                      disabled={manageEventActionLoading === event.id}
+                                      onClick={() => updateEventStatus(event.id, "approved")}
+                                    >
+                                      {manageEventActionLoading === event.id ? "Updating..." : "Approve"}
+                                    </button>
+                                  )}
+                                  {event.status?.toLowerCase() !== "rejected" && (
+                                    <button
+                                      type="button"
+                                      className="btn-danger"
+                                      disabled={manageEventActionLoading === event.id}
+                                      onClick={() => updateEventStatus(event.id, "rejected")}
+                                    >
+                                      {manageEventActionLoading === event.id ? "Updating..." : "Reject"}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            />
+                          ))}
                         </div>
-                      ))}
-                    </div>
                       )}
                     </>
                   )}

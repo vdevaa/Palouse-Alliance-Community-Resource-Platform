@@ -1,33 +1,9 @@
 import React, { useState } from "react";
 import Popup from "./Popup";
+import { formatEventDateLabel, formatEventTimeRange } from "../lib/dateTime";
 import "../styles/EventCard.css";
 
-function isSameCalendarDay(firstDate, secondDate) {
-  return (
-    firstDate.getFullYear() === secondDate.getFullYear() &&
-    firstDate.getMonth() === secondDate.getMonth() &&
-    firstDate.getDate() === secondDate.getDate()
-  );
-}
-
-function formatEventDateLabel(startDate, endDate, formatFullDate) {
-  if (
-    !(startDate instanceof Date) ||
-    Number.isNaN(startDate.getTime()) ||
-    !(endDate instanceof Date) ||
-    Number.isNaN(endDate.getTime())
-  ) {
-    return "Date unavailable";
-  }
-
-  if (isSameCalendarDay(startDate, endDate)) {
-    return formatFullDate(startDate);
-  }
-
-  return `${formatFullDate(startDate)} - ${formatFullDate(endDate)}`;
-}
-
-function EventCard({ event, formatFullDate, formatTimeRange }) {
+function EventCard({ event, footerActions = null }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const hasLocation = Boolean(event.location?.trim());
   const volunteerUrl = event.volunteer_url?.trim();
@@ -35,6 +11,7 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
   const volunteerPopupDescription = "You are about to leave the site to visit this event's volunteer page.";
   const volunteerContinueLabel = "Continue";
   const tags = Array.isArray(event.tags) ? event.tags : [];
+  const subtitle = [event.organizationName, event.categoryName].filter(Boolean).join(" · ");
   const hasValidDates =
     event.startDate instanceof Date &&
     !Number.isNaN(event.startDate.getTime()) &&
@@ -57,24 +34,19 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
   return (
     <>
       <article className="event-card">
-        <div className="event-card-top">
-          <span className="event-category">{event.categoryName}</span>
-          {/* <span className="event-status">{event.status}</span> */}
-        </div>
-
         <h3>{event.title}</h3>
-        <p className="event-org">{event.organizationName}</p>
+        {subtitle ? <p className="event-org">{subtitle}</p> : null}
         <p className="event-description">{event.description}</p>
 
         <div className="event-meta">
           <p>
             <strong>Date:</strong>{" "}
             {hasValidDates
-              ? formatEventDateLabel(event.startDate, event.endDate, formatFullDate)
+              ? formatEventDateLabel(event.startDate, event.endDate)
               : "Date unavailable"}
           </p>
           <p>
-            <strong>Time:</strong> {hasValidDates ? formatTimeRange(event.startDate, event.endDate) : "Time unavailable"}
+            <strong>Time:</strong> {hasValidDates ? formatEventTimeRange(event.startDate, event.endDate) : "Time unavailable"}
           </p>
           {hasLocation ? (
             <p>
@@ -100,6 +72,8 @@ function EventCard({ event, formatFullDate, formatTimeRange }) {
             </button>
           ) : null}
         </div>
+
+        {footerActions ? <div className="event-footer-actions">{footerActions}</div> : null}
       </article>
 
       {confirmOpen ? (
