@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  z-index: 1100;
+  z-index: 1200;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
