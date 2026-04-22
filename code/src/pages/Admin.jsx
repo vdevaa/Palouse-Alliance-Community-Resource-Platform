@@ -1168,7 +1168,7 @@ const Admin = ({ session }) => {
               )}
               <div className="popup-actions">
                 <button type="button" className="btn-secondary" onClick={closeOrgPopup}>
-                  Cancel
+                  Close
                 </button>
               </div>
             </div>
@@ -1442,7 +1442,7 @@ const Admin = ({ session }) => {
               )}
               <div className="popup-actions">
                 <button type="button" className="btn-secondary" onClick={closeUserManagePopup}>
-                  Cancel
+                  Close
                 </button>
               </div>
             </div>
@@ -1503,21 +1503,29 @@ const Admin = ({ session }) => {
                                   {event.status?.toLowerCase() !== "approved" && (
                                     <button
                                       type="button"
-                                      className="btn-primary"
+                                      className="btn-primary icon-button"
+                                      title={manageEventActionLoading === event.id ? "Updating approval" : "Approve event"}
+                                      aria-label={manageEventActionLoading === event.id ? "Updating approval" : "Approve event"}
                                       disabled={manageEventActionLoading === event.id}
                                       onClick={() => updateEventStatus(event.id, "approved")}
                                     >
-                                      {manageEventActionLoading === event.id ? "Updating..." : "Approve"}
+                                      <span className="material-symbols-outlined" aria-hidden="true">
+                                        check
+                                      </span>
                                     </button>
                                   )}
                                   {event.status?.toLowerCase() !== "rejected" && (
                                     <button
                                       type="button"
-                                      className="btn-danger"
+                                      className="btn-danger icon-button"
+                                      title={manageEventActionLoading === event.id ? "Updating rejection" : "Reject event"}
+                                      aria-label={manageEventActionLoading === event.id ? "Updating rejection" : "Reject event"}
                                       disabled={manageEventActionLoading === event.id}
                                       onClick={() => updateEventStatus(event.id, "rejected")}
                                     >
-                                      {manageEventActionLoading === event.id ? "Updating..." : "Reject"}
+                                      <span className="material-symbols-outlined" aria-hidden="true">
+                                        close
+                                      </span>
                                     </button>
                                   )}
                                 </div>
