@@ -33,7 +33,7 @@ describe('EventCard', () => {
     expect(screen.getByRole('button', { name: 'Event Link' })).toBeInTheDocument();
   });
 
-  it('shows date ranges for multi-day events', () => {
+  it('shows a clear start/end layout for multi-day events', () => {
     const multiDayEvent = {
       ...event,
       startDate: new Date('2026-04-01T10:00:00'),
@@ -48,7 +48,11 @@ describe('EventCard', () => {
       />
     );
 
-    expect(screen.getByText(/Wed Apr 01 2026 - Thu Apr 02 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Start:/)).toBeInTheDocument();
+    expect(screen.getByText(/End:/)).toBeInTheDocument();
+    expect(screen.getByText(/Wed Apr 01 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Thu Apr 02 2026/)).toBeInTheDocument();
+    expect(screen.getAllByText(/10:00 AM/)).toHaveLength(2);
   });
 
   it('does not render the location row when location is missing', () => {

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Popup from "./Popup";
 import {
-  formatEventDateLabel,
   formatEventTimeRange,
   isSameCalendarDay,
 } from "../lib/dateTime";
@@ -23,19 +22,23 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
     event.endDate instanceof Date &&
     !Number.isNaN(event.endDate.getTime());
 
-  const renderDateLabel = () => {
-    if (!hasValidDates) {
-      return "Date unavailable";
-    }
-
+  const formatDateValue = (date) => {
     if (typeof formatFullDate === "function") {
-      if (isSameCalendarDay(event.startDate, event.endDate)) {
-        return formatFullDate(event.startDate);
-      }
-      return `${formatFullDate(event.startDate)} - ${formatFullDate(event.endDate)}`;
+      return formatFullDate(date);
     }
 
-    return formatEventDateLabel(event.startDate, event.endDate);
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const formatTimeOnly = (date) => {
+    return date.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
   };
 
   const renderTimeValue = () => {
@@ -48,6 +51,42 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
     }
 
     return formatEventTimeRange(event.startDate, event.endDate);
+  };
+
+  const renderDateMeta = () => {
+    if (!hasValidDates) {
+      return (
+        <>
+          <p>
+            <strong>Date:</strong> Date unavailable
+          </p>
+        </>
+      );
+    }
+
+    if (isSameCalendarDay(event.startDate, event.endDate)) {
+      return (
+        <>
+          <p>
+            <strong>Date:</strong> {formatDateValue(event.startDate)}
+          </p>
+          <p>
+            <strong>Time:</strong> {renderTimeValue()}
+          </p>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <p>
+          <strong>Start:</strong> {formatDateValue(event.startDate)} · {formatTimeOnly(event.startDate)}
+        </p>
+        <p>
+          <strong>End:</strong> {formatDateValue(event.endDate)} · {formatTimeOnly(event.endDate)}
+        </p>
+      </>
+    );
   };
 
   const handleViewDetails = () => {
@@ -77,13 +116,7 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
         <p className="event-description">{event.description}</p>
 
         <div className="event-meta">
-          <p>
-            <strong>Date:</strong>{" "}
-            {hasValidDates ? renderDateLabel() : "Date unavailable"}
-          </p>
-          <p>
-            <strong>Time:</strong> {hasValidDates ? renderTimeValue() : "Time unavailable"}
-          </p>
+          {renderDateMeta()}
           {hasLocation ? (
             <p>
               <strong>Location:</strong> {event.location.trim()}
