@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import Popup from "./Popup";
-import { formatEventDateLabel, formatEventTimeRange } from "../lib/dateTime";
+import {
+  formatEventDateLabel,
+  formatEventTimeRange,
+  isSameCalendarDay,
+} from "../lib/dateTime";
 import "../styles/EventCard.css";
 
-function EventCard({ event, footerActions = null }) {
+function EventCard({ event, footerActions = null, formatFullDate, formatTimeRange }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const hasLocation = Boolean(event.location?.trim());
   const volunteerUrl = event.volunteer_url?.trim();
@@ -11,12 +15,40 @@ function EventCard({ event, footerActions = null }) {
   const volunteerPopupDescription = "You are about to leave the site to visit this event's volunteer page.";
   const volunteerContinueLabel = "Continue";
   const tags = Array.isArray(event.tags) ? event.tags : [];
-  const subtitle = [event.organizationName, event.categoryName].filter(Boolean).join(" · ");
+  const organizationName = event.organizationName?.trim();
+  const categoryName = event.categoryName?.trim();
   const hasValidDates =
     event.startDate instanceof Date &&
     !Number.isNaN(event.startDate.getTime()) &&
     event.endDate instanceof Date &&
     !Number.isNaN(event.endDate.getTime());
+
+  const renderDateLabel = () => {
+    if (!hasValidDates) {
+      return "Date unavailable";
+    }
+
+    if (typeof formatFullDate === "function") {
+      if (isSameCalendarDay(event.startDate, event.endDate)) {
+        return formatFullDate(event.startDate);
+      }
+      return `${formatFullDate(event.startDate)} - ${formatFullDate(event.endDate)}`;
+    }
+
+    return formatEventDateLabel(event.startDate, event.endDate);
+  };
+
+  const renderTimeValue = () => {
+    if (!hasValidDates) {
+      return "Time unavailable";
+    }
+
+    if (typeof formatTimeRange === "function") {
+      return formatTimeRange(event.startDate, event.endDate);
+    }
+
+    return formatEventTimeRange(event.startDate, event.endDate);
+  };
 
   const handleViewDetails = () => {
     setConfirmOpen(true);
@@ -35,18 +67,22 @@ function EventCard({ event, footerActions = null }) {
     <>
       <article className="event-card">
         <h3>{event.title}</h3>
-        {subtitle ? <p className="event-org">{subtitle}</p> : null}
+        {(organizationName || categoryName) ? (
+          <p className="event-org">
+            {organizationName ? <span>{organizationName}</span> : null}
+            {organizationName && categoryName ? <span> · </span> : null}
+            {categoryName ? <span>{categoryName}</span> : null}
+          </p>
+        ) : null}
         <p className="event-description">{event.description}</p>
 
         <div className="event-meta">
           <p>
             <strong>Date:</strong>{" "}
-            {hasValidDates
-              ? formatEventDateLabel(event.startDate, event.endDate)
-              : "Date unavailable"}
+            {hasValidDates ? renderDateLabel() : "Date unavailable"}
           </p>
           <p>
-            <strong>Time:</strong> {hasValidDates ? formatEventTimeRange(event.startDate, event.endDate) : "Time unavailable"}
+            <strong>Time:</strong> {hasValidDates ? renderTimeValue() : "Time unavailable"}
           </p>
           {hasLocation ? (
             <p>

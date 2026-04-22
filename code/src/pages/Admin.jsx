@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import EventCard from "../components/EventCard";
 import Popup from "../components/Popup";
 import FormField from "../components/FormField";
@@ -242,25 +242,7 @@ const Admin = ({ session }) => {
     }
   };
 
-  useEffect(() => {
-    if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen || userManagePopupOpen || manageEventsPopupOpen) {
-      loadOrgs();
-    }
-  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen, manageEventsPopupOpen]);
-
-  useEffect(() => {
-    if (userManagePopupOpen) {
-      loadUsers();
-    }
-  }, [userManagePopupOpen]);
-
-  useEffect(() => {
-    if (manageEventsPopupOpen) {
-      loadManageEvents();
-    }
-  }, [manageEventsPopupOpen]);
-
-  async function loadUsers() {
+  const loadUsers = useCallback(async () => {
     const cachedUsersEntry = readSessionCache(ADMIN_USERS_CACHE_KEY);
     const cachedUsers = getSessionCacheValue(cachedUsersEntry);
 
@@ -290,9 +272,9 @@ const Admin = ({ session }) => {
     } finally {
       setUsersLoading(false);
     }
-  }
+  }, []);
 
-  async function loadManageEvents() {
+  const loadManageEvents = useCallback(async () => {
     const cachedEventsEntry = readSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY);
     const cachedEvents = getSessionCacheValue(cachedEventsEntry);
 
@@ -375,7 +357,25 @@ const Admin = ({ session }) => {
     } finally {
       setManageEventsLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen || userManagePopupOpen || manageEventsPopupOpen) {
+      loadOrgs();
+    }
+  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen, manageEventsPopupOpen]);
+
+  useEffect(() => {
+    if (userManagePopupOpen) {
+      loadUsers();
+    }
+  }, [userManagePopupOpen, loadUsers]);
+
+  useEffect(() => {
+    if (manageEventsPopupOpen) {
+      loadManageEvents();
+    }
+  }, [manageEventsPopupOpen, loadManageEvents]);
 
   const openManageEventsPopup = () => {
     setManageEventsSections({
@@ -406,10 +406,6 @@ const Admin = ({ session }) => {
     });
   };
 
-  const openVolunteerConfirm = (url) => {
-    setVolunteerConfirmUrl(url);
-  };
-
   const closeVolunteerConfirm = () => {
     setVolunteerConfirmUrl("");
   };
@@ -420,29 +416,6 @@ const Admin = ({ session }) => {
     }
     window.open(volunteerConfirmUrl, "_blank", "noopener,noreferrer");
     setVolunteerConfirmUrl("");
-  };
-
-  const formatEventTimestamp = (timestamp) => {
-    const date = parseSupabaseDateTime(timestamp);
-    if (!date) return "";
-    return date.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
-  const formatEventWindow = (startTimestamp, endTimestamp) => {
-    const startText = formatEventTimestamp(startTimestamp);
-    const endText = formatEventTimestamp(endTimestamp);
-
-    if (startText && endText) {
-      return `${startText} - ${endText}`;
-    }
-
-    return startText || endText || "";
   };
 
   const updateEventStatus = async (eventId, status) => {
