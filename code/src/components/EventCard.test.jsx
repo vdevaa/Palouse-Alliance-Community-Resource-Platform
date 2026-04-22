@@ -33,6 +33,20 @@ describe('EventCard', () => {
     expect(screen.getByRole('button', { name: 'Event Link' })).toBeInTheDocument();
   });
 
+  it('does not render Event Link when volunteer_url is missing', () => {
+    const noLinkEvent = { ...event, volunteer_url: '' };
+
+    render(
+      <EventCard
+        event={noLinkEvent}
+        formatFullDate={(date) => date.toDateString()}
+        formatTimeRange={() => '10:00 AM - 12:00 PM'}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: 'Event Link' })).not.toBeInTheDocument();
+  });
+
   it('shows a clear start/end layout for multi-day events', () => {
     const multiDayEvent = {
       ...event,
