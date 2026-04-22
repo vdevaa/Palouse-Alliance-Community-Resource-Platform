@@ -243,7 +243,6 @@ const Events = ({ session }) => {
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
   const [isPostEventOpen, setIsPostEventOpen] = useState(false);
   const [postEventSuccessOpen, setPostEventSuccessOpen] = useState(false);
-  const [hasMyEvents, setHasMyEvents] = useState(false);
   const [revalidationKey, setRevalidationKey] = useState(0);
   const previousSessionUserIdRef = useRef(session?.user?.id || null);
 
@@ -264,7 +263,6 @@ const Events = ({ session }) => {
     setIsMyEventsOpen(false);
     setIsPostEventOpen(false);
     setPostEventSuccessOpen(false);
-    setHasMyEvents(false);
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -353,43 +351,6 @@ const Events = ({ session }) => {
       document.removeEventListener("visibilitychange", triggerRevalidation);
     };
   }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchMyEventsCount = async () => {
-      if (!session?.user?.id) {
-        setHasMyEvents(false);
-        return;
-      }
-
-      try {
-        const { count, error } = await supabase
-          .from("events")
-          .select("id", { count: "exact", head: true })
-          .eq("created_by", session.user.id);
-
-        if (!isMounted) {
-          return;
-        }
-
-        setHasMyEvents(!error && typeof count === "number" && count > 0);
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        console.warn("Unable to determine whether the user has submitted events:", error);
-        setHasMyEvents(false);
-      }
-    };
-
-    fetchMyEventsCount();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [session]);
 
   useEffect(() => {
     let isMounted = true;
@@ -804,7 +765,7 @@ const Events = ({ session }) => {
               </Popup>
             ) : null}
 
-            {session && hasMyEvents ? (
+            {session ? (
               <div className="home-actions">
                 <button
                   type="button"
@@ -813,16 +774,6 @@ const Events = ({ session }) => {
                 >
                   My Events
                 </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => setIsPostEventOpen(true)}
-                >
-                  Post Event
-                </button>
-              </div>
-            ) : session ? (
-              <div className="home-actions">
                 <button
                   type="button"
                   className="btn-primary"

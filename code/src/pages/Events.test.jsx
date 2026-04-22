@@ -399,7 +399,7 @@ describe('Events', () => {
       expect(screen.queryByRole('heading', { name: /Post a Community Event/i })).not.toBeInTheDocument();
     });
 
-    expect(screen.queryByRole('button', { name: 'My Events' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'My Events' })).toBeInTheDocument();
     expect(screen.getByText('Food Drive')).toBeInTheDocument();
   });
 
