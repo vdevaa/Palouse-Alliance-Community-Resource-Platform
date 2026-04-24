@@ -210,15 +210,15 @@ const Admin = ({ session }) => {
     setDeleteTarget(null);
   };
 
-  const loadOrgs = async () => {
+  const loadOrgs = async (forceRefresh = false) => {
     const cachedOrgsEntry = readSessionCache(ADMIN_ORGS_CACHE_KEY);
     const cachedOrgs = getSessionCacheValue(cachedOrgsEntry);
 
-    if (Array.isArray(cachedOrgs)) {
+    if (!forceRefresh && Array.isArray(cachedOrgs)) {
       setOrgs(cachedOrgs);
     }
 
-    if (Array.isArray(cachedOrgs) && isSessionCacheFresh(cachedOrgsEntry, ADMIN_CACHE_TTL_MS)) {
+    if (!forceRefresh && Array.isArray(cachedOrgs) && isSessionCacheFresh(cachedOrgsEntry, ADMIN_CACHE_TTL_MS)) {
       setOrgsLoading(false);
       return;
     }
@@ -242,15 +242,15 @@ const Admin = ({ session }) => {
     }
   };
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (forceRefresh = false) => {
     const cachedUsersEntry = readSessionCache(ADMIN_USERS_CACHE_KEY);
     const cachedUsers = getSessionCacheValue(cachedUsersEntry);
 
-    if (Array.isArray(cachedUsers)) {
+    if (!forceRefresh && Array.isArray(cachedUsers)) {
       setUsers(cachedUsers);
     }
 
-    if (Array.isArray(cachedUsers) && isSessionCacheFresh(cachedUsersEntry, ADMIN_CACHE_TTL_MS)) {
+    if (!forceRefresh && Array.isArray(cachedUsers) && isSessionCacheFresh(cachedUsersEntry, ADMIN_CACHE_TTL_MS)) {
       setUsersLoading(false);
       return;
     }
@@ -274,15 +274,15 @@ const Admin = ({ session }) => {
     }
   }, []);
 
-  const loadManageEvents = useCallback(async () => {
+  const loadManageEvents = useCallback(async (forceRefresh = false) => {
     const cachedEventsEntry = readSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY);
     const cachedEvents = getSessionCacheValue(cachedEventsEntry);
 
-    if (Array.isArray(cachedEvents)) {
+    if (!forceRefresh && Array.isArray(cachedEvents)) {
       setManageEvents(hydrateManageEvents(cachedEvents));
     }
 
-    if (Array.isArray(cachedEvents) && isSessionCacheFresh(cachedEventsEntry, ADMIN_CACHE_TTL_MS)) {
+    if (!forceRefresh && Array.isArray(cachedEvents) && isSessionCacheFresh(cachedEventsEntry, ADMIN_CACHE_TTL_MS)) {
       setManageEventsLoading(false);
       return;
     }
@@ -444,6 +444,8 @@ const Admin = ({ session }) => {
         description: `The event has been ${status === "approved" ? "approved" : "rejected"}.`,
         message: `Event status updated successfully! Updates are visible to the public.`,
       });
+
+      await loadManageEvents(true);
     } catch (error) {
       setManageEvents(previousEvents);
       writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, previousEvents);
@@ -627,7 +629,7 @@ const Admin = ({ session }) => {
       if (!response.ok) {
         throw new Error(body?.message || "Unable to update organization.");
       }
-      await loadOrgs();
+      await loadOrgs(true);
       setEditingOrg(null);
       setOrgForm(emptyOrgForm);
       openAdminAlert({
@@ -738,7 +740,7 @@ const Admin = ({ session }) => {
         throw new Error(body?.message || "Organization registration failed.");
       }
       closeRegisterOrgPopup();
-      await loadOrgs();
+      await loadOrgs(true);
       openAdminAlert({
         title: 'Organization registered',
         description: 'The new organization was added successfully.',
@@ -784,6 +786,7 @@ const Admin = ({ session }) => {
         throw new Error(message);
       }
       closeUserPopup();
+      await loadUsers(true);
       openAdminAlert({
         title: 'User registered',
         description: 'The account was created successfully.',
@@ -827,7 +830,7 @@ const Admin = ({ session }) => {
       if (!response.ok) {
         throw new Error(body?.message || "Unable to update user.");
       }
-      await loadUsers();
+      await loadUsers(true);
       setEditingUser(null);
       openAdminAlert({
         title: 'User updated',
@@ -901,7 +904,7 @@ const Admin = ({ session }) => {
       if (!response.ok) {
         throw new Error(body?.message || "Unable to delete organization.");
       }
-      await loadOrgs();
+      await loadOrgs(true);
       setDeleteTarget(null);
       openAdminAlert({
         title: 'Organization deleted',
@@ -938,7 +941,7 @@ const Admin = ({ session }) => {
       if (!response.ok) {
         throw new Error(body?.message || "Unable to delete user.");
       }
-      await loadUsers();
+      await loadUsers(true);
       setDeleteUserTarget(null);
       openAdminAlert({
         title: 'User deleted',

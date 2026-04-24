@@ -43,7 +43,7 @@ const Landing = () => {
               <span className="material-symbols-outlined pillar-icon" aria-hidden="true">handshake</span>
               <h3 className="org-title">Coordinate</h3>
               <p className="org-description">
-                Bridging gaps between regional providers to ensure seamless community support systems.
+                We bridge the gaps between regional providers to ensure seamless community support systems.
               </p>
             </div>
           </div>
@@ -51,9 +51,9 @@ const Landing = () => {
           <div className="masonry-item">
             <div className="org-card static-pillar-card">
               <span className="material-symbols-outlined pillar-icon" aria-hidden="true">menu_book</span>
-              <h3 className="org-title">Resource</h3>
+              <h3 className="org-title">Network</h3>
               <p className="org-description">
-                Maintaining a reliable guide of essential services for individuals and families.
+                We serve as a trusted resource to facilitate networking and collaboration
               </p>
             </div>
           </div>
@@ -63,7 +63,7 @@ const Landing = () => {
               <span className="material-symbols-outlined pillar-icon" aria-hidden="true">groups</span>
               <h3 className="org-title">Advocate</h3>
               <p className="org-description">
-                A collective voice for human service professionals in our region.
+                We are a collective voice for health and human services in our region.
               </p>
             </div>
           </div>
