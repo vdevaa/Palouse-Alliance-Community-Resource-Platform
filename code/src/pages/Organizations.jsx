@@ -215,7 +215,7 @@ const Organizations = () => {
                   <p>Loading organizations...</p>
                 </>
               ) : (
-                <p>No organizations found matching "{searchTerm}"</p>
+                <p>No organizations found matching &quot;{searchTerm}&quot;</p>
               )}
             </div>
           )}
