@@ -132,7 +132,7 @@ const Organizations = () => {
         </div>
 
         <div className="masonry-container">
-          {filteredOrgs.length > 0 ? (
+          {filteredOrgs.length > 0 &&
             filteredOrgs.map((org) => {
               const displayName = isValid(org.name)
                 ? org.name
@@ -207,19 +207,19 @@ const Organizations = () => {
                   </div>
                 </div>
               );
-            })
-          ) : (
-            <div className="no-results">
-              {loading ? (
-                <>
-                  <p>Loading organizations...</p>
-                </>
-              ) : (
-                <p>No organizations found matching &quot;{searchTerm}&quot;</p>
-              )}
-            </div>
-          )}
+            })}
         </div>
+
+        {filteredOrgs.length === 0 && (
+          <div className="empty-state">
+            <h3>No Organizations Found</h3>
+            {loading ? (
+              <p>Loading organizations...</p>
+            ) : (
+              <p>Try adjusting your search.</p>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

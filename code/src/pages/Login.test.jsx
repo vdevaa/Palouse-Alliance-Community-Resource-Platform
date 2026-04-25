@@ -44,7 +44,7 @@ describe('Login', () => {
     );
 
     await user.type(screen.getByLabelText(/email address/i), 'a@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'bad-password');
+    await user.type(screen.getByLabelText(/password/i, { selector: 'input' }), 'bad-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
     await waitFor(() => {
@@ -66,7 +66,7 @@ describe('Login', () => {
     );
 
     await user.type(screen.getByLabelText(/email address/i), 'a@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'good-password');
+    await user.type(screen.getByLabelText(/password/i, { selector: 'input' }), 'good-password');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
     await waitFor(() => {

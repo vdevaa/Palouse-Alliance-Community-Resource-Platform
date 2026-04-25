@@ -835,8 +835,7 @@ const Events = ({ session }) => {
               <div className="empty-state">
                 <h3>No Events Found</h3>
                 <p>
-                  Try selecting a different date or category, or adjusting your
-                  search.
+                  Try adjusting your search.
                 </p>
               </div>
             ) : eventsLoading ? (
