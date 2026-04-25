@@ -61,6 +61,7 @@ const Admin = ({ session }) => {
   const [userEditForm, setUserEditForm] = useState(() => persistedAdminState?.userEditForm ?? { role: "member", organization_id: "unaffiliated" });
   const [userEditLoading, setUserEditLoading] = useState(false);
   const [userEditError, setUserEditError] = useState(() => persistedAdminState?.userEditError ?? "");
+  const [isRegisterPasswordVisible, setIsRegisterPasswordVisible] = useState(false);
 
   const hydrateManageEvents = (events) => {
     if (!Array.isArray(events)) {
@@ -1248,15 +1249,25 @@ const Admin = ({ session }) => {
                 />
               </FormField>
               <FormField htmlFor="register_password" label="Password" error={userFieldErrors.password} required>
-                <input
-                  id="register_password"
-                  name="password"
-                  className="form-input"
-                  type="password"
-                  value={userForm.password}
-                  onChange={handleUserChange}
-                  required
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    id="register_password"
+                    name="password"
+                    className="form-input password-input"
+                    type={isRegisterPasswordVisible ? "text" : "password"}
+                    value={userForm.password}
+                    onChange={handleUserChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-button"
+                    onClick={() => setIsRegisterPasswordVisible((visible) => !visible)}
+                    aria-label={isRegisterPasswordVisible ? "Hide password" : "Show password"}
+                  >
+                    {isRegisterPasswordVisible ? "Hide" : "Show"}
+                  </button>
+                </div>
               </FormField>
               <FormField htmlFor="register_role" label="Role" required>
                 <select

@@ -10,6 +10,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
@@ -114,21 +115,31 @@ const Login = () => {
                 </button>
               }
             >
-              <input
-                className="form-input"
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (fieldErrors.password) {
-                    clearFieldError("password");
-                  }
-                }}
-                required
-                autoComplete="current-password"
-              />
+              <div className="password-input-wrapper">
+                <input
+                  className="form-input password-input"
+                  id="password"
+                  type={isPasswordVisible ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (fieldErrors.password) {
+                      clearFieldError("password");
+                    }
+                  }}
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle-button"
+                  onClick={() => setIsPasswordVisible((visible) => !visible)}
+                  aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                >
+                  {isPasswordVisible ? "Hide" : "Show"}
+                </button>
+              </div>
             </FormField>
 
             <button
