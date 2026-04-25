@@ -724,7 +724,8 @@
 .event-grid {
   display: grid;
   gap: 22px;
-  align-items: stretch;
+  align-items: start;
+  grid-auto-flow: row;
 }
 
 .event-grid-public {
