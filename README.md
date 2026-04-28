@@ -131,10 +131,6 @@ The included `code/vercel.json` routes `/api/*` to the serverless backend and al
 - Event posting is implemented as a three-step form, with fields for title, description, date/time/location, and an optional flyer upload.
 - The dashboard and admin routes are available but currently serve as placeholders for expanded functionality.
 
-## Notes
-- The active application is in `code/`.
-- Keep `.env` out of source control and commit only `.env.example`.
-
 ## Additional Documentation
 - [Sprint Documents](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/Sprints)
 - [Sprint Reports](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/Reports)
