@@ -1,4 +1,4 @@
-# Sprint 2 Report (03/24/2026 to 05/01/2026)
+# Sprint 3 Report (03/24/2026 to 05/01/2026)
 ## YouTube link of Sprint Video
 [Sprint 3 Video](INSERT)
 
