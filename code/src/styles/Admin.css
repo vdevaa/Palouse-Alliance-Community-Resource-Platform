@@ -54,7 +54,8 @@
   }
 
   .admin-header {
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
   }
 }
 
