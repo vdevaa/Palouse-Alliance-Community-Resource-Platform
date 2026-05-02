@@ -1,6 +1,6 @@
 # Sprint 3 Report (03/24/2026 to 05/01/2026)
 ## YouTube link of Sprint Video
-[Sprint 3 Video](INSERT)
+[Sprint 3 Video](https://studio.youtube.com/video/sx55F_-Cf0U/edit)
 
 ## What's New (User Facing)
 * We gave the landing page a better layout so visitors can see next steps right away.
