@@ -22,10 +22,9 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 const app = express();
 
-const TRUSTED_ORIGINS = (process.env.CORS_ORIGIN || 'http://localhost:5173')
-  .split(',')
-  .map((value) => value.trim())
-  .filter(Boolean);
+const TRUSTED_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((value) => value.trim()).filter(Boolean)
+  : [];
 const allowAllOrigins = TRUSTED_ORIGINS.length === 0;
 
 app.use(
@@ -42,6 +41,8 @@ app.use(
   })
 );
 app.use(express.json());
+
+app.options('/api/login', cors());
 
 app.all('/api/login', (req, res, next) => {
   if (req.method !== 'POST') {
