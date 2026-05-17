@@ -6,6 +6,8 @@ import FormField from "../components/FormField";
 import loginLogo from "../assets/PalouseSquareLogo.png";
 import "../styles/Login.css";
 
+const API_BASE = import.meta.env.VITE_API_BASE || "";
+
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -50,17 +52,38 @@ const Login = () => {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const response = await fetch(`${API_BASE}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
+      const body = await response.json().catch(() => null);
 
-    if (error) {
-      setErrorMessage(error.message || "Invalid email or password.");
-      return;
+      if (!response.ok) {
+        setErrorMessage(body?.message || "Invalid email or password.");
+        return;
+      }
+
+      if (!body?.access_token || !body?.refresh_token) {
+        setErrorMessage("Unable to complete login. Please try again.");
+        return;
+      }
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: body.access_token,
+        refresh_token: body.refresh_token,
+      });
+
+      if (sessionError) {
+        setErrorMessage(sessionError.message || "Unable to complete login.");
+        return;
+      }
+
+      navigate("/");
+    } catch (error) {
+      setErrorMessage(error.message || "Unable to complete login.");
     }
-
-    navigate("/");
   };
 
   return (

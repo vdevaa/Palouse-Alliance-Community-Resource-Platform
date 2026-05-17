@@ -40,6 +40,9 @@ const { mockFrom } = vi.hoisted(() => {
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'user-1' }, access_token: 'test-access-token' } } }),
+    },
     from: mockFrom,
   },
 }));

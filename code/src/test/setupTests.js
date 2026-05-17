@@ -8,7 +8,7 @@ vi.mock('../lib/supabase', () => {
   const supabase = {
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: { email: 'member@palouse.org' } }, error: null }),
-      getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'uid-1' } } } }),
+      getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'uid-1' }, access_token: 'test-access-token' } } }),
       signOut: vi.fn().mockResolvedValue({ error: null }),
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),

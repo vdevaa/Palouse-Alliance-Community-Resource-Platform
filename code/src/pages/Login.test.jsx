@@ -2,9 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
-const { mockNavigate, mockSignInWithPassword } = vi.hoisted(() => ({
+const { mockNavigate, mockSetSession } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
-  mockSignInWithPassword: vi.fn(),
+  mockSetSession: vi.fn(),
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -18,7 +18,7 @@ vi.mock('react-router-dom', async () => {
 vi.mock('../lib/supabase', () => ({
   supabase: {
     auth: {
-      signInWithPassword: mockSignInWithPassword,
+      setSession: mockSetSession,
     },
   },
 }));
@@ -28,11 +28,17 @@ import Login from './Login';
 describe('Login', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    delete global.fetch;
   });
 
   it('shows auth error on failed login', async () => {
-    mockSignInWithPassword.mockResolvedValueOnce({
-      error: { message: 'Invalid credentials' },
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ message: 'Invalid credentials' }),
     });
 
     const user = userEvent.setup();
@@ -52,10 +58,15 @@ describe('Login', () => {
     });
 
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it('navigates to dashboard on successful login', async () => {
-    mockSignInWithPassword.mockResolvedValueOnce({ error: null });
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ access_token: 'abc', refresh_token: 'xyz' }),
+    });
+    mockSetSession.mockResolvedValue({ error: null });
 
     const user = userEvent.setup();
 
@@ -72,5 +83,7 @@ describe('Login', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/');
     });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(mockSetSession).toHaveBeenCalledWith({ access_token: 'abc', refresh_token: 'xyz' });
   });
 });

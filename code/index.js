@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { validate as validateUuid } from 'uuid';
@@ -22,26 +21,213 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 });
 
 const app = express();
-app.use(cors());
+
+const TRUSTED_ORIGINS = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || TRUSTED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+  })
+);
 app.use(express.json());
+
+const rateLimitStore = new Map();
+const loginAttempts = new Map();
+
+function createRateLimiter({ keyFn, maxRequests = 30, windowMs = 60_000 }) {
+  return (req, res, next) => {
+    const key = keyFn(req) || req.ip || 'global';
+    const now = Date.now();
+    const entry = rateLimitStore.get(key) || { count: 0, firstRequestAt: now };
+
+    if (now - entry.firstRequestAt >= windowMs) {
+      entry.count = 0;
+      entry.firstRequestAt = now;
+    }
+
+    entry.count += 1;
+    rateLimitStore.set(key, entry);
+
+    if (entry.count > maxRequests) {
+      return res.status(429).json({
+        error: 'rate_limit_exceeded',
+        message: 'Too many requests. Please try again later.',
+      });
+    }
+
+    next();
+  };
+}
+
+function normalizeLoginKey(req) {
+  const ip = req.ip || 'unknown';
+  const email = (req.body?.email || '').trim().toLowerCase();
+  return `${ip}:${email}`;
+}
+
+function getLoginDelay(attemptCount) {
+  if (attemptCount <= 3) {
+    return 0;
+  }
+  return Math.min(10 + (attemptCount - 3) * 5, 60);
+}
+
+function getLoginAttemptData(req) {
+  const key = normalizeLoginKey(req);
+  const now = Date.now();
+  const entry = loginAttempts.get(key) || {
+    count: 0,
+    firstFailedAt: now,
+    blockedUntil: 0,
+  };
+
+  if (now - entry.firstFailedAt > 5 * 60_000) {
+    entry.count = 0;
+    entry.firstFailedAt = now;
+    entry.blockedUntil = 0;
+  }
+
+  return { entry, key };
+}
+
+function recordFailedLogin(req) {
+  const { entry, key } = getLoginAttemptData(req);
+  const now = Date.now();
+  entry.count += 1;
+  entry.firstFailedAt = now;
+  const delaySeconds = getLoginDelay(entry.count);
+  entry.blockedUntil = delaySeconds > 0 ? now + delaySeconds * 1000 : 0;
+  loginAttempts.set(key, entry);
+  return entry;
+}
+
+function clearLoginAttempts(req) {
+  const { key } = getLoginAttemptData(req);
+  loginAttempts.delete(key);
+}
+
+function parseBearerToken(req) {
+  const authorization = req.headers.authorization || req.headers.Authorization || '';
+  const [scheme, token] = authorization.split(' ');
+  return scheme?.toLowerCase() === 'bearer' ? token : null;
+}
+
+async function requireAdmin(req, res, next) {
+  const token = parseBearerToken(req);
+
+  if (!token) {
+    return res.status(401).json({
+      error: 'authentication_required',
+      message: 'Authentication token is required.',
+    });
+  }
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabaseAdmin.auth.getUser(token);
+
+  if (authError || !user) {
+    return res.status(401).json({
+      error: 'invalid_token',
+      message: 'Authentication failed.',
+    });
+  }
+
+  req.authUser = user;
+
+  const { data, error: profileError } = await supabaseAdmin
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profileError || !data || data.role !== 'admin') {
+    return res.status(403).json({
+      error: 'forbidden',
+      message: 'Admin access is required.',
+    });
+  }
+
+  req.authUserRole = data.role;
+  next();
+}
+
+const publicRateLimiter = createRateLimiter({
+  keyFn: (req) => req.ip,
+  maxRequests: 60,
+  windowMs: 60_000,
+});
+
+const adminRateLimiter = createRateLimiter({
+  keyFn: (req) => req.authUser?.id || req.ip,
+  maxRequests: 30,
+  windowMs: 60_000,
+});
+
+app.post('/api/login', publicRateLimiter, async (req, res) => {
+  const { email, password } = req.body || {};
+  const now = Date.now();
+  const { entry } = getLoginAttemptData(req);
+
+  if (entry.blockedUntil > now) {
+    return res.status(429).json({
+      error: 'login_rate_limited',
+      message: `Too many failed login attempts. Try again in ${Math.ceil((entry.blockedUntil - now) / 1000)} seconds.`,
+      retry_after: Math.ceil((entry.blockedUntil - now) / 1000),
+    });
+  }
+
+  if (!email || typeof email !== 'string' || !email.trim()) {
+    return res.status(400).json({ error: 'email_required', message: 'Email is required.' });
+  }
+
+  if (!password || typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ error: 'password_required', message: 'Password is required and must be at least 8 characters.' });
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (error || !data?.session) {
+      const failedEntry = recordFailedLogin(req);
+      const delay = getLoginDelay(failedEntry.count);
+      return res.status(401).json({
+        error: 'invalid_credentials',
+        message: 'Invalid email or password.',
+        retry_after: delay > 0 ? delay : undefined,
+      });
+    }
+
+    clearLoginAttempts(req);
+
+    return res.status(200).json({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    });
+  } catch (err) {
+    console.error('Unexpected /api/login error:', err);
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
+  }
+});
 
 function isValidRole(role) {
   return role === 'admin' || role === 'member';
 }
 
-function generateSecurePassword(length = 24) {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
-  const randomBytes = crypto.randomBytes(length);
-  let password = '';
-
-  for (let i = 0; i < length; i += 1) {
-    password += charset[randomBytes[i] % charset.length];
-  }
-
-  return password;
-}
-
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', requireAdmin, adminRateLimiter, async (req, res) => {
   const { email, password, role, organization_id } = req.body || {};
 
   if (!email || typeof email !== 'string') {
@@ -69,7 +255,7 @@ app.post('/api/register', async (req, res) => {
     });
 
     if (createError) {
-      return res.status(400).json({ error: 'supabase_create_user_failed', message: createError.message, details: createError });
+      return res.status(400).json({ error: 'supabase_create_user_failed', message: createError.message });
     }
 
     createdUserId = createData.user?.id;
@@ -91,7 +277,7 @@ app.post('/api/register', async (req, res) => {
 
       if (updateError) {
         await supabaseAdmin.auth.admin.deleteUser(createdUserId).catch(() => {});
-        return res.status(400).json({ error: 'profile_update_failed', message: updateError.message, details: updateError });
+        return res.status(400).json({ error: 'profile_update_failed', message: updateError.message });
       }
 
       if (!updateData) {
@@ -110,7 +296,7 @@ app.post('/api/register', async (req, res) => {
       }
     }
     console.error('Unexpected /api/register error:', err);
-    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
 
@@ -122,7 +308,7 @@ function isValidEmail(value) {
   return !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-app.post('/api/organizations', async (req, res) => {
+app.post('/api/organizations', requireAdmin, adminRateLimiter, async (req, res) => {
   const { name, description, phone_number, email, location } = req.body || {};
 
   if (!isNonEmptyString(name)) {
@@ -152,17 +338,17 @@ app.post('/api/organizations', async (req, res) => {
       if (error.code === '23505' || error.details?.includes('organizations_name_key')) {
         return res.status(409).json({ error: 'name_taken', message: 'An organization with that name already exists.' });
       }
-      return res.status(400).json({ error: 'organization_create_failed', message: error.message, details: error });
+      return res.status(400).json({ error: 'organization_create_failed', message: error.message });
     }
 
     return res.status(201).json({ id: data?.id, name: name.trim() });
   } catch (err) {
     console.error('Unexpected /api/organizations error:', err);
-    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
 
-app.get('/api/organizations', async (_req, res) => {
+app.get('/api/organizations', publicRateLimiter, async (_req, res) => {
   try {
     const { data, error } = await supabaseAdmin
       .from('organizations')
@@ -171,17 +357,17 @@ app.get('/api/organizations', async (_req, res) => {
       .order('name', { ascending: true });
 
     if (error) {
-      return res.status(400).json({ error: 'organizations_fetch_failed', message: error.message, details: error });
+      return res.status(400).json({ error: 'organizations_fetch_failed', message: error.message });
     }
 
     return res.status(200).json(data || []);
   } catch (err) {
     console.error('Unexpected /api/organizations GET error:', err);
-    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
 
-app.get('/api/users', async (_req, res) => {
+app.get('/api/users', requireAdmin, adminRateLimiter, async (_req, res) => {
   try {
     const [authResponse, profileResponse] = await Promise.all([
       supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
@@ -189,11 +375,11 @@ app.get('/api/users', async (_req, res) => {
     ]);
 
     if (authResponse.error) {
-      return res.status(400).json({ error: 'users_auth_fetch_failed', message: authResponse.error.message, details: authResponse.error });
+      return res.status(400).json({ error: 'users_auth_fetch_failed', message: authResponse.error.message });
     }
 
     if (profileResponse.error) {
-      return res.status(400).json({ error: 'users_profile_fetch_failed', message: profileResponse.error.message, details: profileResponse.error });
+      return res.status(400).json({ error: 'users_profile_fetch_failed', message: profileResponse.error.message });
     }
 
     const profilesById = new Map((profileResponse.data || []).map((profile) => [profile.id, profile]));
@@ -225,7 +411,7 @@ app.get('/api/users', async (_req, res) => {
   }
 });
 
-app.patch('/api/organizations/:id', async (req, res) => {
+app.patch('/api/organizations/:id', requireAdmin, adminRateLimiter, async (req, res) => {
   const { id } = req.params;
   const { name, description, phone_number, email, location } = req.body || {};
 
@@ -259,7 +445,7 @@ app.patch('/api/organizations/:id', async (req, res) => {
       if (error.code === '23505' || error.details?.includes('organizations_name_key')) {
         return res.status(409).json({ error: 'name_taken', message: 'An organization with that name already exists.' });
       }
-      return res.status(400).json({ error: 'organization_update_failed', message: error.message, details: error });
+      return res.status(400).json({ error: 'organization_update_failed', message: error.message });
     }
 
     if (!data) {
@@ -273,7 +459,7 @@ app.patch('/api/organizations/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/organizations/:id', async (req, res) => {
+app.delete('/api/organizations/:id', requireAdmin, adminRateLimiter, async (req, res) => {
   const { id } = req.params;
 
   if (!validateUuid(id)) {
@@ -289,7 +475,7 @@ app.delete('/api/organizations/:id', async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return res.status(400).json({ error: 'organization_delete_failed', message: error.message, details: error });
+      return res.status(400).json({ error: 'organization_delete_failed', message: error.message });
     }
 
     if (!data) {
@@ -299,11 +485,11 @@ app.delete('/api/organizations/:id', async (req, res) => {
     return res.status(200).json({ id: data.id });
   } catch (err) {
     console.error('Unexpected /api/organizations DELETE error:', err);
-    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
 
-app.patch('/api/users/:id', async (req, res) => {
+app.patch('/api/users/:id', requireAdmin, adminRateLimiter, async (req, res) => {
   const { id } = req.params;
   const { role, organization_id } = req.body || {};
 
@@ -332,7 +518,7 @@ app.patch('/api/users/:id', async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      return res.status(400).json({ error: 'user_update_failed', message: error.message, details: error });
+      return res.status(400).json({ error: 'user_update_failed', message: error.message });
     }
 
     if (!data) {
@@ -342,18 +528,21 @@ app.patch('/api/users/:id', async (req, res) => {
     return res.status(200).json({ id: data.id });
   } catch (err) {
     console.error('Unexpected /api/users PATCH error:', err);
-    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
 
-app.post('/api/users/:id/reset-password', async (req, res) => {
+app.post('/api/users/:id/reset-password', requireAdmin, adminRateLimiter, async (req, res) => {
   const { id } = req.params;
+  const { password } = req.body || {};
 
   if (!validateUuid(id)) {
     return res.status(400).json({ error: 'invalid_id', message: 'User id must be a valid UUID.' });
   }
 
-  const password = generateSecurePassword(16);
+  if (!password || typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ error: 'weak_password', message: 'Password must be at least 8 characters.' });
+  }
 
   try {
     const { error } = await supabaseAdmin.auth.admin.updateUserById(id, {
@@ -361,17 +550,17 @@ app.post('/api/users/:id/reset-password', async (req, res) => {
     });
 
     if (error) {
-      return res.status(400).json({ error: 'user_password_reset_failed', message: error.message, details: error });
+      return res.status(400).json({ error: 'user_password_reset_failed', message: 'Unable to reset the user password.' });
     }
 
-    return res.status(200).json({ password });
+    return res.status(200).json({ success: true });
   } catch (err) {
     console.error('Unexpected /api/users RESET PASSWORD error:', err);
-    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
 
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/api/users/:id', requireAdmin, adminRateLimiter, async (req, res) => {
   const { id } = req.params;
 
   if (!validateUuid(id)) {
@@ -381,7 +570,7 @@ app.delete('/api/users/:id', async (req, res) => {
   try {
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(id);
     if (authError) {
-      return res.status(400).json({ error: 'user_delete_failed', message: authError.message, details: authError });
+      return res.status(400).json({ error: 'user_delete_failed', message: authError.message });
     }
 
     const { error: rowError } = await supabaseAdmin.from('users').delete().eq('id', id);
@@ -392,7 +581,7 @@ app.delete('/api/users/:id', async (req, res) => {
     return res.status(200).json({ id });
   } catch (err) {
     console.error('Unexpected /api/users DELETE error:', err);
-    return res.status(500).json({ error: 'internal_error', message: err?.message || String(err) });
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
 

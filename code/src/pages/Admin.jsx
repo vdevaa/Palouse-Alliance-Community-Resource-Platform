@@ -92,20 +92,21 @@ const Admin = ({ session }) => {
   const [registerOrgLoading, setRegisterOrgLoading] = useState(false);
   const [registerOrgError, setRegisterOrgError] = useState(() => persistedAdminState?.registerOrgError ?? "");
 
-  const [userForm, setUserForm] = useState(() => persistedAdminState?.userForm ?? {
+  const [userForm, setUserForm] = useState(() => ({
     email: "",
     password: "",
     role: "member",
     organization_id: "unaffiliated",
-  });
+    ...(persistedAdminState?.userForm ?? {}),
+  }));
   const [userFieldErrors, setUserFieldErrors] = useState(() => persistedAdminState?.userFieldErrors ?? {});
   const [userLoading, setUserLoading] = useState(false);
   const [userError, setUserError] = useState(() => persistedAdminState?.userError ?? "");
-  const [resetPassword, setResetPassword] = useState(() => persistedAdminState?.resetPassword ?? "");
+  const [resetPasswordValue, setResetPasswordValue] = useState("");
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState("");
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [resetPasswordError, setResetPasswordError] = useState(() => persistedAdminState?.resetPasswordError ?? "");
-  const [resetPasswordCopied, setResetPasswordCopied] = useState(() => persistedAdminState?.resetPasswordCopied ?? false);
-  const [resetPasswordPopupOpen, setResetPasswordPopupOpen] = useState(() => persistedAdminState?.resetPasswordPopupOpen ?? false);
+  const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false);
   const [adminAlertPopupOpen, setAdminAlertPopupOpen] = useState(() => persistedAdminState?.adminAlertPopupOpen ?? false);
   const [adminAlertPopupTitle, setAdminAlertPopupTitle] = useState(() => persistedAdminState?.adminAlertPopupTitle ?? "");
   const [adminAlertPopupDescription, setAdminAlertPopupDescription] = useState(() => persistedAdminState?.adminAlertPopupDescription ?? "");
@@ -147,13 +148,11 @@ const Admin = ({ session }) => {
       registerOrgForm,
       registerOrgFieldErrors,
       registerOrgError,
-      userForm,
+      userForm: { ...userForm, password: '' },
       userFieldErrors,
       userError,
-      resetPassword,
       resetPasswordError,
-      resetPasswordCopied,
-      resetPasswordPopupOpen,
+      resetPasswordSuccess,
       adminAlertPopupOpen,
       adminAlertPopupTitle,
       adminAlertPopupDescription,
@@ -187,15 +186,31 @@ const Admin = ({ session }) => {
     userForm,
     userFieldErrors,
     userError,
-    resetPassword,
     resetPasswordError,
-    resetPasswordCopied,
-    resetPasswordPopupOpen,
+    resetPasswordSuccess,
     adminAlertPopupOpen,
     adminAlertPopupTitle,
     adminAlertPopupDescription,
     adminAlertPopupMessage,
   ]);
+
+  const fetchApi = async (path, options = {}) => {
+    const { data: { session: currentSession } = {} } = await supabase.auth.getSession();
+
+    if (!currentSession?.access_token) {
+      throw new Error('Authentication required.');
+    }
+
+    const headers = {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${currentSession.access_token}`,
+    };
+
+    return fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
+  };
 
   const openOrgPopup = () => {
     setOrgPopupOpen(true);
@@ -211,7 +226,7 @@ const Admin = ({ session }) => {
     setDeleteTarget(null);
   };
 
-  const loadOrgs = async (forceRefresh = false) => {
+  const loadOrgs = useCallback(async (forceRefresh = false) => {
     const cachedOrgsEntry = readSessionCache(ADMIN_ORGS_CACHE_KEY);
     const cachedOrgs = getSessionCacheValue(cachedOrgsEntry);
 
@@ -228,7 +243,7 @@ const Admin = ({ session }) => {
     setOrgsError("");
 
     try {
-      const response = await fetch(`${API_BASE}/api/organizations`);
+      const response = await fetchApi(`/api/organizations`);
       const body = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(body?.message || "Failed to load organizations.");
@@ -241,7 +256,7 @@ const Admin = ({ session }) => {
     } finally {
       setOrgsLoading(false);
     }
-  };
+  }, []);
 
   const loadUsers = useCallback(async (forceRefresh = false) => {
     const cachedUsersEntry = readSessionCache(ADMIN_USERS_CACHE_KEY);
@@ -260,7 +275,7 @@ const Admin = ({ session }) => {
     setUsersError("");
 
     try {
-      const response = await fetch(`${API_BASE}/api/users`);
+      const response = await fetchApi(`/api/users`);
       const body = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(body?.message || "Failed to load users.");
@@ -364,7 +379,7 @@ const Admin = ({ session }) => {
     if (orgPopupOpen || userPopupOpen || registerOrgPopupOpen || userManagePopupOpen || manageEventsPopupOpen) {
       loadOrgs();
     }
-  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen, manageEventsPopupOpen]);
+  }, [orgPopupOpen, userPopupOpen, registerOrgPopupOpen, userManagePopupOpen, manageEventsPopupOpen, loadOrgs]);
 
   useEffect(() => {
     if (userManagePopupOpen) {
@@ -539,10 +554,10 @@ const Admin = ({ session }) => {
       organization_id: user.organization_id || 'unaffiliated',
     });
     setUserEditError("");
-    setResetPassword("");
+    setResetPasswordValue("");
+    setResetPasswordConfirm("");
     setResetPasswordError("");
-    setResetPasswordCopied(false);
-    setResetPasswordPopupOpen(false);
+    setResetPasswordSuccess(false);
   };
 
   const validateOrgForm = () => {
@@ -615,7 +630,7 @@ const Admin = ({ session }) => {
     setOrgFormError("");
 
     try {
-      const response = await fetch(`${API_BASE}/api/organizations/${editingOrg.id}`, {
+      const response = await fetchApi(`/api/organizations/${editingOrg.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -690,10 +705,10 @@ const Admin = ({ session }) => {
     setEditingUser(null);
     setUserEditForm({ role: "member", organization_id: "unaffiliated" });
     setUserEditError("");
-    setResetPassword("");
+    setResetPasswordValue("");
+    setResetPasswordConfirm("");
     setResetPasswordError("");
-    setResetPasswordCopied(false);
-    setResetPasswordPopupOpen(false);
+    setResetPasswordSuccess(false);
     setUsersError("");
     setDeleteUserTarget(null);
   };
@@ -721,7 +736,7 @@ const Admin = ({ session }) => {
 
     try {
       const organizationName = registerOrgForm.name.trim();
-      const response = await fetch(`${API_BASE}/api/organizations`, {
+      const response = await fetchApi(`/api/organizations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -771,7 +786,7 @@ const Admin = ({ session }) => {
 
     try {
       const newUserEmail = userForm.email.trim();
-      const response = await fetch(`${API_BASE}/api/register`, {
+      const response = await fetchApi(`/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -819,7 +834,7 @@ const Admin = ({ session }) => {
     setUserEditError("");
 
     try {
-      const response = await fetch(`${API_BASE}/api/users/${editingUser.id}`, {
+      const response = await fetchApi(`/api/users/${editingUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -850,42 +865,51 @@ const Admin = ({ session }) => {
     }
   };
 
-  const handleResetPassword = async () => {
+  const handleResetPassword = async (event) => {
+    event?.preventDefault();
     if (!editingUser) {
       return;
     }
 
     setResetPasswordLoading(true);
     setResetPasswordError("");
-    setResetPasswordCopied(false);
+    setResetPasswordSuccess(false);
+
+    if (!resetPasswordValue) {
+      setResetPasswordError("Password is required.");
+      setResetPasswordLoading(false);
+      return;
+    }
+
+    if (resetPasswordValue.length < 8) {
+      setResetPasswordError("Password must be at least 8 characters.");
+      setResetPasswordLoading(false);
+      return;
+    }
+
+    if (resetPasswordValue !== resetPasswordConfirm) {
+      setResetPasswordError("Passwords do not match.");
+      setResetPasswordLoading(false);
+      return;
+    }
 
     try {
-      const response = await fetch(`${API_BASE}/api/users/${editingUser.id}/reset-password`, {
+      const response = await fetchApi(`/api/users/${editingUser.id}/reset-password`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: resetPasswordValue }),
       });
       const body = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(body?.message || "Unable to reset password.");
       }
-      setResetPassword(body?.password || "");
-      setResetPasswordPopupOpen(true);
+      setResetPasswordSuccess(true);
+      setResetPasswordValue("");
+      setResetPasswordConfirm("");
     } catch (error) {
       setResetPasswordError(error.message || "Unable to reset password.");
     } finally {
       setResetPasswordLoading(false);
-    }
-  };
-
-  const handleCopyPassword = async () => {
-    if (!resetPassword) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(resetPassword);
-      setResetPasswordCopied(true);
-    } catch {
-      setResetPasswordError("Unable to copy the password automatically. Please copy it manually.");
     }
   };
 
@@ -898,7 +922,7 @@ const Admin = ({ session }) => {
 
     try {
       const deletedOrganizationName = deleteTarget?.name || 'Organization';
-      const response = await fetch(`${API_BASE}/api/organizations/${deleteTarget.id}`, {
+      const response = await fetchApi(`/api/organizations/${deleteTarget.id}`, {
         method: "DELETE",
       });
       const body = await response.json().catch(() => null);
@@ -935,7 +959,7 @@ const Admin = ({ session }) => {
 
     try {
       const deletedUserEmail = deleteUserTarget?.email || 'User';
-      const response = await fetch(`${API_BASE}/api/users/${deleteUserTarget.id}`, {
+      const response = await fetchApi(`/api/users/${deleteUserTarget.id}`, {
         method: "DELETE",
       });
       const body = await response.json().catch(() => null);
@@ -1365,9 +1389,34 @@ const Admin = ({ session }) => {
                     ))}
                   </select>
                 </FormField>
+                <FormField htmlFor="reset_password_value" label="New Password">
+                  <div className="password-input-wrapper">
+                    <input
+                      id="reset_password_value"
+                      name="resetPasswordValue"
+                      className="form-input password-input"
+                      type="password"
+                      value={resetPasswordValue}
+                      onChange={(e) => setResetPasswordValue(e.target.value)}
+                    />
+                  </div>
+                </FormField>
+                <FormField htmlFor="reset_password_confirm" label="Confirm Password">
+                  <div className="password-input-wrapper">
+                    <input
+                      id="reset_password_confirm"
+                      name="resetPasswordConfirm"
+                      className="form-input password-input"
+                      type="password"
+                      value={resetPasswordConfirm}
+                      onChange={(e) => setResetPasswordConfirm(e.target.value)}
+                    />
+                  </div>
+                </FormField>
               </div>
               {userEditError && <p className="form-error-message">{userEditError}</p>}
               {resetPasswordError && <p className="form-error-message">{resetPasswordError}</p>}
+              {resetPasswordSuccess && <p className="form-success-message">Password updated successfully.</p>}
               <div className="popup-actions">
                 <button type="button" className="btn-secondary" onClick={() => setEditingUser(null)}>
                   Back to List
@@ -1550,46 +1599,6 @@ const Admin = ({ session }) => {
           <p className="popup-description no-select">{volunteerConfirmUrl}</p>
         </Popup>
       ) : null}
-      {resetPasswordPopupOpen && (
-        <Popup
-          title="Password Reset"
-          description="A secure temporary password was generated. Copy it and share it with the user safely."
-          onClose={() => setResetPasswordPopupOpen(false)}
-          className="dialog-popup admin-popup"
-          actions={
-            <>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setResetPasswordPopupOpen(false)}
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleCopyPassword}
-                disabled={!resetPassword}
-              >
-                {resetPasswordCopied ? 'Copied Password' : 'Copy Password'}
-              </button>
-            </>
-          }
-        >
-          <div className="form-grid admin-org-form-grid">
-            <FormField htmlFor="reset_password_preview" label="Temporary Password">
-              <input
-                id="reset_password_preview"
-                className="form-input"
-                type="text"
-                value={resetPassword}
-                readOnly
-              />
-            </FormField>
-          </div>
-          {resetPasswordCopied && <p className="popup-description">Password copied to clipboard.</p>}
-        </Popup>
-      )}
       {adminAlertPopupOpen && (
         <Popup
           title={adminAlertPopupTitle}
