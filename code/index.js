@@ -26,11 +26,14 @@ const TRUSTED_ORIGINS = (process.env.CORS_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map((value) => value.trim())
   .filter(Boolean);
+const allowAllOrigins = TRUSTED_ORIGINS.length === 0;
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || TRUSTED_ORIGINS.includes(origin)) {
+      const normalizedOrigin = origin?.trim();
+
+      if (!normalizedOrigin || allowAllOrigins || TRUSTED_ORIGINS.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -39,6 +42,17 @@ app.use(
   })
 );
 app.use(express.json());
+
+app.all('/api/login', (req, res, next) => {
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      error: 'method_not_allowed',
+      message: 'The login endpoint only accepts POST requests.',
+      allowed: 'POST',
+    });
+  }
+  next();
+});
 
 const rateLimitStore = new Map();
 const loginAttempts = new Map();
