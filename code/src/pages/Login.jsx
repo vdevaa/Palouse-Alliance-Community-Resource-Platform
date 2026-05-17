@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Popup from "../components/Popup";
@@ -15,6 +15,7 @@ const Login = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -43,6 +44,23 @@ const Login = () => {
     return Object.keys(errors).length === 0;
   };
 
+  useEffect(() => {
+    if (cooldownSeconds <= 0) {
+      return undefined;
+    }
+
+    const interval = window.setInterval(() => {
+      setCooldownSeconds((current) => {
+        if (current <= 1) {
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [cooldownSeconds]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -61,9 +79,14 @@ const Login = () => {
       const body = await response.json().catch(() => null);
 
       if (!response.ok) {
+        if (body?.retry_after && Number(body.retry_after) > 0) {
+          setCooldownSeconds(Number(body.retry_after));
+        }
         setErrorMessage(body?.message || "Invalid email or password.");
         return;
       }
+
+      setCooldownSeconds(0);
 
       if (!body?.access_token || !body?.refresh_token) {
         setErrorMessage("Unable to complete login. Please try again.");
@@ -168,9 +191,16 @@ const Login = () => {
             <button
               className="login-button"
               type="submit"
-              disabled={!email.trim() || !isValidEmail(email.trim()) || !password || fieldErrors.email || fieldErrors.password}
+              disabled={
+                !email.trim() ||
+                !isValidEmail(email.trim()) ||
+                !password ||
+                fieldErrors.email ||
+                fieldErrors.password ||
+                cooldownSeconds > 0
+              }
             >
-              Sign In
+              {cooldownSeconds > 0 ? `Try again in ${cooldownSeconds}s` : 'Sign In'}
             </button>
 
             {errorMessage && (
