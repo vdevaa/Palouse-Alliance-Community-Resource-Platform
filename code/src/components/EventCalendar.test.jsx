@@ -24,6 +24,8 @@ describe('EventCalendar', () => {
     selectedDates: [new Date('2026-04-01T00:00:00')],
     formatFullDate: () => 'April 1, 2026',
     visibleMonth: new Date('2026-04-01T00:00:00'),
+    minVisibleMonth: new Date('2026-04-01T00:00:00'),
+    maxVisibleMonth: new Date('2026-08-01T00:00:00'),
   };
 
   it('renders month label and weekdays', () => {
@@ -48,6 +50,30 @@ describe('EventCalendar', () => {
     await user.click(dayButton);
 
     expect(defaultProps.handleSelectDay).toHaveBeenCalled();
+  });
+
+  it('disables days that belong to months outside the allowed visible range', () => {
+    const customDays = [
+      new Date('2026-03-31T00:00:00'),
+      new Date('2026-04-01T00:00:00'),
+      new Date('2026-09-01T00:00:00'),
+    ];
+
+    render(
+      <EventCalendar
+        {...defaultProps}
+        calendarDays={customDays}
+      />
+    );
+
+    const march31 = screen.getByRole('button', { name: '31' });
+    const oneButtons = screen.getAllByRole('button', { name: '1' });
+    const april1 = oneButtons[0];
+    const sept1 = oneButtons[1];
+
+    expect(march31).toBeDisabled();
+    expect(april1).toBeEnabled();
+    expect(sept1).toBeDisabled();
   });
 
   it('shows reset action when a day is selected', async () => {

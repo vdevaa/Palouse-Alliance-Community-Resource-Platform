@@ -105,6 +105,17 @@
   color: var(--color-text-subtle);
 }
 
+.calendar-day.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.calendar-day.disabled:hover {
+  background: var(--color-surface);
+}
+
 .event-dot {
   position: absolute;
   left: 8px;

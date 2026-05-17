@@ -65,6 +65,10 @@ describe('Events', () => {
     sessionStorage.clear();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('renders approved events and categories from supabase', async () => {
     mockEventsOrder.mockResolvedValueOnce({
       data: [

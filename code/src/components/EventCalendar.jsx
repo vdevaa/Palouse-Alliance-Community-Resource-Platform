@@ -17,6 +17,8 @@ function EventCalendar({
   visibleMonth,
   canNavigatePrevious = true,
   canNavigateNext = true,
+  minVisibleMonth,
+  maxVisibleMonth,
 }) {
   return (
     <div className="calendar-card">
@@ -52,6 +54,12 @@ function EventCalendar({
         {calendarDays.map((day) => {
           const dayKey = getDateKey(day);
           const isCurrentMonth = day.getMonth() === visibleMonth.getMonth();
+          const dayMonthStart = new Date(day.getFullYear(), day.getMonth(), 1);
+          const isAllowedMonth =
+            minVisibleMonth && maxVisibleMonth
+              ? dayMonthStart >= minVisibleMonth && dayMonthStart <= maxVisibleMonth
+              : true;
+          const isDisabled = !isAllowedMonth;
           const isSelected = selectedDates.some((selectedDate) => isSameDay(day, selectedDate));
           const eventCount = eventCountByDate[dayKey] || 0;
 
@@ -61,8 +69,11 @@ function EventCalendar({
               type="button"
               className={`calendar-day ${isSelected ? "selected" : ""} ${
                 eventCount > 0 ? "has-event" : ""
-              } ${!isCurrentMonth ? "outside-month" : ""}`}
+              } ${!isCurrentMonth ? "outside-month" : ""} ${
+                isDisabled ? "disabled" : ""
+              }`}
               onClick={() => handleSelectDay(day)}
+              disabled={isDisabled}
             >
               <span className="calendar-day-number">{day.getDate()}</span>
               {eventCount > 0 && <span className="event-dot"></span>}

@@ -481,27 +481,6 @@ const Events = ({ session }) => {
           tags: nextTags,
         });
 
-        if (normalizedEvents.length > 0) {
-          const firstEventDate = normalizedEvents[0].startDate;
-          setVisibleMonth((currentVisibleMonth) => {
-            const isCurrentMonthEmpty = normalizedEvents.every(
-              (event) =>
-                event.startDate.getMonth() !== currentVisibleMonth.getMonth() ||
-                event.startDate.getFullYear() !== currentVisibleMonth.getFullYear()
-            );
-
-            if (!isCurrentMonthEmpty) {
-              return currentVisibleMonth;
-            }
-
-            return clampMonth(
-              new Date(firstEventDate.getFullYear(), firstEventDate.getMonth(), 1),
-              minVisibleMonth,
-              maxVisibleMonth
-            );
-          });
-        }
-
         setEventsLoading(false);
       } catch (error) {
         if (!isMounted) {
@@ -809,6 +788,8 @@ const Events = ({ session }) => {
                 resetDateFilter={resetDateFilter}
                 selectedDates={selectedDates}
                 visibleMonth={visibleMonth}
+                minVisibleMonth={minVisibleMonth}
+                maxVisibleMonth={maxVisibleMonth}
                 canNavigatePrevious={visibleMonth > minVisibleMonth}
                 canNavigateNext={visibleMonth < maxVisibleMonth}
               />
