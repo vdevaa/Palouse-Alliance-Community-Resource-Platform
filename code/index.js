@@ -24,15 +24,14 @@ const app = express();
 
 const TRUSTED_ORIGINS = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((value) => value.trim()).filter(Boolean)
-  : [];
-const allowAllOrigins = TRUSTED_ORIGINS.length === 0;
+  : ['http://localhost:5173'];
 
 app.use(
   cors({
     origin: (origin, callback) => {
       const normalizedOrigin = origin?.trim();
 
-      if (!normalizedOrigin || allowAllOrigins || TRUSTED_ORIGINS.includes(normalizedOrigin)) {
+      if (!normalizedOrigin || TRUSTED_ORIGINS.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
