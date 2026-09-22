@@ -13,6 +13,7 @@ const { mockFrom } = vi.hoisted(() => {
         end_datetime: '2026-04-15T12:00:00',
         status: 'pending',
         location: 'City Park',
+        flyer_path: 'flyers/pending-event.pdf',
         organizations: { name: 'Org A' },
         categories: { name: 'Community' },
         event_tags: [{ tag_id: 'tag-1' }],
@@ -124,5 +125,6 @@ describe('Admin page interactions', () => {
     });
     await user.click(within(manageEventsDialog).getByRole('button', { name: /Pending Events/i }));
     expect(within(manageEventsDialog).getByText(/Pending Event/i)).toBeInTheDocument();
+    expect(within(manageEventsDialog).getByRole('button', { name: /View Flyer/i })).toBeInTheDocument();
   });
 });

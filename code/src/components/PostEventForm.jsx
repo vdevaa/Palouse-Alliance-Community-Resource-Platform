@@ -5,6 +5,60 @@ import "../styles/PostEvent.css";
 
 const MAX_VOLUNTEER_URL_LENGTH = 50;
 const MAX_TAG_SELECTIONS = 5;
+const MAX_FLYER_SIZE_BYTES = 2 * 1024 * 1024;
+const FLYER_STORAGE_BUCKET = "event-flyers";
+const validFlyerMimeTypes = new Set([
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+]);
+
+function getFlyerValidationError(file) {
+  if (!file) {
+    return null;
+  }
+
+  const mimeType = file.type?.toLowerCase();
+  const name = file.name?.toLowerCase() || "";
+  const isAllowedType =
+    validFlyerMimeTypes.has(mimeType) ||
+    name.endsWith(".pdf") ||
+    name.endsWith(".png") ||
+    name.endsWith(".jpg") ||
+    name.endsWith(".jpeg");
+
+  if (!isAllowedType) {
+    return "Flyer upload must be a PDF, PNG, JPG, or JPEG file.";
+  }
+
+  if (file.size > MAX_FLYER_SIZE_BYTES) {
+    return "Flyer upload must be 2 MB or smaller.";
+  }
+
+  return null;
+}
+
+function getFlyerFilePath(flyer) {
+  if (!flyer) {
+    return null;
+  }
+
+  const extension = flyer.name.includes(".") ? flyer.name.split(".").pop() : "pdf";
+  return `${crypto.randomUUID()}.${extension}`;
+}
+
+async function removeUploadedFlyer(path) {
+  if (!path) {
+    return;
+  }
+
+  try {
+    await supabase.storage.from(FLYER_STORAGE_BUCKET).remove([path]);
+  } catch (error) {
+    console.warn("Could not remove uploaded flyer:", error);
+  }
+}
 
 function isLikelyUrl(value) {
   if (!value) {
@@ -81,6 +135,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
   const [location, setLocation] = useState("");
   const [volunteerUrl, setVolunteerUrl] = useState("");
   const [flyer, setFlyer] = useState(null);
+  const [flyerError, setFlyerError] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -221,6 +276,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
     setLocation("");
     setVolunteerUrl("");
     setFlyer(null);
+    setFlyerError("");
     setErrorMessage("");
   };
 
@@ -228,6 +284,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
     e.preventDefault();
 
     setErrorMessage("");
+    setFlyerError("");
 
     if (step === 1) {
       if (!isStepValid()) {
@@ -367,6 +424,36 @@ const PostEventForm = ({ onClose, onSuccess }) => {
         .map((tagOption) => ({ event_id: null, tag_id: tagOption.id }))
         .filter((tagRow) => Boolean(tagRow.tag_id));
 
+      let flyerPath = null;
+
+      if (flyer) {
+        const flyerValidationError = getFlyerValidationError(flyer);
+
+        if (flyerValidationError) {
+          setFlyerError(flyerValidationError);
+          setErrorMessage(flyerValidationError);
+          return;
+        }
+
+        try {
+          flyerPath = getFlyerFilePath(flyer);
+          const { error: uploadError } = await supabase.storage
+            .from(FLYER_STORAGE_BUCKET)
+            .upload(flyerPath, flyer, {
+              cacheControl: "3600",
+              upsert: false,
+            });
+
+          if (uploadError) {
+            throw new Error(uploadError.message || "Failed to upload flyer.");
+          }
+        } catch (error) {
+          console.error("Error uploading flyer:", error);
+          setErrorMessage(error.message || "Failed to upload flyer.");
+          return;
+        }
+      }
+
       const payload = {
         title: title.trim(),
         description: description.trim(),
@@ -378,6 +465,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
         category_id: categoryId,
         organization_id: userData.organization_id,
         status: "pending",
+        flyer_path: flyerPath,
       };
 
       let eventData;
@@ -394,6 +482,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
       }
 
       if (eventError || !eventData?.id) {
+        await removeUploadedFlyer(flyerPath);
         console.error("Insert error:", eventError);
         setErrorMessage(eventError?.message || "Failed to submit event.");
         return;
@@ -415,6 +504,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
         if (eventTagsError) {
           console.error("Error saving event tags:", eventTagsError);
+          await removeUploadedFlyer(flyerPath);
           await supabase.from("events").delete().eq("id", eventData.id);
           setErrorMessage(eventTagsError.message || "Failed to save event tags.");
           return;
@@ -601,10 +691,7 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
             {step === 4 && (
               <>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="flyer">
-                    Upload Flyer Image (Optional)
-                  </label>
+                <FormField htmlFor="flyer" label="Upload Flyer Image (Optional)" error={flyerError}>
                   <div
                     className="file-upload"
                     onClick={() => document.getElementById("flyer").click()}
@@ -615,17 +702,33 @@ const PostEventForm = ({ onClose, onSuccess }) => {
                     <input
                       id="flyer"
                       type="file"
-                      accept=".pdf,.png,.jpg,.jpeg,.gif"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      aria-label="Upload Flyer Image"
                       style={{ display: "none" }}
-                      onChange={(e) => setFlyer(e.target.files[0])}
+                      onChange={(e) => {
+                        const nextFlyer = e.target.files?.[0] ?? null;
+                        const validationError = getFlyerValidationError(nextFlyer);
+
+                        if (validationError) {
+                          setFlyerError(validationError);
+                          setErrorMessage(validationError);
+                          setFlyer(null);
+                          e.target.value = "";
+                          return;
+                        }
+
+                        setFlyerError("");
+                        setErrorMessage("");
+                        setFlyer(nextFlyer);
+                      }}
                     />
 
                     <p className="upload-text">Click to upload or drag and drop</p>
-                    <p className="upload-subtext">PDF, PNG, JPG, or GIF</p>
+                    <p className="upload-subtext">PDF, PNG, or JPG/JPEG • 2 MB max</p>
 
                     {flyer && <p className="upload-file-name">{flyer.name}</p>}
                   </div>
-                </div>
+                </FormField>
               </>
             )}
 

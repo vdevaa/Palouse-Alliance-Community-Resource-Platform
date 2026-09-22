@@ -4,10 +4,13 @@ import {
   formatEventTimeRange,
   isSameCalendarDay,
 } from "../lib/dateTime";
+import { getEventFlyerUrl } from "../lib/supabase";
 import "../styles/EventCard.css";
 
 function EventCard({ event, footerActions = null, formatFullDate, formatTimeRange }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [flyerModalOpen, setFlyerModalOpen] = useState(false);
+
   const hasLocation = Boolean(event.location?.trim());
   const volunteerUrl = event.volunteer_url?.trim();
   const volunteerActionLabel = volunteerUrl ? "Event Link" : "";
@@ -16,6 +19,9 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
   const tags = Array.isArray(event.tags) ? event.tags : [];
   const organizationName = event.organizationName?.trim();
   const categoryName = event.categoryName?.trim();
+  const flyerUrl = getEventFlyerUrl(event.flyer_path);
+  const isPdfFlyer = Boolean(event.flyer_path?.toLowerCase().endsWith(".pdf"));
+
   const hasValidDates =
     event.startDate instanceof Date &&
     !Number.isNaN(event.startDate.getTime()) &&
@@ -113,6 +119,7 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
             {categoryName ? <span>{categoryName}</span> : null}
           </p>
         ) : null}
+
         <p className="event-description">{event.description}</p>
 
         <div className="event-meta">
@@ -135,6 +142,16 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
         ) : null}
 
         <div className="event-actions">
+          {flyerUrl ? (
+            <button
+              className="secondary-btn"
+              type="button"
+              onClick={() => setFlyerModalOpen(true)}
+            >
+              View Flyer
+            </button>
+          ) : null}
+
           {volunteerUrl ? (
             <button className="primary-btn" type="button" onClick={handleViewDetails}>
               {volunteerActionLabel}
@@ -145,6 +162,7 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
         {footerActions ? <div className="event-footer-actions">{footerActions}</div> : null}
       </article>
 
+      {/* Volunteer redirect popup */}
       {confirmOpen ? (
         <Popup
           title="Leave site?"
@@ -168,6 +186,41 @@ function EventCard({ event, footerActions = null, formatFullDate, formatTimeRang
           ariaLabel="Leave site confirmation"
         >
           <p className="event-redirect-url">{volunteerUrl}</p>
+        </Popup>
+      ) : null}
+
+      {/* View flyer modal */}
+      {flyerModalOpen && flyerUrl ? (
+        <Popup
+          title={`${event.title} - Flyer`}
+          onClose={() => setFlyerModalOpen(false)}
+          className="regular-popup flyer-modal-popup"
+          ariaLabel={`${event.title} Flyer Modal`}
+          actions={
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={() => setFlyerModalOpen(false)}
+            >
+              Close
+            </button>
+          }
+        >
+          <div className="flyer-preview-container">
+            {isPdfFlyer ? (
+              <iframe
+                src={flyerUrl}
+                title={`${event.title} Flyer PDF`}
+                className="flyer-pdf-iframe"
+              />
+            ) : (
+              <img
+                src={flyerUrl}
+                alt={`${event.title} Flyer`}
+                className="flyer-modal-image"
+              />
+            )}
+          </div>
         </Popup>
       ) : null}
     </>

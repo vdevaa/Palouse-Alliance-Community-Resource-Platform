@@ -390,6 +390,7 @@ const Events = ({ session }) => {
                   status,
                   organization_id,
                   category_id,
+                  flyer_path,
                   organizations ( name ),
                   categories ( name ),
                   event_tags ( tag_id )

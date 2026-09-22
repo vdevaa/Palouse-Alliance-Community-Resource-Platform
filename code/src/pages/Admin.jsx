@@ -319,6 +319,7 @@ const Admin = ({ session }) => {
               end_datetime,
               location,
               volunteer_url,
+              flyer_path,
               created_by,
               status,
               organization_id,
