@@ -5,6 +5,9 @@ import EventCard from './EventCard';
 
 vi.mock('../lib/supabase', () => ({
   getEventFlyerUrl: (flyerPath) => (flyerPath ? `https://example.com/${flyerPath}` : null),
+  supabase: {
+    from: vi.fn(),
+  },
 }));
 
 describe('EventCard', () => {

@@ -702,7 +702,6 @@ const PostEventForm = ({ onClose, onSuccess }) => {
                     <input
                       id="flyer"
                       type="file"
-                      accept=".pdf,.png,.jpg,.jpeg"
                       aria-label="Upload Flyer Image"
                       style={{ display: "none" }}
                       onChange={(e) => {
@@ -711,7 +710,6 @@ const PostEventForm = ({ onClose, onSuccess }) => {
 
                         if (validationError) {
                           setFlyerError(validationError);
-                          setErrorMessage(validationError);
                           setFlyer(null);
                           e.target.value = "";
                           return;

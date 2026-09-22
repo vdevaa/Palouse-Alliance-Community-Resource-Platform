@@ -32,6 +32,7 @@ vi.mock('../lib/supabase', () => ({
       };
     },
   },
+  getEventFlyerUrl: (flyerPath) => (flyerPath ? `https://example.com/${flyerPath}` : null),
 }));
 
 import Navbar from './Navbar';

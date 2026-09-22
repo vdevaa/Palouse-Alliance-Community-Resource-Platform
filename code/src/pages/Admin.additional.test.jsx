@@ -46,6 +46,7 @@ vi.mock('../lib/supabase', () => ({
     },
     from: mockFrom,
   },
+  getEventFlyerUrl: (flyerPath) => (flyerPath ? `https://example.com/${flyerPath}` : null),
 }));
 
 import Admin from './Admin';
@@ -124,7 +125,7 @@ describe('Admin page interactions', () => {
       expect(within(manageEventsDialog).getByRole('heading', { name: /Manage Events/i })).toBeInTheDocument();
     });
     await user.click(within(manageEventsDialog).getByRole('button', { name: /Pending Events/i }));
-    expect(within(manageEventsDialog).getByText(/Pending Event/i)).toBeInTheDocument();
+    expect(within(manageEventsDialog).getByRole('heading', { name: /^Pending Event$/i })).toBeInTheDocument();
     expect(within(manageEventsDialog).getByRole('button', { name: /View Flyer/i })).toBeInTheDocument();
   });
 });

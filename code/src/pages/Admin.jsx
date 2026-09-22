@@ -412,15 +412,12 @@ const Admin = ({ session }) => {
   };
 
   const toggleManageEventsSection = (sectionName) => {
-    setManageEventsSections((currentSections) => {
-      const isOpen = currentSections[sectionName];
-      return {
-        pending: false,
-        rejected: false,
-        approved: false,
-        [sectionName]: !isOpen,
-      };
-    });
+    setManageEventsSections(() => ({
+      pending: false,
+      rejected: false,
+      approved: false,
+      [sectionName]: true,
+    }));
   };
 
   const closeVolunteerConfirm = () => {

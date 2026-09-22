@@ -59,6 +59,7 @@ vi.mock('./lib/supabase', () => ({
       signOut: mockSignOut,
     },
   },
+  getEventFlyerUrl: (flyerPath) => (flyerPath ? `https://example.com/${flyerPath}` : null),
 }));
 
 import App from './App';

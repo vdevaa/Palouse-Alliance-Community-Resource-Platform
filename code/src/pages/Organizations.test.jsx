@@ -17,6 +17,7 @@ vi.mock('../lib/supabase', () => ({
   supabase: {
     from: mockFrom,
   },
+  getEventFlyerUrl: (flyerPath) => (flyerPath ? `https://example.com/${flyerPath}` : null),
 }));
 
 import Organizations from './Organizations';

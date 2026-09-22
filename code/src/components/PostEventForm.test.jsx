@@ -199,7 +199,7 @@ describe('PostEventForm', () => {
     await user.upload(input, badType);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/pdf, png, jpg, or jpeg/i);
+      expect(screen.getByText(/Flyer upload must be a PDF, PNG, JPG, or JPEG file\./i)).toBeInTheDocument();
     });
     expect(mockUpload).not.toHaveBeenCalled();
 
@@ -207,7 +207,7 @@ describe('PostEventForm', () => {
     await user.upload(input, tooLarge);
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/2 MB or smaller/i);
+      expect(screen.getByText(/Flyer upload must be 2 MB or smaller\./i)).toBeInTheDocument();
     });
     expect(mockUpload).not.toHaveBeenCalled();
   });

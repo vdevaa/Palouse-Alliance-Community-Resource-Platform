@@ -21,6 +21,7 @@ vi.mock('../lib/supabase', () => ({
       setSession: mockSetSession,
     },
   },
+  getEventFlyerUrl: (flyerPath) => (flyerPath ? `https://example.com/${flyerPath}` : null),
 }));
 
 import Login from './Login';
