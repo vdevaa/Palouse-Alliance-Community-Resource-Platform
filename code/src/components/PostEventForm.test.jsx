@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
-const { mockGetSession, mockFrom, mockStorageFrom, mockUpload, mockRemove, mockEventsInsert } = vi.hoisted(() => {
+const { mockGetSession, mockFrom, mockStorageFrom, mockUpload, mockEventsInsert } = vi.hoisted(() => {
   const mockGetSession = vi.fn();
   const mockUsersEq = vi.fn(() => ({
     maybeSingle: async () => ({ data: { organization_id: 'org-1' }, error: null }),
@@ -50,7 +50,6 @@ const { mockGetSession, mockFrom, mockStorageFrom, mockUpload, mockRemove, mockE
     mockFrom,
     mockStorageFrom,
     mockUpload,
-    mockRemove,
     mockEventsInsert,
   };
 });
