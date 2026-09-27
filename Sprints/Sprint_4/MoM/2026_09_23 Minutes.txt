@@ -1,0 +1,60 @@
+Palouse Alliance Community Resource Platform
+Minutes of Meeting (MoM) - Sprint 4 Client Review
+
+Meeting Details
+Date: September 23, 2026
+Project: Palouse Alliance Community Resource Platform (PAHIFC-WEBMOB)
+Team Number: Team 5
+Attendees:
+  - Allison Rockwell (Client, Palouse Alliance / WSU)
+  - Christine Oakley (Client, Palouse Alliance)
+  - Aryan Puthran (Developer, Database Manager)
+  - Kaeden Peterson (Developer, Testing & CI Lead)
+  - Omar Adil (Developer, Backend/Frontend Integration)
+  - Vijay Deva (Developer, Full Stack & Deployment)
+
+Agenda
+1. Sprint 4 Updates & Feature Walkthrough
+2. Housekeeping & Project Operations
+3. Open Discussion and Client Questions
+
+Meeting Notes & Feature Review
+1. Flyer Storage and Retrieval (#35)
+   - Status: Completed.
+   - Cloud storage integration for flyer images is fully functional.
+   - Uploaded event flyers persist to storage buckets and link directly to event records.
+   - Client Action: None required; team will follow up via email if questions arise.
+
+2. View Flyers (#8)
+   - Status: Completed.
+   - Walked through the public viewing interface and mockups.
+   - Approved events display complete logistics alongside flyer images (date, time, location, host organization).
+
+3. Organization Changes Guidance (#9)
+   - Status: Completed.
+   - Demonstrated UI logic on the Organizations page:
+     * System checks the authenticated member's affiliated organization.
+     * Matches the organization record on the page.
+     * Displays a contextual informational message directly on that organization's card guiding members on how to contact an admin with update requests.
+
+4. Register Members and Organizations (#29)
+   - Status: Deferred / In-Progress.
+   - Discussed bulk onboarding from client roster data.
+   - Action Item: Team requested a verified list of confirmed member accounts from the client to avoid redundant imports and finalize database registration.
+
+5. Email Notifications (#13)
+   - Status: Transitioning from initial research to active implementation.
+   - Reviewing end-to-end triggers for opt-in event alerts, registration verification, and user privacy toggles.
+
+Housekeeping & Next Sprint Alignment
+- Internship Opportunities: Discussed potential student internship opportunities with community partners.
+- Sprint 5 Deliverables Alignment:
+  * Adding dedicated FAQ page or section based on client consultation.
+  * Migrating from Vercel staging URL to the client's official custom domain.
+  * Disabling physical location as a mandatory constraint in the post-event submission flow.
+- Next Sprint Schedule: Planning Sprint 5 kickoff covering October 1 – October 31, 2026.
+
+Action Items
+1. Client: Provide final verified list of member names/emails for bulk registration.
+2. Team: Implement email notifications service integration.
+3. Team: Begin drafting FAQ page layout and prepare Vercel DNS configuration.
