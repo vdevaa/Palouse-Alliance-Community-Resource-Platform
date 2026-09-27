@@ -4,29 +4,26 @@
 
 ## What's New (User Facing)
 * Organization members can now see clear instructions on how to request changes to their organization's details via an administrator.
-* INSERT
+* We onboarded 50 partner organizations and members directly into the platform from the client-provided list.
+* Visitors and members can view full event details alongside approved event flyers, including location, time, and host information.
+* Administrators can preview pending event submissions and flyers before deciding to approve or reject them for public display.
+* Events older than one month are now automatically purged from the platform to maintain database efficiency, and public event browsing is focused on the next three months.
 
 ## Work Summary (Developer Facing)
-We knocked out a mix of front end and backend work this sprint and focused on making discovery and content management smoother. On the front end we rebuilt the landing page, added the Palouse Resources Guide to the navbar, implemented search UI plus category and tag filters, and shipped dynamic event filtering on organization pages. We also added the My Events rejected section and cleaned up navbar behavior so the register control displays only when appropriate. Styling updates landed across [theme.css](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/blob/main/code/src/theme.css) and the [styles](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/code/src/styles) folder, and several reusable components in [/components](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/code/src/components) were refactored for clarity and reuse.
+We focused this sprint on data onboarding, flyer asset lifecycle workflows, and automated database retention policies. On the front end, we implemented member-facing steps on the organization page detailing how to request profile updates from admins. We also developed the event and flyer viewing interface to cleanly render uploaded flyer images, locations, times, hosts, and descriptive event metadata. In addition, we built out the admin preview view for pending event submissions to allow moderators to inspect flyers and event information before approving or rejecting them for public listing.
 
-On the backend we implemented the event and flyer approval workflow and created row level security policies to support the new feature set, and we wired member registration into the auth flow. [App.jsx](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/blob/main/code/src/App.jsx) received adjustments around session handling, URL forwarding, and caching logic. We merged a baseline test suite (see [App.test.jsx](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/blob/main/code/src/App.test.jsx) and [PR #45](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/pull/45)) to cover new behaviors and prevent regressions. Along the way we fixed a handful of UI bugs discovered during testing and updated API contracts where needed. The codebase is in a stable state and ready for the next sprint, where we'll finish flyer storage and retrieval, add event retention, and start on analytics and notifications.
+On the backend, we processed and registered 50 organizations and 150 member accounts into the database from the client roster. We finalized the cloud storage and retrieval pipeline for flyer assets, ensuring uploaded media correctly links to pending event records and displays upon approval. To optimize Supabase storage and resource usage, we established automated event retention logic that deletes events older than 30 days and restricts queries to prevent users from viewing events scheduled more than three months in advance. The platform remains stable, performant, and prepared for our upcoming sprint focus on notifications, FAQ content, domain adjustments, and post-event requirements.
 
 ## Unfinished Work
-We finished everything we were hoping to for this sprint (and more)!
+We finished everything we were hoping to for this sprint!
 
 ## Completed Issues/User Stories
 Here are links to the issues that we completed in this sprint:
-* [Landing Page Revamp](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/46)
-* [Event/Flyer Approval](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/7)
-* [Palouse Resources Guide in NavBar](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/55)
-* [Dynamic Organization Event Filtering](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/32)
-* [Search for Services and Events](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/1)
-* [Category and Tag Based Filtering](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/2)
-* [Add rejected sections for My Events](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/50)
-* [Member Registration](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/4)
-* [Create RLS for Sprint 3 Features](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/37)
-* [Remove register button for navbar when logged in as a member or logged out](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/41)
-* [Added basic tests for all current features](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/pull/45)
+* [Members See Steps on How to Edit Their Org](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/9)
+* [Register Members / Orgs to Platform from Client List](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/29)
+* [Finalizing Flyer Storage and Retrieval](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/35)
+* [View Flyers](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/8)
+* [Event Retention (in Supabase)](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/issues/49)
 
 ## Code Files for Review
 Please review the following code files, which were actively developed during this sprint, for quality:
@@ -46,8 +43,7 @@ Here's what we'd like to improve:
 * We all got our tasks done and more, there isn't anything we can do to improve becuase we got more than expected done and worked well together.
 
 Here are changes we plan to implement in the next sprint:
-* Adding Members to the Platfrom from Client
-* Finalizing Flyer Storage and Retrieval
-* Event Retention (in Supabase)
-* Analytics and Attendance Tracking (client mentioned not wanting this do to it being a redundant feature)
 * Email Notifications
+* Add FAQ Page or Section
+* Change Vercel Domain
+* Disable Physical Location as a Requirement in Post Event Flow
