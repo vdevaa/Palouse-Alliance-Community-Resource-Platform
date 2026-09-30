@@ -6,6 +6,7 @@ import MyEvents from "../components/MyEvents";
 import Popup from "../components/Popup";
 import PostEventForm from "../components/PostEventForm";
 import { parseSupabaseDateTime } from "../lib/dateTime";
+import SubscribePopup from "../components/SubscribePopup";
 import { supabase } from "../lib/supabase";
 import {
   getSessionCacheValue,
@@ -242,6 +243,7 @@ const Events = ({ session }) => {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q")?.trim() || "");
   const [isMyEventsOpen, setIsMyEventsOpen] = useState(false);
   const [isPostEventOpen, setIsPostEventOpen] = useState(false);
+  const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
   const [postEventSuccessOpen, setPostEventSuccessOpen] = useState(false);
   const [revalidationKey, setRevalidationKey] = useState(0);
   const previousSessionUserIdRef = useRef(session?.user?.id || null);
@@ -709,6 +711,13 @@ const Events = ({ session }) => {
                   Tags
                 </button>
               </div>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setIsSubscribeOpen(true)}
+              >
+                Get Event Updates
+              </button>
             </div>
 
             {filterMenuOpen ? (
@@ -899,6 +908,10 @@ const Events = ({ session }) => {
               Thank you! Your event request is pending review and will be published after approval.
             </p>
           </Popup>
+        ) : null}
+        
+        {isSubscribeOpen ? (
+          <SubscribePopup onClose={() => setIsSubscribeOpen(false)} />
         ) : null}
       </main>
     </div>

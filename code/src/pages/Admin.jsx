@@ -432,47 +432,55 @@ const Admin = ({ session }) => {
     setVolunteerConfirmUrl("");
   };
 
-  const updateEventStatus = async (eventId, status) => {
-    setManageEventActionLoading(eventId);
+const updateEventStatus = async (eventId, status) => {
+  setManageEventActionLoading(eventId);
 
-    const previousEvents = manageEvents;
-    const nextEvents = previousEvents.map((event) => (
-      event.id === eventId ? { ...event, status } : event
-    ));
+  const previousEvents = manageEvents;
+  const nextEvents = previousEvents.map((event) => (
+    event.id === eventId ? { ...event, status } : event
+  ));
 
-    setManageEvents(nextEvents);
-    writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, nextEvents);
+  setManageEvents(nextEvents);
+  writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, nextEvents);
 
-    try {
-      const { error } = await supabase
-        .from("events")
-        .update({ status })
-        .eq("id", eventId);
+  try {
+    const { error } = await supabase
+      .from("events")
+      .update({ status })
+      .eq("id", eventId);
 
-      if (error) {
-        throw error;
-      }
-
-      openAdminAlert({
-        title: status === "approved" ? "Event Approved" : "Event Rejected",
-        description: `The event has been ${status === "approved" ? "approved" : "rejected"}.`,
-        message: `Event status updated successfully! Updates are visible to the public.`,
-      });
-
-      await loadManageEvents(true);
-    } catch (error) {
-      setManageEvents(previousEvents);
-      writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, previousEvents);
-
-      openAdminAlert({
-        title: "Event status update failed",
-        description: "Unable to update event status.",
-        message: error?.message || "Please try again.",
-      });
-    } finally {
-      setManageEventActionLoading(null);
+    if (error) {
+      throw error;
     }
-  };
+
+    if (status === "approved") {
+      try {
+        await fetchApi(`/api/events/${eventId}/notify`, { method: "POST" });
+      } catch (notifyError) {
+        console.error("Email notification failed:", notifyError);
+      }
+    }
+
+    openAdminAlert({
+      title: status === "approved" ? "Event Approved" : "Event Rejected",
+      description: `The event has been ${status === "approved" ? "approved" : "rejected"}.`,
+      message: `Event status updated successfully! Updates are visible to the public.`,
+    });
+
+    await loadManageEvents(true);
+  } catch (error) {
+    setManageEvents(previousEvents);
+    writeSessionCache(ADMIN_MANAGE_EVENTS_CACHE_KEY, previousEvents);
+
+    openAdminAlert({
+      title: "Event status update failed",
+      description: "Unable to update event status.",
+      message: error?.message || "Please try again.",
+    });
+  } finally {
+    setManageEventActionLoading(null);
+  }
+};
 
   const pendingManageEvents = manageEvents.filter((event) => {
     const statusKey = (event.status || "").toLowerCase();

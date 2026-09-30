@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
@@ -595,6 +597,184 @@ app.delete('/api/users/:id', requireAdmin, adminRateLimiter, async (req, res) =>
     return res.status(200).json({ id });
   } catch (err) {
     console.error('Unexpected /api/users DELETE error:', err);
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
+  }
+});
+
+const transporter = process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
+  ? nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+    })
+  : null;
+
+const SUBSCRIBE_SECRET = process.env.SUBSCRIBE_SECRET;
+const SITE_URL = (process.env.SITE_URL || 'http://localhost:5173').replace(/\/$/, '');
+const API_URL = (process.env.API_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CODE_WINDOW_MS = 10 * 60_000;
+
+const escapeHtml = (s = '') =>
+  String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const hmac = (value) => crypto.createHmac('sha256', SUBSCRIBE_SECRET).update(value).digest();
+const makeCode = (email, windowIndex) =>
+  String(hmac(`code:${email}:${windowIndex}`).readUInt32BE(0) % 1000000).padStart(6, '0');
+const unsubscribeToken = (email) => hmac(`unsub:${email}`).toString('hex');
+const safeEqual = (a, b) => {
+  const ab = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+};
+
+const subscribeLimiter = createRateLimiter({
+  keyFn: (req) => `subscribe:${req.ip}`,
+  maxRequests: 10,
+  windowMs: 10 * 60_000,
+});
+
+// Step 1: visitor enters an email, we send a 6-digit code. Nothing is stored yet.
+app.post('/api/subscribe', subscribeLimiter, async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+
+  if (!EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: 'invalid_email', message: 'Please enter a valid email address.' });
+  }
+  if (!transporter || !SUBSCRIBE_SECRET) {
+    return res.status(503).json({ error: 'email_not_configured', message: 'Email is not configured.' });
+  }
+
+  try {
+    const code = makeCode(email, Math.floor(Date.now() / CODE_WINDOW_MS));
+    await transporter.sendMail({
+      from: `Palouse Alliance <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: 'Your Palouse Alliance verification code',
+      text: `Your verification code is ${code}. It expires in about 10 minutes. If you did not request this, ignore this email.`,
+      html: `<p>Your verification code is:</p><h2>${code}</h2><p>It expires in about 10 minutes. If you did not request this, ignore this email.</p>`,
+    });
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error('Unexpected /api/subscribe error:', err);
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
+  }
+});
+
+// Step 2: visitor enters the code. Only now is the email saved.
+app.post('/api/subscribe/verify', subscribeLimiter, async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const code = String(req.body?.code || '').trim();
+
+  if (!EMAIL_RE.test(email) || !/^\d{6}$/.test(code)) {
+    return res.status(400).json({ error: 'invalid_input', message: 'Enter the 6-digit code.' });
+  }
+  if (!SUBSCRIBE_SECRET) {
+    return res.status(503).json({ error: 'email_not_configured', message: 'Email is not configured.' });
+  }
+
+  const windowIndex = Math.floor(Date.now() / CODE_WINDOW_MS);
+  const valid = safeEqual(code, makeCode(email, windowIndex)) || safeEqual(code, makeCode(email, windowIndex - 1));
+  if (!valid) {
+    return res.status(400).json({ error: 'invalid_code', message: 'Invalid or expired code.' });
+  }
+
+  try {
+    const { data: existing } = await supabaseAdmin
+      .from('notifications')
+      .select('recipient_email')
+      .eq('recipient_email', email)
+      .maybeSingle();
+
+    if (!existing) {
+      const { error } = await supabaseAdmin.from('notifications').insert([{ recipient_email: email }]);
+      if (error) {
+        console.error('Subscribe insert error:', error);
+        return res.status(400).json({ error: 'subscribe_failed', message: 'Unable to subscribe right now.' });
+      }
+    }
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error('Unexpected /api/subscribe/verify error:', err);
+    return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
+  }
+});
+
+// Link in every notification email.
+app.get('/api/unsubscribe', publicRateLimiter, async (req, res) => {
+  const email = String(req.query.email || '').trim().toLowerCase();
+  const token = String(req.query.token || '');
+
+  if (!SUBSCRIBE_SECRET || !EMAIL_RE.test(email) || !safeEqual(token, unsubscribeToken(email))) {
+    return res.status(400).send('Invalid unsubscribe link.');
+  }
+  await supabaseAdmin.from('notifications').delete().eq('recipient_email', email);
+  return res.status(200).send('You have been unsubscribed from Palouse Alliance event emails.');
+});
+
+// Called by the admin page after an event is approved.
+app.post('/api/events/:id/notify', requireAdmin, adminRateLimiter, async (req, res) => {
+  const { id } = req.params;
+
+  if (!validateUuid(id)) {
+    return res.status(400).json({ error: 'invalid_id', message: 'Event id must be a valid UUID.' });
+  }
+  if (!transporter || !SUBSCRIBE_SECRET) {
+    return res.status(503).json({ error: 'email_not_configured', message: 'Email is not configured.' });
+  }
+
+  try {
+    const { data: event, error } = await supabaseAdmin
+      .from('events')
+      .select('title, description, start_datetime, location, status')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error || !event) {
+      return res.status(404).json({ error: 'not_found', message: 'Event not found.' });
+    }
+    if (event.status !== 'approved') {
+      return res.status(400).json({ error: 'not_approved', message: 'Event is not approved.' });
+    }
+
+    const { data: subscribers, error: subError } = await supabaseAdmin
+      .from('notifications')
+      .select('recipient_email');
+
+    if (subError) {
+      return res.status(400).json({ error: 'subscribers_fetch_failed', message: subError.message });
+    }
+
+    const subject = `New event: ${event.title}`;
+    let sent = 0;
+
+    // One email per subscriber so each gets their own unsubscribe link.
+    for (const sub of subscribers || []) {
+      const to = sub.recipient_email;
+      if (!to) continue;
+      if (process.env.NOTIFY_ONLY && to.toLowerCase() !== process.env.NOTIFY_ONLY.toLowerCase()) continue;
+      const unsubscribeUrl = `${API_URL}/api/unsubscribe?email=${encodeURIComponent(to)}&token=${unsubscribeToken(to.toLowerCase())}`;
+      try {
+        await transporter.sendMail({
+          from: `Palouse Alliance <${process.env.GMAIL_USER}>`,
+          to,
+          subject,
+          html: `
+            <h2>${escapeHtml(event.title)}</h2>
+            <p><strong>When:</strong> ${escapeHtml(event.start_datetime)}</p>
+            <p><strong>Where:</strong> ${escapeHtml(event.location)}</p>
+            <p>${escapeHtml((event.description || '').slice(0, 300))}</p>
+            <p><a href="${SITE_URL}/events">See all events</a></p>
+            <p style="color:#666;font-size:12px"><a href="${unsubscribeUrl}">Unsubscribe</a></p>`,
+        });
+        sent += 1;
+      } catch (sendError) {
+        console.error('Email send error:', sendError);
+      }
+    }
+
+    return res.status(200).json({ sent });
+  } catch (err) {
+    console.error('Unexpected /api/events/:id/notify error:', err);
     return res.status(500).json({ error: 'internal_error', message: 'An unexpected error occurred.' });
   }
 });
