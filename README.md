@@ -1,139 +1,229 @@
 # Palouse Alliance Community Resource Platform
 
 ## Project Summary
+
+### One-sentence description
+A community-focused React web application that organizes Palouse area events, organizations, and volunteer opportunities into a searchable, accessible hub for local health, wellness, and community resources.
+
+### Additional information about the project
 The Palouse Alliance Community Resource Platform is a React + Vite web application built to make local health, wellness, and community event resources easier to find and use across the Palouse region. It centralizes event and organization information, offers search and category-based discovery, and helps local organizations share updates through a community-facing platform.
 
 The platform is intended to support a range of community members, including students, families, seniors, veterans, and individuals seeking housing support, food assistance, mental health services, or community programs. The app emphasizes accessibility, responsive layout, and a clean search-driven experience so people can quickly find relevant events and organizations.
 
-### One-sentence description
-A community-focused React application that organizes Palouse area events, organizations, and volunteer opportunities into a searchable, accessible hub.
-
-## What’s Included
-- React 19 application with Vite-powered development and build tooling.
-- Supabase client integration for authentication and data access.
-- A public events calendar with category filtering and event search.
-- Organization directory with search and contact summaries.
-- Login/logout flow using Supabase authentication.
-- A protected dashboard area for authenticated users.
-- A multi-step event posting experience.
-- Mobile-friendly navigation and responsive layout.
-
-## Repo Structure
-- `code` - main web application source code.
-- `code/src/` - React components, pages, and Supabase client setup.
-- `Reports/` - project reports and documentation.
-- `Sprints/` - sprint plans, meeting minutes, and sprint reports.
-
-## Technology Stack
-- React 19
-- Vite
-- React Router DOM
-- Supabase JavaScript client
-- ESLint
-- Vitest
-
-## Key Pages and Routes
-- `/` - Home page with searchable event listings, calendar, filters, and user-specific event tracking.
-- `/login` - Login form using Supabase password authentication.
-- `/register` - Registration page placeholder for future signup flow.
-- `/dashboard` - Protected dashboard route for authenticated users.
-- `/organizations` - Community organization directory with search filtering.
-- `/post-event` - Multi-step event posting form.
-- `/admin` - Admin page placeholder.
+**Key Features:**
+- Public events calendar with category filtering and event search
+- Organization directory with search and contact summaries
+- Login/logout flow using Supabase authentication
+- Protected dashboard area for authenticated users
+- Multi-step event posting experience
+- Mobile-friendly navigation and responsive layout
+- Real-time data synced with Supabase backend
 
 ## Installation
+
 ### Prerequisites
 - Node.js 20 or newer
-- npm or yarn
-- Git
+- npm 10+ or yarn 4+
+- Git 2.0+
 
-### Setup
-1. Clone the repository:
+### Add-ons
+The following packages and dependencies are included in this project:
+
+| Package | Purpose |
+|---------|---------|
+| React 19 | UI library and component framework |
+| Vite | Fast build tool and development server |
+| React Router DOM | Client-side routing between pages |
+| Supabase JavaScript Client | Backend authentication, database, and file storage |
+| ESLint | Code quality and style linting |
+| Vitest | Unit and component testing framework |
+
+### Installation Steps
+
+1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
-   cd <your-repo-directory>
+   git clone https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform.git
+   cd Palouse-Alliance-Community-Resource-Platform
    ```
-2. Change into the application folder:
+
+2. **Navigate to the application directory:**
    ```bash
    cd code
    ```
-3. Install dependencies:
+
+3. **Install dependencies:**
    ```bash
    npm install
-   # or
-   yarn install
    ```
-4. Create environment variables:
-    - Copy the example file and fill in your values:
-       ```bash
-       cp .env.example .env
-       ```
-    - Required frontend variables:
-       - `VITE_SUPABASE_URL`
-       - `VITE_SUPABASE_ANON_KEY`
-    - Required backend variables (used by admin API endpoints):
-       - `SUPABASE_URL`
-       - `SUPABASE_SERVICE_ROLE_KEY`
-    - Optional frontend API override:
-       - `VITE_API_BASE` (leave blank for same-origin API calls)
 
-5. Run the development server:
+4. **Configure environment variables:**
+   - Create a `.env` file in the `code/` directory
+   - Add the following required variables:
+     ```
+     VITE_SUPABASE_URL=your_supabase_url
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+     SUPABASE_URL=your_supabase_url
+     SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+     ```
+   - Optional: Set `VITE_API_BASE` if using a custom API endpoint (leave blank for same-origin API calls)
+
+5. **Start the development server:**
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
-   The app will be available at `http://localhost:5173` by default.
+   The application will be available at `http://localhost:5173`
 
-### Build and Preview
-From `code/`:
+6. **Verify the installation:**
+   ```bash
+   npm run test
+   ```
+
+### Building for Production
+
+From the `code/` directory:
 ```bash
-npm run build
-npm run preview
+npm run build      # Build production assets
+npm run preview    # Preview the production build locally
 ```
 
-## Available Scripts
-From `code/`:
-- `npm run dev` - start Vite development server
-- `npm run build` - build production assets
-- `npm run preview` - preview built app locally
-- `npm run lint` - run ESLint
-- `npm run test` - run Vitest once
-- `npm run test:watch` - run Vitest in watch mode
-- `npm run test:coverage` - generate test coverage report
+### Available Scripts
 
-## Supabase Configuration
-The project currently uses Supabase through `code/src/lib/supabase.js`.
-The client reads configuration from:
-- `import.meta.env.VITE_SUPABASE_URL`
-- `import.meta.env.VITE_SUPABASE_ANON_KEY`
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start Vite development server with HMR |
+| `npm run build` | Build production assets to `dist/` folder |
+| `npm run preview` | Preview production build locally |
+| `npm run lint` | Run ESLint to check code quality |
+| `npm run test` | Run Vitest test suite once |
+| `npm run test:watch` | Run Vitest in watch mode for development |
+| `npm run test:coverage` | Generate test coverage report |
 
-If you want to connect to your own Supabase instance, update those variables in `code/.env`.
+### Supabase Configuration
 
-## Vercel Deployment
-1. Import the repository into Vercel and set the project root to `code/`.
-2. Build command: `npm run build`
-3. Output directory: `dist`
-4. Add these environment variables in Vercel Project Settings:
+The project uses Supabase for authentication, data storage, and file management. Configuration is handled in `code/src/lib/supabase.js`:
+
+- The client reads configuration from environment variables:
+  - `VITE_SUPABASE_URL` - Your Supabase project URL
+  - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous public key
+
+To connect to your own Supabase instance, update these variables in your `.env` file.
+
+### Vercel Deployment
+
+1. Import the repository into Vercel
+2. Set the project root to `code/`
+3. Configure build settings:
+   - Build command: `npm run build`
+   - Output directory: `dist`
+4. Add all environment variables in Vercel Project Settings:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
-   - Optional: `VITE_API_BASE` (defaults to same-origin)
+   - Optional: `VITE_API_BASE`
+5. The included `code/vercel.json` routes `/api/*` to serverless functions and all other routes to the SPA entrypoint
 
-The included `code/vercel.json` routes `/api/*` to the serverless backend and all other routes to the SPA entrypoint.
+## Functionality
 
-## Application Behavior
-- The home page loads approved events from the `events` table and displays them in a calendar, with search and category filters.
-- Logged-in users can see their submitted events in the `My Events` sidebar.
-- The organization page loads organization records from the `organizations` table and displays searchable cards.
-- Login uses `supabase.auth.signInWithPassword()`.
-- Event posting is implemented as a three-step form, with fields for title, description, date/time/location, and an optional flyer upload.
-- The dashboard and admin routes are available but currently serve as placeholders for expanded functionality.
+### Application Overview
 
-## Additional Documentation
-- [Sprint Documents](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/Sprints)
-- [Sprint Reports](https://github.com/vdevaa/Palouse-Alliance-Community-Resource-Platform/tree/main/Reports)
+The Palouse Alliance Community Resource Platform provides the following core functionality:
+
+**Home Page (`/`)**
+- Displays all approved community events in an interactive calendar view
+- Search functionality to filter events by keyword
+- Category-based filtering for event discovery
+- "My Events" sidebar for authenticated users to track submitted events
+- Real-time data loaded from the `events` Supabase table
+
+**Events Calendar**
+- Visual calendar representation of community events
+- Date-based navigation and filtering
+- Event details displayed in expandable cards
+- Color-coded categories for quick identification
+
+**Organizations Directory (`/organizations`)**
+- Searchable directory of local organizations and resources
+- Organization cards with contact information summaries
+- Real-time data loaded from the `organizations` Supabase table
+- Filter and sort by category and name
+
+**Authentication & User Dashboard**
+- Secure login using Supabase password authentication (`/login`)
+- User registration page placeholder for future signup flow (`/register`)
+- Protected dashboard area for authenticated users (`/dashboard`)
+- Persistent session management via Supabase auth
+
+**Event Posting (`/post-event`)**
+- Multi-step form for community members to submit new events
+- Step 1: Event title and description
+- Step 2: Date, time, and location details
+- Step 3: Optional event flyer/image upload
+- Form validation and error handling
+- Submitted events await admin approval before public display
+
+**Admin Interface (`/admin`)**
+- Placeholder page for admin dashboard functionality
+- Intended for event approval, user management, and analytics
+
+### Core Features
+
+- **Search & Filtering:** Find events and organizations by keyword, category, or date
+- **Event Management:** Submit, track, and manage community events
+- **Mobile Responsive:** Full functionality on desktop, tablet, and mobile devices
+- **Accessible Design:** WCAG-compliant layout and navigation
+- **Real-time Updates:** Data synchronized with Supabase backend
+
+### Directory Structure
+
+- `code/` - Main web application source code
+- `code/src/` - React components, pages, and Supabase client setup
+  - `components/` - Reusable React components
+  - `pages/` - Page/route components
+  - `lib/` - Utility libraries and configurations
+  - `styles/` - Component-specific CSS files
+  - `test/` - Test configuration and utilities
+- `Reports/` - Project reports and documentation
+- `Sprints/` - Sprint plans, meeting minutes, and sprint reports
+- `coverage/` - Test coverage reports
 
 ## Known Problems
-There are no known problems documented in this repository at this time.
+
+There are currently no known critical issues in this repository. However, the following features are noted as placeholders for future enhancement:
+
+- `/register` - User registration flow is not yet fully implemented
+- `/dashboard` - Protected dashboard route exists but lacks specific user-facing features
+- `/admin` - Admin interface is a placeholder and requires full development
+
+If you encounter any bugs or issues, please document them with:
+- Steps to reproduce
+- Expected vs. actual behavior
+- Browser and OS information
+- Relevant error messages or console logs
+
+## Contributing
+
+We welcome contributions to the Palouse Alliance Community Resource Platform! To contribute:
+
+1. Fork it!
+2. Create your feature branch: `git checkout -b my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin my-new-feature`
+5. Submit a pull request :D
+
+**Before submitting a pull request:**
+- Ensure all tests pass: `npm run test`
+- Run linter: `npm run lint`
+- Update relevant documentation
+- Follow the existing code style and conventions
+
+## Additional Documentation
+
+- [Sprint Reports](Reports/) - Project sprint documentation and progress reports
+- [Sprint Meetings and Planning](Sprints/) - Sprint plans, meeting notes, and deliverables
+- [Course Reports](Reports/CptS421_Report/) - Academic project reports
+- [Senior Capstone Documentation](Reports/CptS423_Report/) - Senior capstone project files
+
+## License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for the full text of the license and terms of use.
