@@ -149,3 +149,24 @@
     padding: var(--space-5);
   }
 }
+
+.org-update-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background-color: var(--color-surface-2);
+}
+
+.org-update-info h4 {
+  margin: 0 0 0.4rem 0;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.org-update-info p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

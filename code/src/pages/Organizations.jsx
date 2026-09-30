@@ -9,7 +9,7 @@ import {
 } from "../lib/sessionCache";
 import "../styles/Organizations.css";
 
-const Organizations = () => {
+const Organizations = ({ session }) => {
   const navigate = useNavigate();
   const cachedOrganizationsEntry = readSessionCache(ORGANIZATIONS_PAGE_CACHE_KEY);
   const cachedOrganizations = getSessionCacheValue(cachedOrganizationsEntry);
@@ -20,6 +20,7 @@ const Organizations = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(!Array.isArray(cachedOrganizations));
   const [revalidationKey, setRevalidationKey] = useState(0);
+  const [userOrganizationId, setUserOrganizationId] = useState(null);
 
   const isVisibleOrg = (org) => {
     const name = org.name?.trim()?.toLowerCase();
@@ -99,6 +100,29 @@ const Organizations = () => {
     setFilteredOrgs(results);
   }, [searchTerm, orgs]);
 
+  useEffect(() => {
+    const fetchUserOrganization = async () => {
+      if (!session?.user?.id) {
+        setUserOrganizationId(null);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("organization_id")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error(error.message);
+      } else {
+        setUserOrganizationId(data?.organization_id ?? null);
+      }
+    };
+
+    fetchUserOrganization();
+  }, [session?.user?.id]);
+
   return (
     <div className="organizations-page page-root">
       <main className="page-shell organizations-shell">
@@ -134,6 +158,7 @@ const Organizations = () => {
         <div className="masonry-container">
           {filteredOrgs.length > 0 &&
             filteredOrgs.map((org) => {
+              const isUserOrganization = org.id === userOrganizationId;
               const displayName = isValid(org.name)
                 ? org.name
                 : "Community Organization";
@@ -190,6 +215,16 @@ const Organizations = () => {
                             {org.email}
                           </a>
                         )}
+                      </div>
+                    )}
+
+                    {isUserOrganization && (
+                      <div className="org-update-info">
+                        <h4>Need to update your organization's information?</h4>
+                        <p>
+                          Contact an administrator with the new details you'd like to have
+                          updated.
+                        </p>
                       </div>
                     )}
 
