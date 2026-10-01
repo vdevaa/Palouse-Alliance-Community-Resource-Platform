@@ -22,7 +22,7 @@ The platform is intended to support a range of community members, including stud
 ## Installation
 
 ### Prerequisites
-- Node.js 20 or newer
+- Node.js 24.x
 - npm 10+ or yarn 4+
 - Git 2.0+
 
@@ -112,16 +112,17 @@ To connect to your own Supabase instance, update these variables in your `.env` 
 
 1. Import the repository into Vercel
 2. Set the project root to `code/`
-3. Configure build settings:
+3. Set the Node.js version to 24.x in your deployment environment or use the `code/package.json` engines setting
+4. Configure build settings:
    - Build command: `npm run build`
    - Output directory: `dist`
-4. Add all environment variables in Vercel Project Settings:
+5. Add all environment variables in Vercel Project Settings:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - Optional: `VITE_API_BASE`
-5. The included `code/vercel.json` routes `/api/*` to serverless functions and all other routes to the SPA entrypoint
+6. The included `code/vercel.json` routes `/api/*` to serverless functions and all other routes to the SPA entrypoint
 
 ## Functionality
 
