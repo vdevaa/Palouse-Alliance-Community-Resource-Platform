@@ -1,6 +1,6 @@
 # Sprint 4 Report (08/24/2026 to 09/30/2026)
 ## YouTube link of Sprint Video
-[Sprint 4 Video](INSERT)
+[Sprint 4 Video](https://youtu.be/6Ck36kUL_XE)
 
 ## What's New (User Facing)
 * Organization members can now see clear instructions on how to request changes to their organization's details via an administrator.
